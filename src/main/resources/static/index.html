@@ -103,7 +103,6 @@
             overflow: hidden;
         }
 
-        /* 顶部栏 */
         .header {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
@@ -138,7 +137,6 @@
             background: rgba(255,255,255,0.3);
         }
 
-        /* 操作栏 */
         .action-bar {
             padding: 20px 30px;
             background: #f8f9fa;
@@ -202,16 +200,6 @@
             background: #5a6268;
         }
 
-        .btn-warning {
-            background: #ed8936;
-            color: white;
-        }
-
-        .btn-warning:hover {
-            background: #dd6b20;
-        }
-
-        /* 表格容器 */
         .table-container {
             padding: 0 30px 30px 30px;
             overflow-x: auto;
@@ -224,8 +212,7 @@
             font-size: 13px;
         }
 
-        .data-table th,
-        .data-table td {
+        .data-table th, .data-table td {
             padding: 10px 12px;
             text-align: left;
             border-bottom: 1px solid #e0e0e0;
@@ -236,8 +223,6 @@
             font-weight: 600;
             color: #555;
             border-bottom: 2px solid #e0e0e0;
-            position: sticky;
-            top: 0;
         }
 
         .data-table tr:hover {
@@ -258,7 +243,6 @@
             background: #5a67d8;
         }
 
-        /* 分页样式 */
         .pagination {
             display: flex;
             justify-content: center;
@@ -295,9 +279,16 @@
             border-color: #667eea;
         }
 
-        .page-info {
-            margin: 0 15px;
+        .stats {
+            padding: 15px 30px;
+            background: #f8f9fa;
             color: #666;
+            font-size: 14px;
+            border-top: 1px solid #e0e0e0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
         }
 
         /* 模态框样式 */
@@ -355,7 +346,7 @@
             overflow-y: auto;
         }
 
-        /* 表单分组样式 */
+        /* 表单样式 */
         .form-section {
             background: #f8f9fa;
             border-radius: 8px;
@@ -389,30 +380,20 @@
             margin-bottom: 5px;
         }
 
-        .form-group label .optional {
-            color: #999;
-            font-weight: normal;
-            font-size: 11px;
-        }
-
-        .form-group input,
-        .form-group select,
-        .form-group textarea {
+        .form-group input, .form-group select {
             padding: 10px;
             border: 1px solid #ddd;
             border-radius: 5px;
             font-size: 14px;
+            cursor: pointer;
         }
 
-        .form-group input:focus,
-        .form-group select:focus,
-        .form-group textarea:focus {
+        .form-group input:focus, .form-group select:focus {
             outline: none;
             border-color: #667eea;
         }
 
-        .form-group input.error-input,
-        .form-group select.error-input {
+        .form-group input.error-input, .form-group select.error-input {
             border-color: #f56565;
         }
 
@@ -423,7 +404,7 @@
             display: none;
         }
 
-        /* 左右眼并排列 */
+        /* 左右眼布局 */
         .eyes-container {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -444,11 +425,7 @@
             font-size: 16px;
         }
 
-        .eye-box .form-group {
-            margin-bottom: 12px;
-        }
-
-        /* 商品信息三列布局 */
+        /* 商品信息布局 */
         .product-row {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
@@ -478,7 +455,86 @@
             border-top: 1px solid #e0e0e0;
         }
 
-        /* 提示消息 */
+        /* 表格选择器弹窗 */
+        .picker-overlay {
+            display: none;
+            position: fixed;
+            z-index: 2000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+            justify-content: center;
+            align-items: center;
+        }
+
+        .picker-container {
+            background: white;
+            border-radius: 10px;
+            width: 90%;
+            max-width: 500px;
+            max-height: 80vh;
+            overflow-y: auto;
+            box-shadow: 0 5px 30px rgba(0,0,0,0.3);
+        }
+
+        .picker-header {
+            padding: 15px 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 10px 10px 0 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .picker-header h4 {
+            margin: 0;
+        }
+
+        .sign-toggle-btn {
+            background: #ff6b35 !important;
+            color: white !important;
+            padding: 8px 20px !important;
+            font-size: 18px !important;
+            font-weight: bold !important;
+            border: none !important;
+            border-radius: 8px !important;
+            cursor: pointer !important;
+            transition: all 0.3s !important;
+            box-shadow: 0 4px 15px rgba(255,107,53,0.3) !important;
+        }
+
+        .sign-toggle-btn:hover {
+            background: #ff5722 !important;
+            transform: scale(1.02) !important;
+            box-shadow: 0 6px 20px rgba(255,107,53,0.4) !important;
+        }
+
+        .picker-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .picker-table th, .picker-table td {
+            padding: 12px;
+            text-align: center;
+            border: 1px solid #e0e0e0;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .picker-table th {
+            background: #f8f9fa;
+            font-weight: 600;
+        }
+
+        .picker-table td:hover {
+            background: #667eea;
+            color: white;
+        }
+
         .toast {
             position: fixed;
             top: 20px;
@@ -492,35 +548,12 @@
             animation: slideInRight 0.3s;
         }
 
-        .toast.success {
-            border-left: 4px solid #48bb78;
-        }
-
-        .toast.error {
-            border-left: 4px solid #f56565;
-        }
+        .toast.success { border-left: 4px solid #48bb78; }
+        .toast.error { border-left: 4px solid #f56565; }
 
         @keyframes slideInRight {
-            from {
-                transform: translateX(100%);
-                opacity: 0;
-            }
-            to {
-                transform: translateX(0);
-                opacity: 1;
-            }
-        }
-
-        .stats {
-            padding: 15px 30px;
-            background: #f8f9fa;
-            color: #666;
-            font-size: 14px;
-            border-top: 1px solid #e0e0e0;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-wrap: wrap;
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
         }
 
         .loading, .empty-data {
@@ -530,37 +563,11 @@
         }
 
         @media (max-width: 768px) {
-            .action-bar {
-                flex-direction: column;
-            }
-            .search-area {
-                width: 100%;
-                flex-direction: column;
-            }
-            .eyes-container {
-                grid-template-columns: 1fr;
-            }
-            .product-row {
-                grid-template-columns: 1fr;
-            }
-            .form-row {
-                grid-template-columns: 1fr;
-            }
-            .header {
-                flex-direction: column;
-                text-align: center;
-            }
-            .data-table {
-                font-size: 11px;
-            }
-            .data-table th, .data-table td {
-                padding: 6px 8px;
-            }
-            .stats {
-                flex-direction: column;
-                gap: 10px;
-                text-align: center;
-            }
+            .action-bar, .search-area { flex-direction: column; width: 100%; }
+            .eyes-container, .product-row { grid-template-columns: 1fr; }
+            .form-row { grid-template-columns: 1fr; }
+            .header { flex-direction: column; text-align: center; }
+            .stats { flex-direction: column; gap: 10px; text-align: center; }
         }
     </style>
 </head>
@@ -604,9 +611,7 @@
     </div>
 
     <div class="table-container">
-        <div id="tableContent">
-            <div class="loading">加载中...</div>
-        </div>
+        <div id="tableContent"><div class="loading">加载中...</div></div>
     </div>
 
     <div class="stats">
@@ -615,7 +620,7 @@
     </div>
 </div>
 
-<!-- 新增/编辑配镜处方模态框 -->
+<!-- 编辑模态框 -->
 <div id="editModal" class="modal">
     <div class="modal-content">
         <div class="modal-header">
@@ -626,220 +631,78 @@
             <form id="editForm">
                 <input type="hidden" id="editId">
 
-                <!-- 基本信息 -->
                 <div class="form-section">
                     <h4>📋 基本信息</h4>
                     <div class="form-row">
-                        <div class="form-group">
-                            <label>姓名 <span style="color: red;">*</span></label>
-                            <input type="text" id="editName" placeholder="请输入姓名">
-                            <div class="error-message" id="nameError">请输入姓名</div>
-                        </div>
-                        <div class="form-group">
-                            <label>性别 <span style="color: red;">*</span></label>
-                            <select id="editGender">
-                                <option value="">请选择</option>
-                                <option value="男">男</option>
-                                <option value="女">女</option>
-                            </select>
-                            <div class="error-message" id="genderError">请选择性别</div>
-                        </div>
-                        <div class="form-group">
-                            <label>年龄 <span style="color: red;">*</span></label>
-                            <input type="number" id="editAge" placeholder="请输入年龄">
-                            <div class="error-message" id="ageError">请输入有效年龄</div>
-                        </div>
-                        <div class="form-group">
-                            <label>店名 <span style="color: red;">*</span></label>
-                            <input type="text" id="editShopName" placeholder="请输入店名">
-                            <div class="error-message" id="shopNameError">请输入店名</div>
-                        </div>
+                        <div class="form-group"><label>姓名 <span style="color:red;">*</span></label><input type="text" id="editName"></div>
+                        <div class="form-group"><label>性别 <span style="color:red;">*</span></label><select id="editGender"><option value="">请选择</option><option value="男">男</option><option value="女">女</option></select></div>
+                        <div class="form-group"><label>年龄 <span style="color:red;">*</span></label><input type="number" id="editAge"></div>
+                        <div class="form-group"><label>店名 <span style="color:red;">*</span></label><input type="text" id="editShopName"></div>
                     </div>
                     <div class="form-row">
-                        <div class="form-group">
-                            <label>电话</label>
-                            <input type="tel" id="editPhone" placeholder="请输入电话">
-                        </div>
-                        <div class="form-group">
-                            <label>职业</label>
-                            <input type="text" id="editOccupation" placeholder="默认：无">
-                        </div>
-                        <div class="form-group">
-                            <label>配镜用途 <span style="color: red;">*</span></label>
-                            <select id="editGlassesPurpose">
-                                <option value="">请选择</option>
-                                <option value="近用">近用</option>
-                                <option value="远用">远用</option>
-                                <option value="青控">青控</option>
-                                <option value="渐进">渐进</option>
-                            </select>
-                            <div class="error-message" id="purposeError">请选择配镜用途</div>
-                        </div>
+                        <div class="form-group"><label>电话</label><input type="tel" id="editPhone"></div>
+                        <div class="form-group"><label>职业</label><input type="text" id="editOccupation" placeholder="默认：无"></div>
+                        <div class="form-group"><label>配镜用途 <span style="color:red;">*</span></label><select id="editGlassesPurpose"><option value="">请选择</option><option value="近用">近用</option><option value="远用">远用</option><option value="青控">青控</option><option value="渐进">渐进</option></select></div>
                     </div>
                 </div>
 
-                <!-- 视力检查 - 左右眼 -->
                 <div class="form-section">
                     <h4>👁️ 视力检查</h4>
                     <div class="eyes-container">
-                        <!-- 左眼 -->
                         <div class="eye-box">
                             <h5>左眼</h5>
-                            <div class="form-group">
-                                <label>球镜 (SPH)</label>
-                                <input type="number" step="0.25" id="editLeftSphere" placeholder="例：-2.00">
-                            </div>
-                            <div class="form-group">
-                                <label>柱镜 (CYL)</label>
-                                <input type="number" step="0.25" id="editLeftCylinder" placeholder="例：-0.75">
-                            </div>
-                            <div class="form-group">
-                                <label>轴位 (AXI)</label>
-                                <input type="number" id="editLeftAxis" placeholder="1-180">
-                            </div>
-                            <div class="form-group" id="leftAddGroup" style="display: none;">
-                                <label>下加光 (ADD)</label>
-                                <input type="number" step="0.25" id="editLeftAdd" placeholder="下加光度数">
-                            </div>
-                            <div class="form-group">
-                                <label>裸眼视力</label>
-                                <input type="text" id="editLeftUncorrectedVision" placeholder="例：0.8">
-                            </div>
-                            <div class="form-group">
-                                <label>矫正视力</label>
-                                <input type="text" id="editLeftCorrectedVision" placeholder="例：1.0">
-                            </div>
-                            <div class="form-group">
-                                <label>瞳距 (PD)</label>
-                                <input type="number" step="0.5" id="editLeftPupilDistance" placeholder="mm">
-                            </div>
-                            <div class="form-group">
-                                <label>瞳高 (PH)</label>
-                                <input type="number" step="0.5" id="editLeftPupilHeight" placeholder="mm">
-                            </div>
+                            <div class="form-group"><label>球镜 (SPH)</label><input type="text" id="editLeftSphere" readonly placeholder="点击选择" style="cursor:pointer; background:#f8f9fa;"></div>
+                            <div class="form-group"><label>柱镜 (CYL)</label><input type="text" id="editLeftCylinder" readonly placeholder="点击选择" style="cursor:pointer; background:#f8f9fa;"></div>
+                            <div class="form-group"><label>轴位 (AXI)</label><input type="text" id="editLeftAxis" readonly placeholder="点击选择" style="cursor:pointer; background:#f8f9fa;"></div>
+                            <div class="form-group" id="leftAddGroup" style="display:none;"><label>下加光 (ADD)</label><input type="number" step="0.25" id="editLeftAdd" placeholder="下加光度数"></div>
+                            <div class="form-group"><label>裸眼视力</label><input type="text" id="editLeftUncorrectedVision" readonly placeholder="点击选择" style="cursor:pointer; background:#f8f9fa;"></div>
+                            <div class="form-group"><label>矫正视力</label><input type="text" id="editLeftCorrectedVision" readonly placeholder="点击选择" style="cursor:pointer; background:#f8f9fa;"></div>
+                            <div class="form-group"><label>瞳距 (PD)</label><input type="text" id="editLeftPupilDistance" readonly placeholder="点击选择" style="cursor:pointer; background:#f8f9fa;"></div>
+                            <div class="form-group"><label>瞳高 (PH)</label><input type="number" step="0.5" id="editLeftPupilHeight" placeholder="mm"></div>
                         </div>
-                        <!-- 右眼 -->
                         <div class="eye-box">
                             <h5>右眼</h5>
-                            <div class="form-group">
-                                <label>球镜 (SPH)</label>
-                                <input type="number" step="0.25" id="editRightSphere" placeholder="例：-2.00">
-                            </div>
-                            <div class="form-group">
-                                <label>柱镜 (CYL)</label>
-                                <input type="number" step="0.25" id="editRightCylinder" placeholder="例：-0.75">
-                            </div>
-                            <div class="form-group">
-                                <label>轴位 (AXI)</label>
-                                <input type="number" id="editRightAxis" placeholder="1-180">
-                            </div>
-                            <div class="form-group" id="rightAddGroup" style="display: none;">
-                                <label>下加光 (ADD)</label>
-                                <input type="number" step="0.25" id="editRightAdd" placeholder="下加光度数">
-                            </div>
-                            <div class="form-group">
-                                <label>裸眼视力</label>
-                                <input type="text" id="editRightUncorrectedVision" placeholder="例：0.8">
-                            </div>
-                            <div class="form-group">
-                                <label>矫正视力</label>
-                                <input type="text" id="editRightCorrectedVision" placeholder="例：1.0">
-                            </div>
-                            <div class="form-group">
-                                <label>瞳距 (PD)</label>
-                                <input type="number" step="0.5" id="editRightPupilDistance" placeholder="mm">
-                            </div>
-                            <div class="form-group">
-                                <label>瞳高 (PH)</label>
-                                <input type="number" step="0.5" id="editRightPupilHeight" placeholder="mm">
-                            </div>
+                            <div class="form-group"><label>球镜 (SPH)</label><input type="text" id="editRightSphere" readonly placeholder="点击选择" style="cursor:pointer; background:#f8f9fa;"></div>
+                            <div class="form-group"><label>柱镜 (CYL)</label><input type="text" id="editRightCylinder" readonly placeholder="点击选择" style="cursor:pointer; background:#f8f9fa;"></div>
+                            <div class="form-group"><label>轴位 (AXI)</label><input type="text" id="editRightAxis" readonly placeholder="点击选择" style="cursor:pointer; background:#f8f9fa;"></div>
+                            <div class="form-group" id="rightAddGroup" style="display:none;"><label>下加光 (ADD)</label><input type="number" step="0.25" id="editRightAdd" placeholder="下加光度数"></div>
+                            <div class="form-group"><label>裸眼视力</label><input type="text" id="editRightUncorrectedVision" readonly placeholder="点击选择" style="cursor:pointer; background:#f8f9fa;"></div>
+                            <div class="form-group"><label>矫正视力</label><input type="text" id="editRightCorrectedVision" readonly placeholder="点击选择" style="cursor:pointer; background:#f8f9fa;"></div>
+                            <div class="form-group"><label>瞳距 (PD)</label><input type="text" id="editRightPupilDistance" readonly placeholder="点击选择" style="cursor:pointer; background:#f8f9fa;"></div>
+                            <div class="form-group"><label>瞳高 (PH)</label><input type="number" step="0.5" id="editRightPupilHeight" placeholder="mm"></div>
                         </div>
                     </div>
                 </div>
 
-                <!-- 商品信息 -->
                 <div class="form-section">
                     <h4>💰 配镜商品信息</h4>
-
-                    <!-- 镜架信息 -->
                     <div class="product-row">
                         <div class="product-item">
                             <h5>镜架信息</h5>
-                            <div class="form-group">
-                                <label>镜架型号</label>
-                                <input type="text" id="editFrameModel" placeholder="请输入镜架型号">
-                            </div>
-                            <div class="form-group">
-                                <label>镜架原价</label>
-                                <input type="number" step="0.01" id="editFrameOriginalPrice" placeholder="0.00">
-                            </div>
-                            <div class="form-group">
-                                <label>镜架折扣 (%)</label>
-                                <input type="number" step="1" id="editFrameDiscount" placeholder="例：80">
-                            </div>
-                            <div class="form-group">
-                                <label>最终镜架金额</label>
-                                <input type="number" step="0.01" id="editFrameFinalPrice" placeholder="自动计算">
-                            </div>
+                            <div class="form-group"><label>镜架型号</label><input type="text" id="editFrameModel"></div>
+                            <div class="form-group"><label>镜架原价</label><input type="number" step="0.01" id="editFrameOriginalPrice"></div>
+                            <div class="form-group"><label>镜架折扣 (%)</label><input type="number" step="1" id="editFrameDiscount"></div>
+                            <div class="form-group"><label>最终镜架金额</label><input type="number" step="0.01" id="editFrameFinalPrice"></div>
                         </div>
-
-                        <!-- 镜片信息 -->
                         <div class="product-item">
                             <h5>镜片信息</h5>
-                            <div class="form-group">
-                                <label>镜片种类</label>
-                                <input type="text" id="editLensType" placeholder="例：单光/防蓝光">
-                            </div>
-                            <div class="form-group">
-                                <label>镜片原价</label>
-                                <input type="number" step="0.01" id="editLensOriginalPrice" placeholder="0.00">
-                            </div>
-                            <div class="form-group">
-                                <label>镜片折扣 (%)</label>
-                                <input type="number" step="1" id="editLensDiscount" placeholder="例：80">
-                            </div>
-                            <div class="form-group">
-                                <label>最终镜片金额</label>
-                                <input type="number" step="0.01" id="editLensFinalPrice" placeholder="自动计算">
-                            </div>
+                            <div class="form-group"><label>镜片种类</label><input type="text" id="editLensType"></div>
+                            <div class="form-group"><label>镜片原价</label><input type="number" step="0.01" id="editLensOriginalPrice"></div>
+                            <div class="form-group"><label>镜片折扣 (%)</label><input type="number" step="1" id="editLensDiscount"></div>
+                            <div class="form-group"><label>最终镜片金额</label><input type="number" step="0.01" id="editLensFinalPrice"></div>
                         </div>
-
-                        <!-- 其他项目 -->
                         <div class="product-item">
                             <h5>其他项目</h5>
-                            <div class="form-group">
-                                <label>其他项目说明</label>
-                                <textarea id="editOtherItems" rows="2" placeholder="其他收费项目说明" style="width:100%; padding:8px; border:1px solid #ddd; border-radius:5px;"></textarea>
-                            </div>
-                            <div class="form-group">
-                                <label>其他费用</label>
-                                <input type="number" step="0.01" id="editOtherCost" placeholder="0.00">
-                            </div>
+                            <div class="form-group"><label>其他项目说明</label><textarea id="editOtherItems" rows="2"></textarea></div>
+                            <div class="form-group"><label>其他费用</label><input type="number" step="0.01" id="editOtherCost"></div>
                         </div>
                     </div>
-
-                    <!-- 结算信息 -->
-                    <div class="form-row" style="margin-top: 15px;">
-                        <div class="form-group">
-                            <label>配镜总金额</label>
-                            <input type="number" step="0.01" id="editTotalAmount" placeholder="自动计算" readonly style="background:#f0f0f0;">
-                        </div>
-                        <div class="form-group">
-                            <label>配镜顾问</label>
-                            <input type="text" id="editConsultant" placeholder="配镜顾问姓名">
-                        </div>
-                        <div class="form-group">
-                            <label>是否需要回访</label>
-                            <select id="editNeedFollowup">
-                                <option value="否">否</option>
-                                <option value="是">是</option>
-                            </select>
-                        </div>
+                    <div class="form-row">
+                        <div class="form-group"><label>配镜总金额</label><input type="text" id="editTotalAmount" readonly style="background:#f0f0f0;"></div>
+                        <div class="form-group"><label>配镜顾问</label><input type="text" id="editConsultant"></div>
+                        <div class="form-group"><label>是否需要回访</label><select id="editNeedFollowup"><option value="否">否</option><option value="是">是</option></select></div>
                     </div>
-                    <div class="form-group">
-                        <label>备注</label>
-                        <textarea id="editRemark" rows="2" placeholder="备注信息" style="width:100%; padding:8px; border:1px solid #ddd; border-radius:5px;"></textarea>
-                    </div>
+                    <div class="form-group"><label>备注</label><textarea id="editRemark" rows="2"></textarea></div>
                 </div>
             </form>
         </div>
@@ -850,189 +713,157 @@
     </div>
 </div>
 
-<!-- 提示消息 -->
+<!-- 表格选择器弹窗 -->
+<div id="pickerOverlay" class="picker-overlay">
+    <div class="picker-container">
+        <div class="picker-header">
+            <h4 id="pickerTitle">选择数值</h4>
+            <button id="signToggleBtn" class="sign-toggle-btn" style="display:none;">负值 -</button>
+            <span class="close" onclick="closePicker()" style="color:white;">&times;</span>
+        </div>
+        <div id="pickerTableContainer"></div>
+    </div>
+</div>
+
 <div id="toast" class="toast"></div>
 
 <script>
     const API_BASE = '/api';
-    let currentPage = 1;
-    let pageSize = 10;
-    let totalData = [];
-    let currentSearchKeyword = '';
-    let isEditMode = false;
+    let currentPage = 1, pageSize = 10, totalData = [], currentSearchKeyword = '';
+    let currentPickerInput = null;
+    let currentPickerType = '';
+    let currentSign = -1; // -1 负值, 1 正值
 
-    // 监听配镜用途变化
-    function setupPurposeListener() {
-        const purposeSelect = document.getElementById('editGlassesPurpose');
-        if (purposeSelect) {
-            purposeSelect.removeEventListener('change', purposeChangeHandler);
-            purposeSelect.addEventListener('change', purposeChangeHandler);
+    // ========== 数据生成函数 ==========
+    // 生成球镜/柱镜数值 (-16.00 到 +16.00，步长0.25)
+    function generateDiopterValues() {
+        let values = [];
+        for (let d = 0; d <= 1600; d += 25) {
+            let val = d / 100;
+            values.push(val);
+        }
+        return values;
+    }
+
+    function displayDiopterValues(positive) {
+        let values = generateDiopterValues();
+        if (positive) {
+            return values.map(v => '+' + v.toFixed(2));
+        } else {
+            return values.map(v => '-' + v.toFixed(2));
         }
     }
 
-    function purposeChangeHandler() {
-        const isProgressive = this.value === '渐进';
-        const leftAddGroup = document.getElementById('leftAddGroup');
-        const rightAddGroup = document.getElementById('rightAddGroup');
-        if (leftAddGroup) leftAddGroup.style.display = isProgressive ? 'block' : 'none';
-        if (rightAddGroup) rightAddGroup.style.display = isProgressive ? 'block' : 'none';
+    // 生成轴位数值 (1-180)
+    function generateAxisValues() {
+        let values = [];
+        for (let i = 1; i <= 180; i++) {
+            values.push(i);
+        }
+        return values;
     }
 
-    // 金额计算
-    function setupPriceCalculations() {
-        const frameOriginal = document.getElementById('editFrameOriginalPrice');
-        const frameDiscount = document.getElementById('editFrameDiscount');
-        const frameFinal = document.getElementById('editFrameFinalPrice');
-        const lensOriginal = document.getElementById('editLensOriginalPrice');
-        const lensDiscount = document.getElementById('editLensDiscount');
-        const lensFinal = document.getElementById('editLensFinalPrice');
-        const otherCost = document.getElementById('editOtherCost');
-        const totalAmount = document.getElementById('editTotalAmount');
+    // 生成视力数值 (0.1,0.12,0.15,0.2,0.25,0.3,0.4,0.5,0.6,0.7,0.8,0.9,1.0,1.2,1.5,2.0)
+    function generateVisionValues() {
+        return [0.1, 0.12, 0.15, 0.2, 0.25, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0, 1.2, 1.5, 2.0];
+    }
 
-        function calcFrameFinal() {
-            const original = parseFloat(frameOriginal?.value) || 0;
-            const discount = parseFloat(frameDiscount?.value) || 100;
-            const final = original * discount / 100;
-            if (frameFinal) frameFinal.value = final.toFixed(2);
-            calcTotal();
+    // 生成瞳距数值 (50-80，步长0.5)
+    function generatePdValues() {
+        let values = [];
+        for (let i = 50; i <= 80; i += 0.5) {
+            values.push(i);
+        }
+        return values;
+    }
+
+    // ========== 表格选择器 ==========
+    function showPicker(inputElement, type, title) {
+        currentPickerInput = inputElement;
+        currentPickerType = type;
+        document.getElementById('pickerTitle').innerText = title;
+
+        let signBtn = document.getElementById('signToggleBtn');
+        let html = '';
+
+        if (type === 'diopter') {
+            signBtn.style.display = 'block';
+            signBtn.innerText = currentSign === -1 ? '负值 -' : '正值 +';
+            let values = displayDiopterValues(currentSign === 1);
+            html = '<table class="picker-table"><tr>';
+            for (let i = 0; i < values.length; i++) {
+                if (i > 0 && i % 5 === 0) html += '</tr><tr>';
+                html += `<td onclick="selectValue('${values[i]}')">${values[i]}</td>`;
+            }
+            html += '</tr></table>';
+        } else if (type === 'axis') {
+            signBtn.style.display = 'none';
+            let values = generateAxisValues();
+            html = '<table class="picker-table"><tr>';
+            for (let i = 0; i < values.length; i++) {
+                if (i > 0 && i % 10 === 0) html += '</tr><tr>';
+                html += `<td onclick="selectValue('${values[i]}')">${values[i]}°</td>`;
+            }
+            html += '</tr></table>';
+        } else if (type === 'vision') {
+            signBtn.style.display = 'none';
+            let values = generateVisionValues();
+            html = '<table class="picker-table"><tr>';
+            for (let i = 0; i < values.length; i++) {
+                if (i > 0 && i % 5 === 0) html += '</tr><tr>';
+                html += `<td onclick="selectValue('${values[i]}')">${values[i]}</td>`;
+            }
+            html += '</tr></table>';
+        } else if (type === 'pd') {
+            signBtn.style.display = 'none';
+            let values = generatePdValues();
+            html = '<table class="picker-table"><tr>';
+            for (let i = 0; i < values.length; i++) {
+                if (i > 0 && i % 8 === 0) html += '</tr><tr>';
+                html += `<td onclick="selectValue('${values[i]}')">${values[i]}mm</td>`;
+            }
+            html += '</tr></table>';
         }
 
-        function calcLensFinal() {
-            const original = parseFloat(lensOriginal?.value) || 0;
-            const discount = parseFloat(lensDiscount?.value) || 100;
-            const final = original * discount / 100;
-            if (lensFinal) lensFinal.value = final.toFixed(2);
-            calcTotal();
+        document.getElementById('pickerTableContainer').innerHTML = html;
+        document.getElementById('pickerOverlay').style.display = 'flex';
+    }
+
+    function selectValue(value) {
+        if (currentPickerInput) {
+            let numValue = parseFloat(value);
+            if (currentPickerType === 'diopter' && currentSign === -1 && !value.startsWith('-')) {
+                currentPickerInput.value = '-' + numValue.toFixed(2);
+            } else {
+                currentPickerInput.value = value;
+            }
+            // 触发input事件以便自动计算总金额
+            const event = new Event('input', { bubbles: true });
+            currentPickerInput.dispatchEvent(event);
         }
+        closePicker();
+    }
 
-        function calcTotal() {
-            const frame = parseFloat(frameFinal?.value) || 0;
-            const lens = parseFloat(lensFinal?.value) || 0;
-            const other = parseFloat(otherCost?.value) || 0;
-            if (totalAmount) totalAmount.value = (frame + lens + other).toFixed(2);
+    function toggleSign() {
+        currentSign = currentSign * -1;
+        let signBtn = document.getElementById('signToggleBtn');
+        signBtn.innerText = currentSign === -1 ? '负值 -' : '正值 +';
+        let values = displayDiopterValues(currentSign === 1);
+        let html = '<table class="picker-table"><tr>';
+        for (let i = 0; i < values.length; i++) {
+            if (i > 0 && i % 5 === 0) html += '</tr><tr>';
+            html += `<td onclick="selectValue('${values[i]}')">${values[i]}</td>`;
         }
-
-        if (frameOriginal) frameOriginal.addEventListener('input', calcFrameFinal);
-        if (frameDiscount) frameDiscount.addEventListener('input', calcFrameFinal);
-        if (lensOriginal) lensOriginal.addEventListener('input', calcLensFinal);
-        if (lensDiscount) lensDiscount.addEventListener('input', calcLensFinal);
-        if (otherCost) otherCost.addEventListener('input', calcTotal);
+        html += '</tr></table>';
+        document.getElementById('pickerTableContainer').innerHTML = html;
     }
 
-    // 验证表单
-    function validateForm() {
-        let isValid = true;
-
-        const name = document.getElementById('editName')?.value.trim();
-        if (!name) { showError('editName', 'nameError'); isValid = false; }
-        else { clearError('editName', 'nameError'); }
-
-        const gender = document.getElementById('editGender')?.value;
-        if (!gender) { showError('editGender', 'genderError'); isValid = false; }
-        else { clearError('editGender', 'genderError'); }
-
-        const age = document.getElementById('editAge')?.value;
-        if (!age || age < 1 || age > 120) { showError('editAge', 'ageError'); isValid = false; }
-        else { clearError('editAge', 'ageError'); }
-
-        const shopName = document.getElementById('editShopName')?.value.trim();
-        if (!shopName) { showError('editShopName', 'shopNameError'); isValid = false; }
-        else { clearError('editShopName', 'shopNameError'); }
-
-        const purpose = document.getElementById('editGlassesPurpose')?.value;
-        if (!purpose) { showError('editGlassesPurpose', 'purposeError'); isValid = false; }
-        else { clearError('editGlassesPurpose', 'purposeError'); }
-
-        return isValid;
+    function closePicker() {
+        document.getElementById('pickerOverlay').style.display = 'none';
+        currentPickerInput = null;
     }
 
-    function showError(inputId, errorId) {
-        const input = document.getElementById(inputId);
-        const error = document.getElementById(errorId);
-        if (input) input.classList.add('error-input');
-        if (error) error.style.display = 'block';
-    }
-
-    function clearError(inputId, errorId) {
-        const input = document.getElementById(inputId);
-        const error = document.getElementById(errorId);
-        if (input) input.classList.remove('error-input');
-        if (error) error.style.display = 'none';
-    }
-
-    function clearErrors() {
-        const errorIds = ['nameError', 'genderError', 'ageError', 'shopNameError', 'purposeError'];
-        errorIds.forEach(id => {
-            const el = document.getElementById(id);
-            if (el) el.style.display = 'none';
-        });
-        const errorInputs = ['editName', 'editGender', 'editAge', 'editShopName', 'editGlassesPurpose'];
-        errorInputs.forEach(id => {
-            const el = document.getElementById(id);
-            if (el) el.classList.remove('error-input');
-        });
-    }
-
-    function closeModal() {
-        const modal = document.getElementById('editModal');
-        if (modal) modal.style.display = 'none';
-        clearErrors();
-        isEditMode = false;
-    }
-
-    function showToast(message, type) {
-        const toast = document.getElementById('toast');
-        toast.textContent = message;
-        toast.className = 'toast ' + type;
-        toast.style.display = 'block';
-        setTimeout(() => { toast.style.display = 'none'; }, 3000);
-    }
-
-    // 收集表单数据
-    function collectFormData() {
-        return {
-            id: document.getElementById('editId')?.value ? parseInt(document.getElementById('editId').value) : null,
-            name: document.getElementById('editName')?.value.trim(),
-            gender: document.getElementById('editGender')?.value,
-            age: parseInt(document.getElementById('editAge')?.value),
-            shopName: document.getElementById('editShopName')?.value.trim(),
-            phone: document.getElementById('editPhone')?.value,
-            occupation: document.getElementById('editOccupation')?.value || '无',
-            glassesPurpose: document.getElementById('editGlassesPurpose')?.value,
-            leftSphere: parseFloat(document.getElementById('editLeftSphere')?.value) || null,
-            leftCylinder: parseFloat(document.getElementById('editLeftCylinder')?.value) || null,
-            leftAxis: parseInt(document.getElementById('editLeftAxis')?.value) || null,
-            leftAdd: parseFloat(document.getElementById('editLeftAdd')?.value) || null,
-            leftUncorrectedVision: document.getElementById('editLeftUncorrectedVision')?.value,
-            leftCorrectedVision: document.getElementById('editLeftCorrectedVision')?.value,
-            leftPupilDistance: parseFloat(document.getElementById('editLeftPupilDistance')?.value) || null,
-            leftPupilHeight: parseFloat(document.getElementById('editLeftPupilHeight')?.value) || null,
-            rightSphere: parseFloat(document.getElementById('editRightSphere')?.value) || null,
-            rightCylinder: parseFloat(document.getElementById('editRightCylinder')?.value) || null,
-            rightAxis: parseInt(document.getElementById('editRightAxis')?.value) || null,
-            rightAdd: parseFloat(document.getElementById('editRightAdd')?.value) || null,
-            rightUncorrectedVision: document.getElementById('editRightUncorrectedVision')?.value,
-            rightCorrectedVision: document.getElementById('editRightCorrectedVision')?.value,
-            rightPupilDistance: parseFloat(document.getElementById('editRightPupilDistance')?.value) || null,
-            rightPupilHeight: parseFloat(document.getElementById('editRightPupilHeight')?.value) || null,
-            frameModel: document.getElementById('editFrameModel')?.value,
-            frameOriginalPrice: parseFloat(document.getElementById('editFrameOriginalPrice')?.value) || null,
-            frameDiscount: parseFloat(document.getElementById('editFrameDiscount')?.value) || null,
-            frameFinalPrice: parseFloat(document.getElementById('editFrameFinalPrice')?.value) || null,
-            lensType: document.getElementById('editLensType')?.value,
-            lensOriginalPrice: parseFloat(document.getElementById('editLensOriginalPrice')?.value) || null,
-            lensDiscount: parseFloat(document.getElementById('editLensDiscount')?.value) || null,
-            lensFinalPrice: parseFloat(document.getElementById('editLensFinalPrice')?.value) || null,
-            otherItems: document.getElementById('editOtherItems')?.value,
-            otherCost: parseFloat(document.getElementById('editOtherCost')?.value) || 0,
-            totalAmount: parseFloat(document.getElementById('editTotalAmount')?.value) || null,
-            consultant: document.getElementById('editConsultant')?.value,
-            needFollowup: document.getElementById('editNeedFollowup')?.value,
-            remark: document.getElementById('editRemark')?.value
-        };
-    }
-
-    // 填充表单数据（编辑时）
+    // ========== 表单数据填充 ==========
     function fillFormData(data) {
         document.getElementById('editId').value = data.id || '';
         document.getElementById('editName').value = data.name || '';
@@ -1076,7 +907,7 @@
         document.getElementById('editNeedFollowup').value = data.needFollowup || '否';
         document.getElementById('editRemark').value = data.remark || '';
 
-        // 触发一下配镜用途变化，控制下加光显示
+        // 触发配镜用途变化
         const purposeSelect = document.getElementById('editGlassesPurpose');
         if (purposeSelect) {
             const event = new Event('change');
@@ -1094,14 +925,141 @@
         }, 100);
     }
 
-    // 提交新增/编辑
+    function collectFormData() {
+        return {
+            id: document.getElementById('editId')?.value ? parseInt(document.getElementById('editId').value) : null,
+            name: document.getElementById('editName')?.value.trim(),
+            gender: document.getElementById('editGender')?.value,
+            age: parseInt(document.getElementById('editAge')?.value),
+            shopName: document.getElementById('editShopName')?.value.trim(),
+            phone: document.getElementById('editPhone')?.value,
+            occupation: document.getElementById('editOccupation')?.value || '无',
+            glassesPurpose: document.getElementById('editGlassesPurpose')?.value,
+            leftSphere: parseFloat(document.getElementById('editLeftSphere')?.value) || null,
+            leftCylinder: parseFloat(document.getElementById('editLeftCylinder')?.value) || null,
+            leftAxis: parseInt(document.getElementById('editLeftAxis')?.value) || null,
+            leftAdd: parseFloat(document.getElementById('editLeftAdd')?.value) || null,
+            leftUncorrectedVision: document.getElementById('editLeftUncorrectedVision')?.value,
+            leftCorrectedVision: document.getElementById('editLeftCorrectedVision')?.value,
+            leftPupilDistance: parseFloat(document.getElementById('editLeftPupilDistance')?.value) || null,
+            leftPupilHeight: parseFloat(document.getElementById('editLeftPupilHeight')?.value) || null,
+            rightSphere: parseFloat(document.getElementById('editRightSphere')?.value) || null,
+            rightCylinder: parseFloat(document.getElementById('editRightCylinder')?.value) || null,
+            rightAxis: parseInt(document.getElementById('editRightAxis')?.value) || null,
+            rightAdd: parseFloat(document.getElementById('editRightAdd')?.value) || null,
+            rightUncorrectedVision: document.getElementById('editRightUncorrectedVision')?.value,
+            rightCorrectedVision: document.getElementById('editRightCorrectedVision')?.value,
+            rightPupilDistance: parseFloat(document.getElementById('editRightPupilDistance')?.value) || null,
+            rightPupilHeight: parseFloat(document.getElementById('editRightPupilHeight')?.value) || null,
+            frameModel: document.getElementById('editFrameModel')?.value,
+            frameOriginalPrice: parseFloat(document.getElementById('editFrameOriginalPrice')?.value) || null,
+            frameDiscount: parseFloat(document.getElementById('editFrameDiscount')?.value) || null,
+            frameFinalPrice: parseFloat(document.getElementById('editFrameFinalPrice')?.value) || null,
+            lensType: document.getElementById('editLensType')?.value,
+            lensOriginalPrice: parseFloat(document.getElementById('editLensOriginalPrice')?.value) || null,
+            lensDiscount: parseFloat(document.getElementById('editLensDiscount')?.value) || null,
+            lensFinalPrice: parseFloat(document.getElementById('editLensFinalPrice')?.value) || null,
+            otherItems: document.getElementById('editOtherItems')?.value,
+            otherCost: parseFloat(document.getElementById('editOtherCost')?.value) || 0,
+            totalAmount: parseFloat(document.getElementById('editTotalAmount')?.value) || null,
+            consultant: document.getElementById('editConsultant')?.value,
+            needFollowup: document.getElementById('editNeedFollowup')?.value,
+            remark: document.getElementById('editRemark')?.value
+        };
+    }
+
+    // ========== 金额计算 ==========
+    function setupPriceCalculations() {
+        const frameOriginal = document.getElementById('editFrameOriginalPrice');
+        const frameDiscount = document.getElementById('editFrameDiscount');
+        const frameFinal = document.getElementById('editFrameFinalPrice');
+        const lensOriginal = document.getElementById('editLensOriginalPrice');
+        const lensDiscount = document.getElementById('editLensDiscount');
+        const lensFinal = document.getElementById('editLensFinalPrice');
+        const otherCost = document.getElementById('editOtherCost');
+        const totalAmount = document.getElementById('editTotalAmount');
+
+        function calcFrameFinal() {
+            const original = parseFloat(frameOriginal?.value) || 0;
+            const discount = parseFloat(frameDiscount?.value) || 100;
+            const final = original * discount / 100;
+            if (frameFinal) frameFinal.value = final.toFixed(2);
+            calcTotal();
+        }
+        function calcLensFinal() {
+            const original = parseFloat(lensOriginal?.value) || 0;
+            const discount = parseFloat(lensDiscount?.value) || 100;
+            const final = original * discount / 100;
+            if (lensFinal) lensFinal.value = final.toFixed(2);
+            calcTotal();
+        }
+        function calcTotal() {
+            const frame = parseFloat(frameFinal?.value) || 0;
+            const lens = parseFloat(lensFinal?.value) || 0;
+            const other = parseFloat(otherCost?.value) || 0;
+            if (totalAmount) totalAmount.value = (frame + lens + other).toFixed(2);
+        }
+        if (frameOriginal) frameOriginal.addEventListener('input', calcFrameFinal);
+        if (frameDiscount) frameDiscount.addEventListener('input', calcFrameFinal);
+        if (lensOriginal) lensOriginal.addEventListener('input', calcLensFinal);
+        if (lensDiscount) lensDiscount.addEventListener('input', calcLensFinal);
+        if (otherCost) otherCost.addEventListener('input', calcTotal);
+    }
+
+    // ========== 表单验证 ==========
+    function validateForm() {
+        let isValid = true;
+        const name = document.getElementById('editName')?.value.trim();
+        if (!name) { showError('editName', 'nameError'); isValid = false; } else { clearError('editName', 'nameError'); }
+        const gender = document.getElementById('editGender')?.value;
+        if (!gender) { showError('editGender', 'genderError'); isValid = false; } else { clearError('editGender', 'genderError'); }
+        const age = document.getElementById('editAge')?.value;
+        if (!age || age < 1 || age > 120) { showError('editAge', 'ageError'); isValid = false; } else { clearError('editAge', 'ageError'); }
+        const shopName = document.getElementById('editShopName')?.value.trim();
+        if (!shopName) { showError('editShopName', 'shopNameError'); isValid = false; } else { clearError('editShopName', 'shopNameError'); }
+        const purpose = document.getElementById('editGlassesPurpose')?.value;
+        if (!purpose) { showError('editGlassesPurpose', 'purposeError'); isValid = false; } else { clearError('editGlassesPurpose', 'purposeError'); }
+        return isValid;
+    }
+
+    function showError(inputId, errorId) {
+        const input = document.getElementById(inputId);
+        const error = document.getElementById(errorId);
+        if (input) input.classList.add('error-input');
+        if (error) error.style.display = 'block';
+    }
+    function clearError(inputId, errorId) {
+        const input = document.getElementById(inputId);
+        const error = document.getElementById(errorId);
+        if (input) input.classList.remove('error-input');
+        if (error) error.style.display = 'none';
+    }
+    function clearErrors() {
+        const errorIds = ['nameError', 'genderError', 'ageError', 'shopNameError', 'purposeError'];
+        errorIds.forEach(id => { const el = document.getElementById(id); if (el) el.style.display = 'none'; });
+        const errorInputs = ['editName', 'editGender', 'editAge', 'editShopName', 'editGlassesPurpose'];
+        errorInputs.forEach(id => { const el = document.getElementById(id); if (el) el.classList.remove('error-input'); });
+    }
+
+    // ========== 模态框操作 ==========
+    function closeModal() {
+        document.getElementById('editModal').style.display = 'none';
+        clearErrors();
+    }
+
+    function showToast(message, type) {
+        const toast = document.getElementById('toast');
+        toast.textContent = message;
+        toast.className = 'toast ' + type;
+        toast.style.display = 'block';
+        setTimeout(() => { toast.style.display = 'none'; }, 3000);
+    }
+
     async function submitEdit() {
         if (!validateForm()) return;
-
         const formData = collectFormData();
         const isUpdate = !!formData.id;
         const url = isUpdate ? `${API_BASE}/updateUser` : `${API_BASE}/addUser`;
-
         try {
             const response = await fetch(url, {
                 method: 'POST',
@@ -1112,26 +1070,21 @@
             const result = await response.json();
             if (result.success) {
                 closeModal();
-                showToast(isUpdate ? '修改成功！' : '添加成功！新用户序号：' + result.serialNo, 'success');
+                showToast(isUpdate ? '修改成功！' : '添加成功！', 'success');
                 loadAllData();
             } else {
                 showToast(result.message, 'error');
             }
         } catch (error) {
-            showToast(isUpdate ? '修改失败，请稍后重试' : '添加失败，请稍后重试', 'error');
+            showToast(isUpdate ? '修改失败' : '添加失败', 'error');
         }
     }
 
-    // 编辑记录
     async function editRecord(id) {
         try {
-            const response = await fetch(`${API_BASE}/getUser/${id}`, {
-                method: 'GET',
-                credentials: 'include'
-            });
+            const response = await fetch(`${API_BASE}/getUser/${id}`, { method: 'GET', credentials: 'include' });
             const result = await response.json();
             if (result.success) {
-                isEditMode = true;
                 document.getElementById('modalTitle').textContent = '编辑配镜处方';
                 fillFormData(result.data);
                 document.getElementById('editModal').style.display = 'block';
@@ -1143,15 +1096,17 @@
         }
     }
 
-    // 显示新增模态框
     function showAddModal() {
-        isEditMode = false;
         document.getElementById('modalTitle').textContent = '新增配镜处方';
         document.getElementById('editForm').reset();
         document.getElementById('editId').value = '';
         clearErrors();
         setupPriceCalculations();
-        setupPurposeListener();
+        // 设置默认值
+        document.getElementById('editOccupation').value = '无';
+        document.getElementById('editNeedFollowup').value = '否';
+        document.getElementById('editOtherCost').value = 0;
+        // 触发配镜用途变化
         const purposeSelect = document.getElementById('editGlassesPurpose');
         if (purposeSelect) {
             const event = new Event('change');
@@ -1160,13 +1115,56 @@
         document.getElementById('editModal').style.display = 'block';
     }
 
-    // 登录检查
+    function setupPurposeListener() {
+        const purposeSelect = document.getElementById('editGlassesPurpose');
+        if (purposeSelect) {
+            purposeSelect.addEventListener('change', function() {
+                const isProgressive = this.value === '渐进';
+                document.getElementById('leftAddGroup').style.display = isProgressive ? 'block' : 'none';
+                document.getElementById('rightAddGroup').style.display = isProgressive ? 'block' : 'none';
+            });
+        }
+    }
+
+    // 绑定表格选择器点击事件
+    function bindPickerEvents() {
+        const pickerFields = [
+            'editLeftSphere', 'editLeftCylinder', 'editLeftAxis', 'editLeftUncorrectedVision', 'editLeftCorrectedVision', 'editLeftPupilDistance',
+            'editRightSphere', 'editRightCylinder', 'editRightAxis', 'editRightUncorrectedVision', 'editRightCorrectedVision', 'editRightPupilDistance'
+        ];
+        const fieldTypes = {
+            'editLeftSphere': 'diopter', 'editLeftCylinder': 'diopter', 'editRightSphere': 'diopter', 'editRightCylinder': 'diopter',
+            'editLeftAxis': 'axis', 'editRightAxis': 'axis',
+            'editLeftUncorrectedVision': 'vision', 'editLeftCorrectedVision': 'vision', 'editRightUncorrectedVision': 'vision', 'editRightCorrectedVision': 'vision',
+            'editLeftPupilDistance': 'pd', 'editRightPupilDistance': 'pd'
+        };
+        const fieldTitles = {
+            'diopter': '选择度数', 'axis': '选择轴位', 'vision': '选择视力', 'pd': '选择瞳距'
+        };
+
+        pickerFields.forEach(fieldId => {
+            const element = document.getElementById(fieldId);
+            if (element) {
+                element.addEventListener('click', function() {
+                    const type = fieldTypes[fieldId];
+                    showPicker(this, type, fieldTitles[type]);
+                });
+            }
+        });
+    }
+
+    // 重新绑定（每次打开模态框时）
+    function rebindPickerEvents() {
+        setTimeout(() => bindPickerEvents(), 100);
+    }
+
+    // ========== 数据加载和渲染 ==========
     async function checkLoginStatus() {
         try {
             const response = await fetch(`${API_BASE}/checkLogin`, { method: 'GET', credentials: 'include' });
             const result = await response.json();
             if (result.isLogin) {
-                document.getElementById('currentUser').textContent = result.username;
+                document.getElementById('currentUser').innerText = result.username;
                 document.getElementById('loginContainer').style.display = 'none';
                 document.getElementById('mainContainer').style.display = 'block';
                 loadAllData();
@@ -1175,13 +1173,11 @@
                 document.getElementById('mainContainer').style.display = 'none';
             }
         } catch (error) {
-            console.error('检查登录状态失败:', error);
             document.getElementById('loginContainer').style.display = 'flex';
             document.getElementById('mainContainer').style.display = 'none';
         }
     }
 
-    // 登录表单提交
     document.getElementById('loginForm')?.addEventListener('submit', async (e) => {
         e.preventDefault();
         const username = document.getElementById('username').value;
@@ -1197,44 +1193,38 @@
             });
             const result = await response.json();
             if (result.success) {
-                document.getElementById('currentUser').textContent = result.user.username;
+                document.getElementById('currentUser').innerText = result.user.username;
                 document.getElementById('loginContainer').style.display = 'none';
                 document.getElementById('mainContainer').style.display = 'block';
                 loadAllData();
                 showToast('登录成功', 'success');
             } else {
-                errorDiv.textContent = result.message;
+                errorDiv.innerText = result.message;
                 errorDiv.style.display = 'block';
             }
         } catch (error) {
-            errorDiv.textContent = '网络错误，请稍后重试';
+            errorDiv.innerText = '网络错误';
             errorDiv.style.display = 'block';
         }
     });
 
-    // 加载所有数据
     async function loadAllData() {
         currentSearchKeyword = '';
         document.getElementById('searchInput').value = '';
         await fetchData('');
     }
 
-    // 搜索数据
     async function searchData() {
         currentSearchKeyword = document.getElementById('searchInput')?.value || '';
         currentPage = 1;
         await fetchData(currentSearchKeyword);
     }
 
-    function handleSearchKeyPress(event) {
-        if (event.key === 'Enter') searchData();
-    }
+    function handleSearchKeyPress(event) { if (event.key === 'Enter') searchData(); }
 
-    // 获取数据
     async function fetchData(keyword) {
         const tableContent = document.getElementById('tableContent');
-        if (tableContent) tableContent.innerHTML = '<div class="loading">加载中...</div>';
-
+        tableContent.innerHTML = '<div class="loading">加载中...</div>';
         try {
             const response = await fetch(`${API_BASE}/getData`, {
                 method: 'POST',
@@ -1247,56 +1237,36 @@
                 totalData = result.data || [];
                 renderTableWithPagination();
             } else {
-                if (tableContent) tableContent.innerHTML = `<div class="empty-data">${result.message || '获取数据失败'}</div>`;
+                tableContent.innerHTML = `<div class="empty-data">${result.message || '获取数据失败'}</div>`;
                 if (result.message === '未登录') checkLoginStatus();
             }
         } catch (error) {
-            if (tableContent) tableContent.innerHTML = '<div class="empty-data">网络错误，请稍后重试</div>';
+            tableContent.innerHTML = '<div class="empty-data">网络错误</div>';
         }
     }
 
-    // 分页渲染表格
     function renderTableWithPagination() {
         const start = (currentPage - 1) * pageSize;
-        const end = start + pageSize;
-        const pageData = totalData.slice(start, end);
-
+        const pageData = totalData.slice(start, start + pageSize);
         renderTable(pageData);
         renderPagination();
-
-        const stats = document.getElementById('stats');
-        if (stats) stats.textContent = `共 ${totalData.length} 条记录`;
+        document.getElementById('stats').innerText = `共 ${totalData.length} 条记录`;
     }
 
-    // 渲染分页控件
     function renderPagination() {
         const totalPages = Math.ceil(totalData.length / pageSize);
         const paginationDiv = document.getElementById('pagination');
-        if (!paginationDiv) return;
-
-        if (totalPages <= 1) {
-            paginationDiv.innerHTML = '';
-            return;
-        }
-
+        if (totalPages <= 1) { paginationDiv.innerHTML = ''; return; }
         let html = '';
         html += `<button onclick="goToPage(1)" ${currentPage === 1 ? 'disabled' : ''}>首页</button>`;
         html += `<button onclick="goToPage(${currentPage - 1})" ${currentPage === 1 ? 'disabled' : ''}>上一页</button>`;
-
-        // 显示页码
-        let startPage = Math.max(1, currentPage - 2);
-        let endPage = Math.min(totalPages, currentPage + 2);
-
+        let startPage = Math.max(1, currentPage - 2), endPage = Math.min(totalPages, currentPage + 2);
         if (startPage > 1) html += `<span>...</span>`;
-        for (let i = startPage; i <= endPage; i++) {
-            html += `<button class="${currentPage === i ? 'active' : ''}" onclick="goToPage(${i})">${i}</button>`;
-        }
+        for (let i = startPage; i <= endPage; i++) html += `<button class="${currentPage === i ? 'active' : ''}" onclick="goToPage(${i})">${i}</button>`;
         if (endPage < totalPages) html += `<span>...</span>`;
-
         html += `<button onclick="goToPage(${currentPage + 1})" ${currentPage === totalPages ? 'disabled' : ''}>下一页</button>`;
         html += `<button onclick="goToPage(${totalPages})" ${currentPage === totalPages ? 'disabled' : ''}>末页</button>`;
         html += `<span class="page-info">第 ${currentPage} / ${totalPages} 页</span>`;
-
         paginationDiv.innerHTML = html;
     }
 
@@ -1307,74 +1277,47 @@
         renderTableWithPagination();
     }
 
-    // 渲染表格
     function renderTable(data) {
         const tableContent = document.getElementById('tableContent');
-        if (!data || data.length === 0) {
-            if (tableContent) tableContent.innerHTML = '<div class="empty-data">暂无数据</div>';
-            return;
-        }
-
-        const table = document.createElement('table');
-        table.className = 'data-table';
-
+        if (!data || data.length === 0) { tableContent.innerHTML = '<div class="empty-data">暂无数据</div>'; return; }
+        const table = document.createElement('table'); table.className = 'data-table';
         const thead = document.createElement('thead');
         const headerRow = document.createElement('tr');
-        const headers = ['序号', '姓名', '性别', '年龄', '电话', '店名', '配镜用途',
-            '左眼球镜', '左眼柱镜', '左眼轴位', '右眼球镜', '右眼柱镜', '右眼轴位',
-            '镜架型号', '镜片种类', '总金额', '顾问', '操作'];
+        const headers = ['序号', '姓名', '性别', '年龄', '电话', '店名', '配镜用途', '左眼球镜', '左眼柱镜', '左眼轴位', '右眼球镜', '右眼柱镜', '右眼轴位', '镜架型号', '镜片种类', '总金额', '顾问', '操作'];
         headers.forEach(h => { const th = document.createElement('th'); th.textContent = h; headerRow.appendChild(th); });
-        thead.appendChild(headerRow);
-        table.appendChild(thead);
-
+        thead.appendChild(headerRow); table.appendChild(thead);
         const tbody = document.createElement('tbody');
         data.forEach(item => {
             const row = document.createElement('tr');
-            const fields = [
-                item.serialNo || '-', item.name || '-', item.gender || '-', item.age || '-',
-                item.phone || '-', item.shopName || '-', item.glassesPurpose || '-',
-                item.leftSphere || '-', item.leftCylinder || '-', item.leftAxis || '-',
-                item.rightSphere || '-', item.rightCylinder || '-', item.rightAxis || '-',
-                item.frameModel || '-', item.lensType || '-',
-                item.totalAmount ? '¥' + item.totalAmount : '-', item.consultant || '-'
-            ];
+            const fields = [item.serialNo || '-', item.name || '-', item.gender || '-', item.age || '-', item.phone || '-', item.shopName || '-', item.glassesPurpose || '-', item.leftSphere || '-', item.leftCylinder || '-', item.leftAxis || '-', item.rightSphere || '-', item.rightCylinder || '-', item.rightAxis || '-', item.frameModel || '-', item.lensType || '-', item.totalAmount ? '¥' + item.totalAmount : '-', item.consultant || '-'];
             fields.forEach(f => { const td = document.createElement('td'); td.textContent = f; row.appendChild(td); });
-
-            // 操作按钮列
             const actionTd = document.createElement('td');
-            const editBtn = document.createElement('button');
-            editBtn.textContent = '编辑';
-            editBtn.className = 'edit-btn';
+            const editBtn = document.createElement('button'); editBtn.textContent = '编辑'; editBtn.className = 'edit-btn';
             editBtn.onclick = (function(id) { return function() { editRecord(id); }; })(item.id);
-            actionTd.appendChild(editBtn);
-            row.appendChild(actionTd);
-
+            actionTd.appendChild(editBtn); row.appendChild(actionTd);
             tbody.appendChild(row);
         });
-        table.appendChild(tbody);
-
-        if (tableContent) { tableContent.innerHTML = ''; tableContent.appendChild(table); }
+        table.appendChild(tbody); tableContent.innerHTML = ''; tableContent.appendChild(table);
     }
 
     async function logout() {
-        try {
-            await fetch(`${API_BASE}/logout`, { method: 'GET', credentials: 'include' });
-            showToast('已退出登录', 'success');
-            checkLoginStatus();
-        } catch (error) {
-            checkLoginStatus();
-        }
+        await fetch(`${API_BASE}/logout`, { method: 'GET', credentials: 'include' });
+        showToast('已退出登录', 'success');
+        checkLoginStatus();
     }
 
-    window.onclick = function(event) {
-        const modal = document.getElementById('editModal');
-        if (event.target === modal) closeModal();
-    };
+    // ========== 初始化 ==========
+    window.onclick = function(event) { if (event.target === document.getElementById('editModal')) closeModal(); if (event.target === document.getElementById('pickerOverlay')) closePicker(); };
+    document.getElementById('signToggleBtn')?.addEventListener('click', toggleSign);
 
     window.onload = () => {
         checkLoginStatus();
         setupPriceCalculations();
         setupPurposeListener();
+        bindPickerEvents();
+        // 监听模态框打开后重新绑定
+        const observer = new MutationObserver(() => { bindPickerEvents(); });
+        observer.observe(document.getElementById('editModal'), { attributes: true, attributeFilter: ['style'] });
     };
 </script>
 </body>
