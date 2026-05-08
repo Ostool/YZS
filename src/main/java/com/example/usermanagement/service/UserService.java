@@ -89,11 +89,9 @@ public class UserService {
         return result;
     }
 
-    // 新增：添加用户数据
     public Map<String, Object> addUserData(AddUserRequest request, HttpSession session) {
         Map<String, Object> result = new HashMap<>();
 
-        // 检查是否登录
         if (session.getAttribute("userId") == null) {
             result.put("success", false);
             result.put("message", "未登录");
@@ -101,19 +99,55 @@ public class UserService {
         }
 
         try {
-            // 生成序号（格式：自动递增的三位数）
             long count = userDataRepository.count();
             String serialNo = String.format("%03d", count + 1);
 
-            // 创建新用户数据
             UserData userData = new UserData();
+            // 基本信息
             userData.setSerialNo(serialNo);
             userData.setName(request.getName());
             userData.setGender(request.getGender());
             userData.setAge(request.getAge());
             userData.setShopName(request.getShopName());
+            userData.setPhone(request.getPhone());
+            userData.setOccupation(request.getOccupation() != null ? request.getOccupation() : "无");
+            userData.setGlassesPurpose(request.getGlassesPurpose());
 
-            // 保存到数据库
+            // 左眼视力
+            userData.setLeftSphere(request.getLeftSphere());
+            userData.setLeftCylinder(request.getLeftCylinder());
+            userData.setLeftAxis(request.getLeftAxis());
+            userData.setLeftAdd(request.getLeftAdd());
+            userData.setLeftUncorrectedVision(request.getLeftUncorrectedVision());
+            userData.setLeftCorrectedVision(request.getLeftCorrectedVision());
+            userData.setLeftPupilDistance(request.getLeftPupilDistance());
+            userData.setLeftPupilHeight(request.getLeftPupilHeight());
+
+            // 右眼视力
+            userData.setRightSphere(request.getRightSphere());
+            userData.setRightCylinder(request.getRightCylinder());
+            userData.setRightAxis(request.getRightAxis());
+            userData.setRightAdd(request.getRightAdd());
+            userData.setRightUncorrectedVision(request.getRightUncorrectedVision());
+            userData.setRightCorrectedVision(request.getRightCorrectedVision());
+            userData.setRightPupilDistance(request.getRightPupilDistance());
+            userData.setRightPupilHeight(request.getRightPupilHeight());
+
+            // 商品信息
+            userData.setFrameModel(request.getFrameModel());
+            userData.setFrameOriginalPrice(request.getFrameOriginalPrice());
+            userData.setFrameDiscount(request.getFrameDiscount());
+            userData.setFrameFinalPrice(request.getFrameFinalPrice());
+            userData.setLensType(request.getLensType());
+            userData.setLensOriginalPrice(request.getLensOriginalPrice());
+            userData.setLensDiscount(request.getLensDiscount());
+            userData.setLensFinalPrice(request.getLensFinalPrice());
+            userData.setOtherItems(request.getOtherItems());
+            userData.setTotalAmount(request.getTotalAmount());
+            userData.setConsultant(request.getConsultant());
+            userData.setNeedFollowup(request.getNeedFollowup() != null ? request.getNeedFollowup() : "否");
+            userData.setRemark(request.getRemark());
+
             userDataRepository.save(userData);
 
             result.put("success", true);
@@ -121,6 +155,7 @@ public class UserService {
             result.put("serialNo", serialNo);
 
         } catch (Exception e) {
+            e.printStackTrace();
             result.put("success", false);
             result.put("message", "添加失败：" + e.getMessage());
         }
