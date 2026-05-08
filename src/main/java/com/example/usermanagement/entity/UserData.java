@@ -23,12 +23,14 @@ public class UserData {
     @Column(name = "shop_name")
     private String shopName;
 
-    // 新增基本信息
     private String phone;
     private String occupation;
 
     @Column(name = "glasses_purpose")
     private String glassesPurpose;
+
+    @Column(name = "prescription_date")
+    private LocalDateTime prescriptionDate;
 
     // 左眼字段
     @Column(name = "left_sphere")
@@ -87,11 +89,8 @@ public class UserData {
     @Column(name = "frame_original_price")
     private BigDecimal frameOriginalPrice;
 
-    @Column(name = "frame_discount")
-    private BigDecimal frameDiscount;
-
-    @Column(name = "frame_final_price")
-    private BigDecimal frameFinalPrice;
+    @Column(name = "frame_actual_price")
+    private BigDecimal frameActualPrice;
 
     @Column(name = "lens_type")
     private String lensType;
@@ -99,14 +98,14 @@ public class UserData {
     @Column(name = "lens_original_price")
     private BigDecimal lensOriginalPrice;
 
-    @Column(name = "lens_discount")
-    private BigDecimal lensDiscount;
-
-    @Column(name = "lens_final_price")
-    private BigDecimal lensFinalPrice;
+    @Column(name = "lens_actual_price")
+    private BigDecimal lensActualPrice;
 
     @Column(name = "other_items")
     private String otherItems;
+
+    @Column(name = "other_cost")
+    private BigDecimal otherCost;
 
     @Column(name = "total_amount")
     private BigDecimal totalAmount;
@@ -124,16 +123,13 @@ public class UserData {
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
-    @Column(name = "other_cost")
-    private BigDecimal otherCost;
-
     @PrePersist
     protected void onCreate() {
         createdAt = LocalDateTime.now();
         updatedAt = LocalDateTime.now();
         if (occupation == null) occupation = "无";
         if (needFollowup == null) needFollowup = "否";
-
+        if (prescriptionDate == null) prescriptionDate = LocalDateTime.now();
     }
 
     @PreUpdate

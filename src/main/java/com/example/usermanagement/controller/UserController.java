@@ -1,32 +1,24 @@
 package com.example.usermanagement.controller;
 
-
 import com.example.usermanagement.dto.AddUserRequest;
 import com.example.usermanagement.dto.LoginRequest;
 import com.example.usermanagement.dto.LoginResponse;
-import com.example.usermanagement.entity.UserData;
-import com.example.usermanagement.repository.UserDataRepository;
 import com.example.usermanagement.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-
 import javax.servlet.http.HttpSession;
 import javax.validation.Valid;
 import java.util.HashMap;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/api")  // 添加这个类级别的映射
+@RequestMapping("/api")
 @CrossOrigin(origins = "http://localhost:8080", allowCredentials = "true")
 public class UserController {
 
     @Autowired
     private UserService userService;
-
-    @Autowired
-    private UserDataRepository userDataRepository;
 
     @PostMapping("/login")
     public ResponseEntity<LoginResponse> login(@Valid @RequestBody LoginRequest request, HttpSession session) {
@@ -59,6 +51,16 @@ public class UserController {
         }
     }
 
+    @GetMapping("/getUser/{id}")
+    public ResponseEntity<Map<String, Object>> getUser(@PathVariable Integer id, HttpSession session) {
+        Map<String, Object> result = userService.getUserData(id, session);
+        if (result.containsKey("success") && (boolean) result.get("success")) {
+            return ResponseEntity.ok(result);
+        } else {
+            return ResponseEntity.badRequest().body(result);
+        }
+    }
+
     @GetMapping("/logout")
     public ResponseEntity<Map<String, Object>> logout(HttpSession session) {
         session.invalidate();
@@ -80,32 +82,15 @@ public class UserController {
         return ResponseEntity.ok(result);
     }
 
-    // 获取单条数据（用于编辑）
-    @GetMapping("/getUser/{id}")
-    public ResponseEntity<Map<String, Object>> getUser(@PathVariable Integer id, HttpSession session) {
-        Map<String, Object> result = new HashMap<>();
-        if (session.getAttribute("userId") == null) {
-            result.put("success", false);
-            result.put("message", "未登录");
-            return ResponseEntity.status(401).body(result);
-        }
-
-        UserData userData = userDataRepository.findById(id).orElse(null);
-        if (userData == null) {
-            result.put("success", false);
-            result.put("message", "数据不存在");
-            return ResponseEntity.badRequest().body(result);
-        }
-
-        result.put("success", true);
-        result.put("data", userData);
-        return ResponseEntity.ok(result);
-    }
-
-    // 更新用户数据
     @PostMapping("/updateUser")
     public ResponseEntity<Map<String, Object>> updateUser(@Valid @RequestBody AddUserRequest request, HttpSession session) {
-        Map<String, Object> result = userService.updateUserData(request, session);
+        // 添加日志打印
+        System.out.println("========== 收到更新请求 ==========");
+        System.out.println("接收到的数据: " + request);
+        System.out.println("用户ID: " + request.getId());
+        System.out.println("姓名: " + request.getName());
+
+        Map<String, Object> result = userService.addUserData(request, session);
         if (result.containsKey("success") && (boolean) result.get("success")) {
             return ResponseEntity.ok(result);
         } else {

@@ -5,562 +5,112 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <title>配镜处方管理系统</title>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
+        * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
             font-family: 'Segoe UI', 'Microsoft YaHei', Tahoma, Geneva, Verdana, sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
             padding: 20px;
         }
-
-        /* 登录界面样式 */
-        .login-container {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-        }
-
+        .login-container { display: flex; justify-content: center; align-items: center; min-height: 100vh; }
         .login-box {
-            background: white;
-            padding: 40px;
-            border-radius: 10px;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
-            width: 100%;
-            max-width: 400px;
+            background: white; padding: 40px; border-radius: 10px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2); width: 100%; max-width: 400px;
         }
-
-        .login-box h2 {
-            text-align: center;
-            margin-bottom: 30px;
-            color: #333;
-        }
-
-        .input-group {
-            margin-bottom: 20px;
-        }
-
-        .input-group label {
-            display: block;
-            margin-bottom: 5px;
-            color: #555;
-            font-weight: 500;
-        }
-
+        .login-box h2 { text-align: center; margin-bottom: 30px; color: #333; }
+        .input-group { margin-bottom: 20px; }
+        .input-group label { display: block; margin-bottom: 5px; color: #555; font-weight: 500; }
         .input-group input, .input-group select {
-            width: 100%;
-            padding: 12px;
-            border: 1px solid #ddd;
-            border-radius: 5px;
-            font-size: 14px;
-            transition: border-color 0.3s;
+            width: 100%; padding: 12px; border: 1px solid #ddd;
+            border-radius: 5px; font-size: 14px; transition: border-color 0.3s;
         }
-
-        .input-group input:focus, .input-group select:focus {
-            outline: none;
-            border-color: #667eea;
-        }
-
+        .input-group input:focus, .input-group select:focus { outline: none; border-color: #667eea; }
         .login-btn {
-            width: 100%;
-            padding: 12px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            border: none;
-            border-radius: 5px;
-            font-size: 16px;
-            cursor: pointer;
+            width: 100%; padding: 12px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white; border: none; border-radius: 5px; font-size: 16px; cursor: pointer;
             transition: transform 0.2s;
         }
-
-        .login-btn:hover {
-            transform: translateY(-2px);
-        }
-
-        .error-msg {
-            background: #fee;
-            color: #c33;
-            padding: 10px;
-            border-radius: 5px;
-            margin-bottom: 20px;
-            text-align: center;
-            display: none;
-        }
-
-        /* 主界面样式 */
-        .main-container {
-            display: none;
-            max-width: 1600px;
-            margin: 0 auto;
-            background: white;
-            border-radius: 10px;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
-            overflow: hidden;
-        }
-
-        .header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 20px 30px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-wrap: wrap;
-        }
-
-        .header h1 {
-            font-size: 24px;
-        }
-
-        .user-info {
-            display: flex;
-            align-items: center;
-            gap: 20px;
-        }
-
-        .logout-btn {
-            background: rgba(255,255,255,0.2);
-            border: none;
-            color: white;
-            padding: 8px 20px;
-            border-radius: 5px;
-            cursor: pointer;
-            transition: background 0.3s;
-        }
-
-        .logout-btn:hover {
-            background: rgba(255,255,255,0.3);
-        }
-
-        .action-bar {
-            padding: 20px 30px;
-            background: #f8f9fa;
-            border-bottom: 1px solid #e0e0e0;
-            display: flex;
-            gap: 15px;
-            align-items: center;
-            justify-content: space-between;
-            flex-wrap: wrap;
-        }
-
-        .search-area {
-            display: flex;
-            gap: 15px;
-            flex: 1;
-        }
-
-        .search-area input {
-            flex: 1;
-            padding: 10px 15px;
-            border: 1px solid #ddd;
-            border-radius: 5px;
-            font-size: 14px;
-        }
-
-        .btn {
-            padding: 10px 25px;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 14px;
-            transition: all 0.3s;
-        }
-
-        .btn-primary {
-            background: #667eea;
-            color: white;
-        }
-
-        .btn-primary:hover {
-            background: #5a67d8;
-            transform: translateY(-2px);
-        }
-
-        .btn-success {
-            background: #48bb78;
-            color: white;
-        }
-
-        .btn-success:hover {
-            background: #38a169;
-            transform: translateY(-2px);
-        }
-
-        .btn-secondary {
-            background: #6c757d;
-            color: white;
-        }
-
-        .btn-secondary:hover {
-            background: #5a6268;
-        }
-
-        .table-container {
-            padding: 0 30px 30px 30px;
-            overflow-x: auto;
-        }
-
-        .data-table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 20px;
-            font-size: 13px;
-        }
-
-        .data-table th, .data-table td {
-            padding: 10px 12px;
-            text-align: left;
-            border-bottom: 1px solid #e0e0e0;
-        }
-
-        .data-table th {
-            background: #f8f9fa;
-            font-weight: 600;
-            color: #555;
-            border-bottom: 2px solid #e0e0e0;
-        }
-
-        .data-table tr:hover {
-            background: #f8f9fa;
-        }
-
-        .edit-btn {
-            background: #667eea;
-            color: white;
-            border: none;
-            padding: 5px 12px;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 12px;
-        }
-
-        .edit-btn:hover {
-            background: #5a67d8;
-        }
-
-        .pagination {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            gap: 10px;
-            margin-top: 20px;
-            padding: 20px;
-            flex-wrap: wrap;
-        }
-
-        .pagination button {
-            padding: 8px 16px;
-            border: 1px solid #ddd;
-            background: white;
-            border-radius: 5px;
-            cursor: pointer;
-            transition: all 0.3s;
-        }
-
-        .pagination button:hover:not(:disabled) {
-            background: #667eea;
-            color: white;
-            border-color: #667eea;
-        }
-
-        .pagination button:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-        }
-
-        .pagination .active {
-            background: #667eea;
-            color: white;
-            border-color: #667eea;
-        }
-
-        .stats {
-            padding: 15px 30px;
-            background: #f8f9fa;
-            color: #666;
-            font-size: 14px;
-            border-top: 1px solid #e0e0e0;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-wrap: wrap;
-        }
-
-        /* 模态框样式 */
-        .modal {
-            display: none;
-            position: fixed;
-            z-index: 1000;
-            left: 0;
-            top: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0,0,0,0.5);
-            overflow-y: auto;
-        }
-
-        .modal-content {
-            background-color: white;
-            margin: 2% auto;
-            padding: 0;
-            border-radius: 10px;
-            width: 95%;
-            max-width: 1200px;
-            box-shadow: 0 5px 30px rgba(0,0,0,0.3);
-        }
-
-        .modal-header {
-            padding: 20px 25px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            border-radius: 10px 10px 0 0;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .modal-header h3 {
-            margin: 0;
-        }
-
-        .close {
-            color: white;
-            font-size: 28px;
-            font-weight: bold;
-            cursor: pointer;
-            transition: 0.3s;
-        }
-
-        .close:hover {
-            transform: scale(1.1);
-        }
-
-        .modal-body {
-            padding: 25px;
-            max-height: 70vh;
-            overflow-y: auto;
-        }
-
-        /* 表单样式 */
-        .form-section {
-            background: #f8f9fa;
-            border-radius: 8px;
-            padding: 20px;
-            margin-bottom: 25px;
-        }
-
-        .form-section h4 {
-            margin-bottom: 15px;
-            color: #667eea;
-            border-left: 3px solid #667eea;
-            padding-left: 12px;
-        }
-
-        .form-row {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 20px;
-            margin-bottom: 15px;
-        }
-
-        .form-group {
-            display: flex;
-            flex-direction: column;
-        }
-
-        .form-group label {
-            font-size: 13px;
-            font-weight: 500;
-            color: #555;
-            margin-bottom: 5px;
-        }
-
-        .form-group input, .form-group select {
-            padding: 10px;
-            border: 1px solid #ddd;
-            border-radius: 5px;
-            font-size: 14px;
-            cursor: pointer;
-        }
-
-        .form-group input:focus, .form-group select:focus {
-            outline: none;
-            border-color: #667eea;
-        }
-
-        .form-group input.error-input, .form-group select.error-input {
-            border-color: #f56565;
-        }
-
-        .error-message {
-            color: #f56565;
-            font-size: 11px;
-            margin-top: 5px;
-            display: none;
-        }
-
-        /* 左右眼布局 */
-        .eyes-container {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 20px;
-        }
-
-        .eye-box {
-            background: white;
-            border: 1px solid #e0e0e0;
-            border-radius: 8px;
-            padding: 15px;
-        }
-
-        .eye-box h5 {
-            text-align: center;
-            margin-bottom: 15px;
-            color: #667eea;
-            font-size: 16px;
-        }
-
-        /* 商品信息布局 */
-        .product-row {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 15px;
-            margin-bottom: 15px;
-        }
-
-        .product-item {
-            background: white;
-            border: 1px solid #e0e0e0;
-            border-radius: 8px;
-            padding: 12px;
-        }
-
-        .product-item h5 {
-            margin-bottom: 12px;
-            color: #667eea;
-            font-size: 14px;
-            text-align: center;
-        }
-
-        .modal-footer {
-            padding: 15px 25px 25px;
-            display: flex;
-            gap: 10px;
-            justify-content: flex-end;
-            border-top: 1px solid #e0e0e0;
-        }
-
-        /* 表格选择器弹窗 */
-        .picker-overlay {
-            display: none;
-            position: fixed;
-            z-index: 2000;
-            left: 0;
-            top: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0,0,0,0.5);
-            justify-content: center;
-            align-items: center;
-        }
-
-        .picker-container {
-            background: white;
-            border-radius: 10px;
-            width: 90%;
-            max-width: 500px;
-            max-height: 80vh;
-            overflow-y: auto;
-            box-shadow: 0 5px 30px rgba(0,0,0,0.3);
-        }
-
-        .picker-header {
-            padding: 15px 20px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            border-radius: 10px 10px 0 0;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .picker-header h4 {
-            margin: 0;
-        }
-
-        .sign-toggle-btn {
-            background: #ff6b35 !important;
-            color: white !important;
-            padding: 8px 20px !important;
-            font-size: 18px !important;
-            font-weight: bold !important;
-            border: none !important;
-            border-radius: 8px !important;
-            cursor: pointer !important;
-            transition: all 0.3s !important;
-            box-shadow: 0 4px 15px rgba(255,107,53,0.3) !important;
-        }
-
-        .sign-toggle-btn:hover {
-            background: #ff5722 !important;
-            transform: scale(1.02) !important;
-            box-shadow: 0 6px 20px rgba(255,107,53,0.4) !important;
-        }
-
-        .picker-table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-
-        .picker-table th, .picker-table td {
-            padding: 12px;
-            text-align: center;
-            border: 1px solid #e0e0e0;
-            cursor: pointer;
-            transition: background 0.2s;
-        }
-
-        .picker-table th {
-            background: #f8f9fa;
-            font-weight: 600;
-        }
-
-        .picker-table td:hover {
-            background: #667eea;
-            color: white;
-        }
-
-        .toast {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            padding: 15px 20px;
-            background: white;
-            border-radius: 5px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
-            z-index: 2000;
-            display: none;
-            animation: slideInRight 0.3s;
-        }
-
+        .login-btn:hover { transform: translateY(-2px); }
+        .error-msg { background: #fee; color: #c33; padding: 10px; border-radius: 5px; margin-bottom: 20px; text-align: center; display: none; }
+
+        .main-container { display: none; max-width: 1600px; margin: 0 auto; background: white; border-radius: 10px; box-shadow: 0 10px 40px rgba(0,0,0,0.1); overflow: hidden; }
+        .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 20px 30px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; }
+        .header h1 { font-size: 24px; }
+        .user-info { display: flex; align-items: center; gap: 20px; }
+        .logout-btn { background: rgba(255,255,255,0.2); border: none; color: white; padding: 8px 20px; border-radius: 5px; cursor: pointer; transition: background 0.3s; }
+        .logout-btn:hover { background: rgba(255,255,255,0.3); }
+
+        .action-bar { padding: 20px 30px; background: #f8f9fa; border-bottom: 1px solid #e0e0e0; display: flex; gap: 15px; align-items: center; justify-content: space-between; flex-wrap: wrap; }
+        .search-area { display: flex; gap: 15px; flex: 1; }
+        .search-area input { flex: 1; padding: 10px 15px; border: 1px solid #ddd; border-radius: 5px; font-size: 14px; }
+        .btn { padding: 10px 25px; border: none; border-radius: 5px; cursor: pointer; font-size: 14px; transition: all 0.3s; }
+        .btn-primary { background: #667eea; color: white; }
+        .btn-primary:hover { background: #5a67d8; transform: translateY(-2px); }
+        .btn-success { background: #48bb78; color: white; }
+        .btn-success:hover { background: #38a169; transform: translateY(-2px); }
+        .btn-secondary { background: #6c757d; color: white; }
+        .btn-secondary:hover { background: #5a6268; }
+
+        .table-container { padding: 0 30px 30px 30px; overflow-x: auto; }
+        .data-table { width: 100%; border-collapse: collapse; margin-top: 20px; font-size: 13px; }
+        .data-table th, .data-table td { padding: 10px 12px; text-align: left; border-bottom: 1px solid #e0e0e0; }
+        .data-table th { background: #f8f9fa; font-weight: 600; color: #555; border-bottom: 2px solid #e0e0e0; }
+        .data-table tr:hover { background: #f8f9fa; }
+        .edit-btn { background: #667eea; color: white; border: none; padding: 5px 12px; border-radius: 4px; cursor: pointer; font-size: 12px; }
+        .edit-btn:hover { background: #5a67d8; }
+
+        .pagination { display: flex; justify-content: center; align-items: center; gap: 10px; margin-top: 20px; padding: 20px; flex-wrap: wrap; }
+        .pagination button { padding: 8px 16px; border: 1px solid #ddd; background: white; border-radius: 5px; cursor: pointer; transition: all 0.3s; }
+        .pagination button:hover:not(:disabled) { background: #667eea; color: white; border-color: #667eea; }
+        .pagination button:disabled { opacity: 0.5; cursor: not-allowed; }
+        .pagination .active { background: #667eea; color: white; border-color: #667eea; }
+        .stats { padding: 15px 30px; background: #f8f9fa; color: #666; font-size: 14px; border-top: 1px solid #e0e0e0; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; }
+
+        .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); overflow-y: auto; }
+        .modal-content { background-color: white; margin: 2% auto; padding: 0; border-radius: 10px; width: 95%; max-width: 1200px; box-shadow: 0 5px 30px rgba(0,0,0,0.3); }
+        .modal-header { padding: 20px 25px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border-radius: 10px 10px 0 0; display: flex; justify-content: space-between; align-items: center; }
+        .modal-header h3 { margin: 0; }
+        .close { color: white; font-size: 28px; font-weight: bold; cursor: pointer; transition: 0.3s; }
+        .close:hover { transform: scale(1.1); }
+        .modal-body { padding: 25px; max-height: 70vh; overflow-y: auto; }
+
+        .form-section { background: #f8f9fa; border-radius: 8px; padding: 20px; margin-bottom: 25px; }
+        .form-section h4 { margin-bottom: 15px; color: #667eea; border-left: 3px solid #667eea; padding-left: 12px; }
+        .form-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; margin-bottom: 15px; }
+        .form-group { display: flex; flex-direction: column; }
+        .form-group label { font-size: 13px; font-weight: 500; color: #555; margin-bottom: 5px; }
+        .form-group input, .form-group select { padding: 10px; border: 1px solid #ddd; border-radius: 5px; font-size: 14px; cursor: pointer; }
+        .form-group input:focus, .form-group select:focus { outline: none; border-color: #667eea; }
+        .form-group input.error-input, .form-group select.error-input { border-color: #f56565; }
+        .error-message { color: #f56565; font-size: 11px; margin-top: 5px; display: none; }
+
+        .eyes-container { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        .eye-box { background: white; border: 1px solid #e0e0e0; border-radius: 8px; padding: 15px; }
+        .eye-box h5 { text-align: center; margin-bottom: 15px; color: #667eea; font-size: 16px; }
+
+        .product-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin-bottom: 15px; }
+        .product-item { background: white; border: 1px solid #e0e0e0; border-radius: 8px; padding: 12px; }
+        .product-item h5 { margin-bottom: 12px; color: #667eea; font-size: 14px; text-align: center; }
+
+        .modal-footer { padding: 15px 25px 25px; display: flex; gap: 10px; justify-content: flex-end; border-top: 1px solid #e0e0e0; }
+
+        .picker-overlay { display: none; position: fixed; z-index: 2000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); justify-content: center; align-items: center; }
+        .picker-container { background: white; border-radius: 10px; width: 90%; max-width: 500px; max-height: 80vh; overflow-y: auto; box-shadow: 0 5px 30px rgba(0,0,0,0.3); }
+        .picker-header { padding: 15px 20px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border-radius: 10px 10px 0 0; display: flex; justify-content: space-between; align-items: center; }
+        .picker-header h4 { margin: 0; }
+        .sign-toggle-btn { background: #ff6b35 !important; color: white !important; padding: 8px 20px !important; font-size: 18px !important; font-weight: bold !important; border: none !important; border-radius: 8px !important; cursor: pointer !important; transition: all 0.3s !important; box-shadow: 0 4px 15px rgba(255,107,53,0.3) !important; }
+        .sign-toggle-btn:hover { background: #ff5722 !important; transform: scale(1.02) !important; }
+        .picker-table { width: 100%; border-collapse: collapse; }
+        .picker-table th, .picker-table td { padding: 12px; text-align: center; border: 1px solid #e0e0e0; cursor: pointer; transition: background 0.2s; }
+        .picker-table th { background: #f8f9fa; font-weight: 600; }
+        .picker-table td:hover { background: #667eea; color: white; }
+
+        .toast { position: fixed; top: 20px; right: 20px; padding: 15px 20px; background: white; border-radius: 5px; box-shadow: 0 2px 10px rgba(0,0,0,0.2); z-index: 2000; display: none; animation: slideInRight 0.3s; }
         .toast.success { border-left: 4px solid #48bb78; }
         .toast.error { border-left: 4px solid #f56565; }
+        @keyframes slideInRight { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
 
-        @keyframes slideInRight {
-            from { transform: translateX(100%); opacity: 0; }
-            to { transform: translateX(0); opacity: 1; }
-        }
-
-        .loading, .empty-data {
-            text-align: center;
-            padding: 40px;
-            color: #999;
-        }
+        .loading, .empty-data { text-align: center; padding: 40px; color: #999; }
 
         @media (max-width: 768px) {
             .action-bar, .search-area { flex-direction: column; width: 100%; }
@@ -569,64 +119,47 @@
             .header { flex-direction: column; text-align: center; }
             .stats { flex-direction: column; gap: 10px; text-align: center; }
         }
+
+        /* 日期选择器样式 */
+        .datetime-input { cursor: pointer; background: #f8f9fa; }
     </style>
 </head>
 <body>
-<!-- 登录界面 -->
 <div id="loginContainer" class="login-container">
     <div class="login-box">
         <h2>配镜处方管理系统</h2>
         <div id="loginError" class="error-msg"></div>
         <form id="loginForm">
-            <div class="input-group">
-                <label>用户名</label>
-                <input type="text" id="username" required autocomplete="off">
-            </div>
-            <div class="input-group">
-                <label>密码</label>
-                <input type="password" id="password" required>
-            </div>
+            <div class="input-group"><label>用户名</label><input type="text" id="username" required autocomplete="off"></div>
+            <div class="input-group"><label>密码</label><input type="password" id="password" required></div>
             <button type="submit" class="login-btn">登 录</button>
         </form>
     </div>
 </div>
 
-<!-- 主界面 -->
 <div id="mainContainer" class="main-container">
     <div class="header">
         <h1>👓 配镜处方管理系统</h1>
-        <div class="user-info">
-            <span>欢迎，<span id="currentUser">用户</span></span>
-            <button class="logout-btn" onclick="logout()">退出登录</button>
-        </div>
+        <div class="user-info"><span>欢迎，<span id="currentUser">用户</span></span><button class="logout-btn" onclick="logout()">退出登录</button></div>
     </div>
 
     <div class="action-bar">
         <div class="search-area">
-            <input type="text" id="searchInput" placeholder="🔍 搜索姓名、电话、店名或序号..." onkeypress="handleSearchKeyPress(event)">
+            <input type="text" id="searchInput" placeholder="🔍 搜索姓名、电话、配镜用途、店名或序号..." onkeypress="handleSearchKeyPress(event)">
             <button class="btn btn-primary" onclick="searchData()">搜索</button>
             <button class="btn btn-secondary" onclick="loadAllData()">刷新</button>
         </div>
         <button class="btn btn-success" onclick="showAddModal()">➕ 新增配镜处方</button>
     </div>
 
-    <div class="table-container">
-        <div id="tableContent"><div class="loading">加载中...</div></div>
-    </div>
+    <div class="table-container"><div id="tableContent"><div class="loading">加载中...</div></div></div>
 
-    <div class="stats">
-        <span id="stats">共 0 条记录</span>
-        <div class="pagination" id="pagination"></div>
-    </div>
+    <div class="stats"><span id="stats">共 0 条记录</span><div class="pagination" id="pagination"></div></div>
 </div>
 
-<!-- 编辑模态框 -->
 <div id="editModal" class="modal">
     <div class="modal-content">
-        <div class="modal-header">
-            <h3 id="modalTitle">新增配镜处方</h3>
-            <span class="close" onclick="closeModal()">&times;</span>
-        </div>
+        <div class="modal-header"><h3 id="modalTitle">新增配镜处方</h3><span class="close" onclick="closeModal()">&times;</span></div>
         <div class="modal-body">
             <form id="editForm">
                 <input type="hidden" id="editId">
@@ -634,15 +167,16 @@
                 <div class="form-section">
                     <h4>📋 基本信息</h4>
                     <div class="form-row">
-                        <div class="form-group"><label>姓名 <span style="color:red;">*</span></label><input type="text" id="editName"></div>
-                        <div class="form-group"><label>性别 <span style="color:red;">*</span></label><select id="editGender"><option value="">请选择</option><option value="男">男</option><option value="女">女</option></select></div>
-                        <div class="form-group"><label>年龄 <span style="color:red;">*</span></label><input type="number" id="editAge"></div>
-                        <div class="form-group"><label>店名 <span style="color:red;">*</span></label><input type="text" id="editShopName"></div>
+                        <div class="form-group"><label>姓名 <span style="color:red;">*</span></label><input type="text" id="editName"><div class="error-message" id="nameError">请输入姓名</div></div>
+                        <div class="form-group"><label>性别 <span style="color:red;">*</span></label><select id="editGender"><option value="">请选择</option><option value="男">男</option><option value="女">女</option></select><div class="error-message" id="genderError">请选择性别</div></div>
+                        <div class="form-group"><label>年龄 <span style="color:red;">*</span></label><input type="number" id="editAge"><div class="error-message" id="ageError">请输入有效年龄</div></div>
+                        <div class="form-group"><label>配镜日期</label><input type="datetime-local" id="editPrescriptionDate" class="datetime-input"></div>
                     </div>
                     <div class="form-row">
                         <div class="form-group"><label>电话</label><input type="tel" id="editPhone"></div>
                         <div class="form-group"><label>职业</label><input type="text" id="editOccupation" placeholder="默认：无"></div>
-                        <div class="form-group"><label>配镜用途 <span style="color:red;">*</span></label><select id="editGlassesPurpose"><option value="">请选择</option><option value="近用">近用</option><option value="远用">远用</option><option value="青控">青控</option><option value="渐进">渐进</option></select></div>
+                        <div class="form-group"><label>配镜用途 <span style="color:red;">*</span></label><select id="editGlassesPurpose"><option value="">请选择</option><option value="近用">近用</option><option value="远用">远用</option><option value="青控">青控</option><option value="渐进">渐进</option></select><div class="error-message" id="purposeError">请选择配镜用途</div></div>
+                        <div class="form-group"><label>店名 <span style="color:red;">*</span></label><input type="text" id="editShopName"><div class="error-message" id="shopNameError">请输入店名</div></div>
                     </div>
                 </div>
 
@@ -681,24 +215,22 @@
                             <h5>镜架信息</h5>
                             <div class="form-group"><label>镜架型号</label><input type="text" id="editFrameModel"></div>
                             <div class="form-group"><label>镜架原价</label><input type="number" step="0.01" id="editFrameOriginalPrice"></div>
-                            <div class="form-group"><label>镜架折扣 (%)</label><input type="number" step="1" id="editFrameDiscount"></div>
-                            <div class="form-group"><label>最终镜架金额</label><input type="number" step="0.01" id="editFrameFinalPrice"></div>
+                            <div class="form-group"><label>镜架实收价格</label><input type="number" step="0.01" id="editFrameActualPrice" placeholder="实收金额"></div>
                         </div>
                         <div class="product-item">
                             <h5>镜片信息</h5>
                             <div class="form-group"><label>镜片种类</label><input type="text" id="editLensType"></div>
                             <div class="form-group"><label>镜片原价</label><input type="number" step="0.01" id="editLensOriginalPrice"></div>
-                            <div class="form-group"><label>镜片折扣 (%)</label><input type="number" step="1" id="editLensDiscount"></div>
-                            <div class="form-group"><label>最终镜片金额</label><input type="number" step="0.01" id="editLensFinalPrice"></div>
+                            <div class="form-group"><label>镜片实收价格</label><input type="number" step="0.01" id="editLensActualPrice" placeholder="实收金额"></div>
                         </div>
                         <div class="product-item">
                             <h5>其他项目</h5>
                             <div class="form-group"><label>其他项目说明</label><textarea id="editOtherItems" rows="2"></textarea></div>
-                            <div class="form-group"><label>其他费用</label><input type="number" step="0.01" id="editOtherCost"></div>
+                            <div class="form-group"><label>其他费用</label><input type="number" step="0.01" id="editOtherCost" placeholder="0.00"></div>
                         </div>
                     </div>
                     <div class="form-row">
-                        <div class="form-group"><label>配镜总金额</label><input type="text" id="editTotalAmount" readonly style="background:#f0f0f0;"></div>
+                        <div class="form-group"><label>配镜总金额</label><input type="text" id="editTotalAmount" readonly style="background:#f0f0f0; font-weight:bold; font-size:16px; color:#667eea;"></div>
                         <div class="form-group"><label>配镜顾问</label><input type="text" id="editConsultant"></div>
                         <div class="form-group"><label>是否需要回访</label><select id="editNeedFollowup"><option value="否">否</option><option value="是">是</option></select></div>
                     </div>
@@ -713,14 +245,9 @@
     </div>
 </div>
 
-<!-- 表格选择器弹窗 -->
 <div id="pickerOverlay" class="picker-overlay">
     <div class="picker-container">
-        <div class="picker-header">
-            <h4 id="pickerTitle">选择数值</h4>
-            <button id="signToggleBtn" class="sign-toggle-btn" style="display:none;">负值 -</button>
-            <span class="close" onclick="closePicker()" style="color:white;">&times;</span>
-        </div>
+        <div class="picker-header"><h4 id="pickerTitle">选择数值</h4><button id="signToggleBtn" class="sign-toggle-btn" style="display:none;">负值 -</button><span class="close" onclick="closePicker()">&times;</span></div>
         <div id="pickerTableContainer"></div>
     </div>
 </div>
@@ -730,101 +257,44 @@
 <script>
     const API_BASE = '/api';
     let currentPage = 1, pageSize = 10, totalData = [], currentSearchKeyword = '';
-    let currentPickerInput = null;
-    let currentPickerType = '';
-    let currentSign = -1; // -1 负值, 1 正值
+    let currentPickerInput = null, currentPickerType = '', currentSign = -1;
 
-    // ========== 数据生成函数 ==========
-    // 生成球镜/柱镜数值 (-16.00 到 +16.00，步长0.25)
-    function generateDiopterValues() {
-        let values = [];
-        for (let d = 0; d <= 1600; d += 25) {
-            let val = d / 100;
-            values.push(val);
-        }
-        return values;
-    }
+    function generateDiopterValues() { let values = []; for (let d = 0; d <= 1600; d += 25) values.push(d / 100); return values; }
+    function displayDiopterValues(positive) { return generateDiopterValues().map(v => (positive ? '+' : '-') + v.toFixed(2)); }
+    function generateAxisValues() { let values = []; for (let i = 1; i <= 180; i++) values.push(i); return values; }
+    function generateVisionValues() { return [0.1, 0.12, 0.15, 0.2, 0.25, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0, 1.2, 1.5, 2.0]; }
+    function generatePdValues() { let values = []; for (let i = 50; i <= 80; i += 0.5) values.push(i); return values; }
 
-    function displayDiopterValues(positive) {
-        let values = generateDiopterValues();
-        if (positive) {
-            return values.map(v => '+' + v.toFixed(2));
-        } else {
-            return values.map(v => '-' + v.toFixed(2));
-        }
-    }
-
-    // 生成轴位数值 (1-180)
-    function generateAxisValues() {
-        let values = [];
-        for (let i = 1; i <= 180; i++) {
-            values.push(i);
-        }
-        return values;
-    }
-
-    // 生成视力数值 (0.1,0.12,0.15,0.2,0.25,0.3,0.4,0.5,0.6,0.7,0.8,0.9,1.0,1.2,1.5,2.0)
-    function generateVisionValues() {
-        return [0.1, 0.12, 0.15, 0.2, 0.25, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0, 1.2, 1.5, 2.0];
-    }
-
-    // 生成瞳距数值 (50-80，步长0.5)
-    function generatePdValues() {
-        let values = [];
-        for (let i = 50; i <= 80; i += 0.5) {
-            values.push(i);
-        }
-        return values;
-    }
-
-    // ========== 表格选择器 ==========
     function showPicker(inputElement, type, title) {
-        currentPickerInput = inputElement;
-        currentPickerType = type;
+        currentPickerInput = inputElement; currentPickerType = type;
         document.getElementById('pickerTitle').innerText = title;
-
-        let signBtn = document.getElementById('signToggleBtn');
-        let html = '';
-
+        let signBtn = document.getElementById('signToggleBtn'), html = '';
         if (type === 'diopter') {
             signBtn.style.display = 'block';
             signBtn.innerText = currentSign === -1 ? '负值 -' : '正值 +';
             let values = displayDiopterValues(currentSign === 1);
             html = '<table class="picker-table"><tr>';
-            for (let i = 0; i < values.length; i++) {
-                if (i > 0 && i % 5 === 0) html += '</tr><tr>';
-                html += `<td onclick="selectValue('${values[i]}')">${values[i]}</td>`;
-            }
+            for (let i = 0; i < values.length; i++) { if (i > 0 && i % 5 === 0) html += '<tr><tr>'; html += `<td onclick="selectValue('${values[i]}')">${values[i]}</td>`; }
             html += '</tr></table>';
         } else if (type === 'axis') {
             signBtn.style.display = 'none';
             let values = generateAxisValues();
             html = '<table class="picker-table"><tr>';
-            for (let i = 0; i < values.length; i++) {
-                if (i > 0 && i % 10 === 0) html += '</tr><tr>';
-                html += `<td onclick="selectValue('${values[i]}')">${values[i]}°</td>`;
-            }
-            html += '</tr></table>';
+            for (let i = 0; i < values.length; i++) { if (i > 0 && i % 10 === 0) html += '<tr><tr>'; html += `<td onclick="selectValue('${values[i]}')">${values[i]}°</td>`; }
+            html += '</table></table>';
         } else if (type === 'vision') {
             signBtn.style.display = 'none';
             let values = generateVisionValues();
             html = '<table class="picker-table"><tr>';
-            for (let i = 0; i < values.length; i++) {
-                if (i > 0 && i % 5 === 0) html += '</tr><tr>';
-                html += `<td onclick="selectValue('${values[i]}')">${values[i]}</td>`;
-            }
-            html += '</tr></table>';
+            for (let i = 0; i < values.length; i++) { if (i > 0 && i % 5 === 0) html += '</tr><tr>'; html += `<td onclick="selectValue('${values[i]}')">${values[i]}</td>`; }
+            html += '</table></tr>';
         } else if (type === 'pd') {
             signBtn.style.display = 'none';
             let values = generatePdValues();
             html = '<table class="picker-table"><tr>';
-            for (let i = 0; i < values.length; i++) {
-                if (i > 0 && i % 8 === 0) html += '</tr><tr>';
-                html += `<td onclick="selectValue('${values[i]}')">${values[i]}mm</td>`;
-            }
-            html += '</tr></table>';
+            for (let i = 0; i < values.length; i++) { if (i > 0 && i % 8 === 0) html += '<tr></tr>'; html += `<td onclick="selectValue('${values[i]}')">${values[i]}mm</td>`; }
+            html += '</table></tr>';
         }
-
         document.getElementById('pickerTableContainer').innerHTML = html;
         document.getElementById('pickerOverlay').style.display = 'flex';
     }
@@ -837,33 +307,34 @@
             } else {
                 currentPickerInput.value = value;
             }
-            // 触发input事件以便自动计算总金额
             const event = new Event('input', { bubbles: true });
             currentPickerInput.dispatchEvent(event);
         }
         closePicker();
     }
 
-    function toggleSign() {
-        currentSign = currentSign * -1;
-        let signBtn = document.getElementById('signToggleBtn');
-        signBtn.innerText = currentSign === -1 ? '负值 -' : '正值 +';
-        let values = displayDiopterValues(currentSign === 1);
-        let html = '<table class="picker-table"><tr>';
-        for (let i = 0; i < values.length; i++) {
-            if (i > 0 && i % 5 === 0) html += '</tr><tr>';
-            html += `<td onclick="selectValue('${values[i]}')">${values[i]}</td>`;
+    function toggleSign() { currentSign *= -1; let signBtn = document.getElementById('signToggleBtn'); signBtn.innerText = currentSign === -1 ? '负值 -' : '正值 +'; let values = displayDiopterValues(currentSign === 1); let html = '<table class="picker-table"><tr>'; for (let i = 0; i < values.length; i++) { if (i > 0 && i % 5 === 0) html += '</td><tr>'; html += `<td onclick="selectValue('${values[i]}')">${values[i]}</td>`; } html += '</table></table>'; document.getElementById('pickerTableContainer').innerHTML = html; }
+    function closePicker() { document.getElementById('pickerOverlay').style.display = 'none'; currentPickerInput = null; }
+
+    // 金额计算（实时响应）
+    function setupPriceCalculations() {
+        const frameActual = document.getElementById('editFrameActualPrice');
+        const lensActual = document.getElementById('editLensActualPrice');
+        const otherCost = document.getElementById('editOtherCost');
+        const totalAmount = document.getElementById('editTotalAmount');
+
+        function calcTotal() {
+            const frame = parseFloat(frameActual?.value) || 0;
+            const lens = parseFloat(lensActual?.value) || 0;
+            const other = parseFloat(otherCost?.value) || 0;
+            if (totalAmount) totalAmount.value = (frame + lens + other).toFixed(2);
         }
-        html += '</tr></table>';
-        document.getElementById('pickerTableContainer').innerHTML = html;
+        if (frameActual) { frameActual.addEventListener('input', calcTotal); frameActual.addEventListener('change', calcTotal); }
+        if (lensActual) { lensActual.addEventListener('input', calcTotal); lensActual.addEventListener('change', calcTotal); }
+        if (otherCost) { otherCost.addEventListener('input', calcTotal); otherCost.addEventListener('change', calcTotal); }
+        calcTotal();
     }
 
-    function closePicker() {
-        document.getElementById('pickerOverlay').style.display = 'none';
-        currentPickerInput = null;
-    }
-
-    // ========== 表单数据填充 ==========
     function fillFormData(data) {
         document.getElementById('editId').value = data.id || '';
         document.getElementById('editName').value = data.name || '';
@@ -873,6 +344,24 @@
         document.getElementById('editPhone').value = data.phone || '';
         document.getElementById('editOccupation').value = data.occupation || '无';
         document.getElementById('editGlassesPurpose').value = data.glassesPurpose || '';
+
+        // 配镜日期格式化
+        if (data.prescriptionDate) {
+            let dateStr = data.prescriptionDate;
+            if (dateStr.includes('T')) dateStr = dateStr.replace('T', ' ');
+            if (dateStr.includes('.') && !dateStr.includes('T')) dateStr = dateStr.substring(0, 19);
+            let dt = new Date(dateStr);
+            if (!isNaN(dt.getTime())) {
+                let year = dt.getFullYear(), month = String(dt.getMonth() + 1).padStart(2, '0'), day = String(dt.getDate()).padStart(2, '0');
+                let hours = String(dt.getHours()).padStart(2, '0'), minutes = String(dt.getMinutes()).padStart(2, '0');
+                document.getElementById('editPrescriptionDate').value = `${year}-${month}-${day}T${hours}:${minutes}`;
+            }
+        } else {
+            let now = new Date();
+            let year = now.getFullYear(), month = String(now.getMonth() + 1).padStart(2, '0'), day = String(now.getDate()).padStart(2, '0');
+            let hours = String(now.getHours()).padStart(2, '0'), minutes = String(now.getMinutes()).padStart(2, '0');
+            document.getElementById('editPrescriptionDate').value = `${year}-${month}-${day}T${hours}:${minutes}`;
+        }
 
         document.getElementById('editLeftSphere').value = data.leftSphere || '';
         document.getElementById('editLeftCylinder').value = data.leftCylinder || '';
@@ -894,12 +383,10 @@
 
         document.getElementById('editFrameModel').value = data.frameModel || '';
         document.getElementById('editFrameOriginalPrice').value = data.frameOriginalPrice || '';
-        document.getElementById('editFrameDiscount').value = data.frameDiscount || '';
-        document.getElementById('editFrameFinalPrice').value = data.frameFinalPrice || '';
+        document.getElementById('editFrameActualPrice').value = data.frameActualPrice || '';
         document.getElementById('editLensType').value = data.lensType || '';
         document.getElementById('editLensOriginalPrice').value = data.lensOriginalPrice || '';
-        document.getElementById('editLensDiscount').value = data.lensDiscount || '';
-        document.getElementById('editLensFinalPrice').value = data.lensFinalPrice || '';
+        document.getElementById('editLensActualPrice').value = data.lensActualPrice || '';
         document.getElementById('editOtherItems').value = data.otherItems || '';
         document.getElementById('editOtherCost').value = data.otherCost || 0;
         document.getElementById('editTotalAmount').value = data.totalAmount || '';
@@ -907,25 +394,19 @@
         document.getElementById('editNeedFollowup').value = data.needFollowup || '否';
         document.getElementById('editRemark').value = data.remark || '';
 
-        // 触发配镜用途变化
         const purposeSelect = document.getElementById('editGlassesPurpose');
-        if (purposeSelect) {
-            const event = new Event('change');
-            purposeSelect.dispatchEvent(event);
-        }
-
-        // 触发金额计算
-        setTimeout(() => {
-            const frameOriginal = document.getElementById('editFrameOriginalPrice');
-            const frameDiscount = document.getElementById('editFrameDiscount');
-            const lensOriginal = document.getElementById('editLensOriginalPrice');
-            const lensDiscount = document.getElementById('editLensDiscount');
-            if (frameOriginal) frameOriginal.dispatchEvent(new Event('input'));
-            if (lensOriginal) lensOriginal.dispatchEvent(new Event('input'));
-        }, 100);
+        if (purposeSelect) { const event = new Event('change'); purposeSelect.dispatchEvent(event); }
+        setTimeout(() => { setupPriceCalculations(); }, 100);
     }
 
     function collectFormData() {
+        let prescriptionDate = document.getElementById('editPrescriptionDate')?.value;
+        let formattedDate = null;
+        if (prescriptionDate) {
+            // 转换为 LocalDateTime 接受的格式
+            formattedDate = prescriptionDate.replace('T', ' ') + ':00';
+        }
+
         return {
             id: document.getElementById('editId')?.value ? parseInt(document.getElementById('editId').value) : null,
             name: document.getElementById('editName')?.value.trim(),
@@ -935,6 +416,7 @@
             phone: document.getElementById('editPhone')?.value,
             occupation: document.getElementById('editOccupation')?.value || '无',
             glassesPurpose: document.getElementById('editGlassesPurpose')?.value,
+            prescriptionDate: formattedDate,
             leftSphere: parseFloat(document.getElementById('editLeftSphere')?.value) || null,
             leftCylinder: parseFloat(document.getElementById('editLeftCylinder')?.value) || null,
             leftAxis: parseInt(document.getElementById('editLeftAxis')?.value) || null,
@@ -953,12 +435,10 @@
             rightPupilHeight: parseFloat(document.getElementById('editRightPupilHeight')?.value) || null,
             frameModel: document.getElementById('editFrameModel')?.value,
             frameOriginalPrice: parseFloat(document.getElementById('editFrameOriginalPrice')?.value) || null,
-            frameDiscount: parseFloat(document.getElementById('editFrameDiscount')?.value) || null,
-            frameFinalPrice: parseFloat(document.getElementById('editFrameFinalPrice')?.value) || null,
+            frameActualPrice: parseFloat(document.getElementById('editFrameActualPrice')?.value) || null,
             lensType: document.getElementById('editLensType')?.value,
             lensOriginalPrice: parseFloat(document.getElementById('editLensOriginalPrice')?.value) || null,
-            lensDiscount: parseFloat(document.getElementById('editLensDiscount')?.value) || null,
-            lensFinalPrice: parseFloat(document.getElementById('editLensFinalPrice')?.value) || null,
+            lensActualPrice: parseFloat(document.getElementById('editLensActualPrice')?.value) || null,
             otherItems: document.getElementById('editOtherItems')?.value,
             otherCost: parseFloat(document.getElementById('editOtherCost')?.value) || 0,
             totalAmount: parseFloat(document.getElementById('editTotalAmount')?.value) || null,
@@ -968,45 +448,6 @@
         };
     }
 
-    // ========== 金额计算 ==========
-    function setupPriceCalculations() {
-        const frameOriginal = document.getElementById('editFrameOriginalPrice');
-        const frameDiscount = document.getElementById('editFrameDiscount');
-        const frameFinal = document.getElementById('editFrameFinalPrice');
-        const lensOriginal = document.getElementById('editLensOriginalPrice');
-        const lensDiscount = document.getElementById('editLensDiscount');
-        const lensFinal = document.getElementById('editLensFinalPrice');
-        const otherCost = document.getElementById('editOtherCost');
-        const totalAmount = document.getElementById('editTotalAmount');
-
-        function calcFrameFinal() {
-            const original = parseFloat(frameOriginal?.value) || 0;
-            const discount = parseFloat(frameDiscount?.value) || 100;
-            const final = original * discount / 100;
-            if (frameFinal) frameFinal.value = final.toFixed(2);
-            calcTotal();
-        }
-        function calcLensFinal() {
-            const original = parseFloat(lensOriginal?.value) || 0;
-            const discount = parseFloat(lensDiscount?.value) || 100;
-            const final = original * discount / 100;
-            if (lensFinal) lensFinal.value = final.toFixed(2);
-            calcTotal();
-        }
-        function calcTotal() {
-            const frame = parseFloat(frameFinal?.value) || 0;
-            const lens = parseFloat(lensFinal?.value) || 0;
-            const other = parseFloat(otherCost?.value) || 0;
-            if (totalAmount) totalAmount.value = (frame + lens + other).toFixed(2);
-        }
-        if (frameOriginal) frameOriginal.addEventListener('input', calcFrameFinal);
-        if (frameDiscount) frameDiscount.addEventListener('input', calcFrameFinal);
-        if (lensOriginal) lensOriginal.addEventListener('input', calcLensFinal);
-        if (lensDiscount) lensDiscount.addEventListener('input', calcLensFinal);
-        if (otherCost) otherCost.addEventListener('input', calcTotal);
-    }
-
-    // ========== 表单验证 ==========
     function validateForm() {
         let isValid = true;
         const name = document.getElementById('editName')?.value.trim();
@@ -1022,52 +463,27 @@
         return isValid;
     }
 
-    function showError(inputId, errorId) {
-        const input = document.getElementById(inputId);
-        const error = document.getElementById(errorId);
-        if (input) input.classList.add('error-input');
-        if (error) error.style.display = 'block';
-    }
-    function clearError(inputId, errorId) {
-        const input = document.getElementById(inputId);
-        const error = document.getElementById(errorId);
-        if (input) input.classList.remove('error-input');
-        if (error) error.style.display = 'none';
-    }
-    function clearErrors() {
-        const errorIds = ['nameError', 'genderError', 'ageError', 'shopNameError', 'purposeError'];
-        errorIds.forEach(id => { const el = document.getElementById(id); if (el) el.style.display = 'none'; });
-        const errorInputs = ['editName', 'editGender', 'editAge', 'editShopName', 'editGlassesPurpose'];
-        errorInputs.forEach(id => { const el = document.getElementById(id); if (el) el.classList.remove('error-input'); });
-    }
+    function showError(inputId, errorId) { document.getElementById(inputId)?.classList.add('error-input'); document.getElementById(errorId)?.style.setProperty('display', 'block'); }
+    function clearError(inputId, errorId) { document.getElementById(inputId)?.classList.remove('error-input'); document.getElementById(errorId)?.style.setProperty('display', 'none'); }
+    function clearErrors() { ['nameError', 'genderError', 'ageError', 'shopNameError', 'purposeError'].forEach(id => { let el = document.getElementById(id); if (el) el.style.display = 'none'; }); ['editName', 'editGender', 'editAge', 'editShopName', 'editGlassesPurpose'].forEach(id => { let el = document.getElementById(id); if (el) el.classList.remove('error-input'); }); }
 
-    // ========== 模态框操作 ==========
-    function closeModal() {
-        document.getElementById('editModal').style.display = 'none';
-        clearErrors();
-    }
-
-    function showToast(message, type) {
-        const toast = document.getElementById('toast');
-        toast.textContent = message;
-        toast.className = 'toast ' + type;
-        toast.style.display = 'block';
-        setTimeout(() => { toast.style.display = 'none'; }, 3000);
-    }
+    function closeModal() { document.getElementById('editModal').style.display = 'none'; clearErrors(); }
+    function showToast(message, type) { let toast = document.getElementById('toast'); toast.textContent = message; toast.className = 'toast ' + type; toast.style.display = 'block'; setTimeout(() => { toast.style.display = 'none'; }, 3000); }
 
     async function submitEdit() {
         if (!validateForm()) return;
-        const formData = collectFormData();
-        const isUpdate = !!formData.id;
-        const url = isUpdate ? `${API_BASE}/updateUser` : `${API_BASE}/addUser`;
+        let formData = collectFormData();
+        let isUpdate = !!formData.id;
+        // 统一使用 addUser 接口
+        let url = `${API_BASE}/addUser`;
         try {
-            const response = await fetch(url, {
+            let response = await fetch(url, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 credentials: 'include',
                 body: JSON.stringify(formData)
             });
-            const result = await response.json();
+            let result = await response.json();
             if (result.success) {
                 closeModal();
                 showToast(isUpdate ? '修改成功！' : '添加成功！', 'success');
@@ -1082,18 +498,11 @@
 
     async function editRecord(id) {
         try {
-            const response = await fetch(`${API_BASE}/getUser/${id}`, { method: 'GET', credentials: 'include' });
-            const result = await response.json();
-            if (result.success) {
-                document.getElementById('modalTitle').textContent = '编辑配镜处方';
-                fillFormData(result.data);
-                document.getElementById('editModal').style.display = 'block';
-            } else {
-                showToast(result.message, 'error');
-            }
-        } catch (error) {
-            showToast('获取数据失败', 'error');
-        }
+            let response = await fetch(`${API_BASE}/getUser/${id}`, { method: 'GET', credentials: 'include' });
+            let result = await response.json();
+            if (result.success) { document.getElementById('modalTitle').textContent = '编辑配镜处方'; fillFormData(result.data); document.getElementById('editModal').style.display = 'block'; }
+            else { showToast(result.message, 'error'); }
+        } catch (error) { showToast('获取数据失败', 'error'); }
     }
 
     function showAddModal() {
@@ -1101,161 +510,84 @@
         document.getElementById('editForm').reset();
         document.getElementById('editId').value = '';
         clearErrors();
-        setupPriceCalculations();
-        // 设置默认值
+        let now = new Date();
+        let year = now.getFullYear(), month = String(now.getMonth() + 1).padStart(2, '0'), day = String(now.getDate()).padStart(2, '0');
+        let hours = String(now.getHours()).padStart(2, '0'), minutes = String(now.getMinutes()).padStart(2, '0');
+        document.getElementById('editPrescriptionDate').value = `${year}-${month}-${day}T${hours}:${minutes}`;
         document.getElementById('editOccupation').value = '无';
         document.getElementById('editNeedFollowup').value = '否';
         document.getElementById('editOtherCost').value = 0;
-        // 触发配镜用途变化
-        const purposeSelect = document.getElementById('editGlassesPurpose');
-        if (purposeSelect) {
-            const event = new Event('change');
-            purposeSelect.dispatchEvent(event);
-        }
+        let purposeSelect = document.getElementById('editGlassesPurpose');
+        if (purposeSelect) { let event = new Event('change'); purposeSelect.dispatchEvent(event); }
+        setupPriceCalculations();
         document.getElementById('editModal').style.display = 'block';
     }
 
     function setupPurposeListener() {
-        const purposeSelect = document.getElementById('editGlassesPurpose');
+        let purposeSelect = document.getElementById('editGlassesPurpose');
         if (purposeSelect) {
             purposeSelect.addEventListener('change', function() {
-                const isProgressive = this.value === '渐进';
+                let isProgressive = this.value === '渐进';
                 document.getElementById('leftAddGroup').style.display = isProgressive ? 'block' : 'none';
                 document.getElementById('rightAddGroup').style.display = isProgressive ? 'block' : 'none';
             });
         }
     }
 
-    // 绑定表格选择器点击事件
     function bindPickerEvents() {
-        const pickerFields = [
-            'editLeftSphere', 'editLeftCylinder', 'editLeftAxis', 'editLeftUncorrectedVision', 'editLeftCorrectedVision', 'editLeftPupilDistance',
-            'editRightSphere', 'editRightCylinder', 'editRightAxis', 'editRightUncorrectedVision', 'editRightCorrectedVision', 'editRightPupilDistance'
-        ];
-        const fieldTypes = {
-            'editLeftSphere': 'diopter', 'editLeftCylinder': 'diopter', 'editRightSphere': 'diopter', 'editRightCylinder': 'diopter',
-            'editLeftAxis': 'axis', 'editRightAxis': 'axis',
-            'editLeftUncorrectedVision': 'vision', 'editLeftCorrectedVision': 'vision', 'editRightUncorrectedVision': 'vision', 'editRightCorrectedVision': 'vision',
-            'editLeftPupilDistance': 'pd', 'editRightPupilDistance': 'pd'
-        };
-        const fieldTitles = {
-            'diopter': '选择度数', 'axis': '选择轴位', 'vision': '选择视力', 'pd': '选择瞳距'
-        };
-
-        pickerFields.forEach(fieldId => {
-            const element = document.getElementById(fieldId);
-            if (element) {
-                element.addEventListener('click', function() {
-                    const type = fieldTypes[fieldId];
-                    showPicker(this, type, fieldTitles[type]);
-                });
-            }
-        });
+        let pickerFields = ['editLeftSphere', 'editLeftCylinder', 'editLeftAxis', 'editLeftUncorrectedVision', 'editLeftCorrectedVision', 'editLeftPupilDistance', 'editRightSphere', 'editRightCylinder', 'editRightAxis', 'editRightUncorrectedVision', 'editRightCorrectedVision', 'editRightPupilDistance'];
+        let fieldTypes = { 'editLeftSphere': 'diopter', 'editLeftCylinder': 'diopter', 'editRightSphere': 'diopter', 'editRightCylinder': 'diopter', 'editLeftAxis': 'axis', 'editRightAxis': 'axis', 'editLeftUncorrectedVision': 'vision', 'editLeftCorrectedVision': 'vision', 'editRightUncorrectedVision': 'vision', 'editRightCorrectedVision': 'vision', 'editLeftPupilDistance': 'pd', 'editRightPupilDistance': 'pd' };
+        let fieldTitles = { 'diopter': '选择度数', 'axis': '选择轴位', 'vision': '选择视力', 'pd': '选择瞳距' };
+        pickerFields.forEach(fieldId => { let element = document.getElementById(fieldId); if (element) { element.addEventListener('click', function() { showPicker(this, fieldTypes[fieldId], fieldTitles[fieldTypes[fieldId]]); }); } });
     }
 
-    // 重新绑定（每次打开模态框时）
-    function rebindPickerEvents() {
-        setTimeout(() => bindPickerEvents(), 100);
-    }
-
-    // ========== 数据加载和渲染 ==========
     async function checkLoginStatus() {
         try {
-            const response = await fetch(`${API_BASE}/checkLogin`, { method: 'GET', credentials: 'include' });
-            const result = await response.json();
-            if (result.isLogin) {
-                document.getElementById('currentUser').innerText = result.username;
-                document.getElementById('loginContainer').style.display = 'none';
-                document.getElementById('mainContainer').style.display = 'block';
-                loadAllData();
-            } else {
-                document.getElementById('loginContainer').style.display = 'flex';
-                document.getElementById('mainContainer').style.display = 'none';
-            }
-        } catch (error) {
-            document.getElementById('loginContainer').style.display = 'flex';
-            document.getElementById('mainContainer').style.display = 'none';
-        }
+            let response = await fetch(`${API_BASE}/checkLogin`, { method: 'GET', credentials: 'include' });
+            let result = await response.json();
+            if (result.isLogin) { document.getElementById('currentUser').innerText = result.username; document.getElementById('loginContainer').style.display = 'none'; document.getElementById('mainContainer').style.display = 'block'; loadAllData(); }
+            else { document.getElementById('loginContainer').style.display = 'flex'; document.getElementById('mainContainer').style.display = 'none'; }
+        } catch (error) { document.getElementById('loginContainer').style.display = 'flex'; document.getElementById('mainContainer').style.display = 'none'; }
     }
 
     document.getElementById('loginForm')?.addEventListener('submit', async (e) => {
         e.preventDefault();
-        const username = document.getElementById('username').value;
-        const password = document.getElementById('password').value;
-        const errorDiv = document.getElementById('loginError');
+        let username = document.getElementById('username').value, password = document.getElementById('password').value, errorDiv = document.getElementById('loginError');
         errorDiv.style.display = 'none';
         try {
-            const response = await fetch(`${API_BASE}/login`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                credentials: 'include',
-                body: JSON.stringify({ username, password })
-            });
-            const result = await response.json();
-            if (result.success) {
-                document.getElementById('currentUser').innerText = result.user.username;
-                document.getElementById('loginContainer').style.display = 'none';
-                document.getElementById('mainContainer').style.display = 'block';
-                loadAllData();
-                showToast('登录成功', 'success');
-            } else {
-                errorDiv.innerText = result.message;
-                errorDiv.style.display = 'block';
-            }
-        } catch (error) {
-            errorDiv.innerText = '网络错误';
-            errorDiv.style.display = 'block';
-        }
+            let response = await fetch(`${API_BASE}/login`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, credentials: 'include', body: JSON.stringify({ username, password }) });
+            let result = await response.json();
+            if (result.success) { document.getElementById('currentUser').innerText = result.user.username; document.getElementById('loginContainer').style.display = 'none'; document.getElementById('mainContainer').style.display = 'block'; loadAllData(); showToast('登录成功', 'success'); }
+            else { errorDiv.innerText = result.message; errorDiv.style.display = 'block'; }
+        } catch (error) { errorDiv.innerText = '网络错误'; errorDiv.style.display = 'block'; }
     });
 
-    async function loadAllData() {
-        currentSearchKeyword = '';
-        document.getElementById('searchInput').value = '';
-        await fetchData('');
-    }
-
-    async function searchData() {
-        currentSearchKeyword = document.getElementById('searchInput')?.value || '';
-        currentPage = 1;
-        await fetchData(currentSearchKeyword);
-    }
-
+    async function loadAllData() { currentSearchKeyword = ''; document.getElementById('searchInput').value = ''; await fetchData(''); }
+    async function searchData() { currentSearchKeyword = document.getElementById('searchInput')?.value || ''; currentPage = 1; await fetchData(currentSearchKeyword); }
     function handleSearchKeyPress(event) { if (event.key === 'Enter') searchData(); }
 
     async function fetchData(keyword) {
-        const tableContent = document.getElementById('tableContent');
+        let tableContent = document.getElementById('tableContent');
         tableContent.innerHTML = '<div class="loading">加载中...</div>';
         try {
-            const response = await fetch(`${API_BASE}/getData`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                credentials: 'include',
-                body: JSON.stringify({ search: keyword })
-            });
-            const result = await response.json();
-            if (result.success) {
-                totalData = result.data || [];
-                renderTableWithPagination();
-            } else {
-                tableContent.innerHTML = `<div class="empty-data">${result.message || '获取数据失败'}</div>`;
-                if (result.message === '未登录') checkLoginStatus();
-            }
-        } catch (error) {
-            tableContent.innerHTML = '<div class="empty-data">网络错误</div>';
-        }
+            let response = await fetch(`${API_BASE}/getData`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, credentials: 'include', body: JSON.stringify({ search: keyword }) });
+            let result = await response.json();
+            if (result.success) { totalData = result.data || []; renderTableWithPagination(); }
+            else { tableContent.innerHTML = `<div class="empty-data">${result.message || '获取数据失败'}</div>`; if (result.message === '未登录') checkLoginStatus(); }
+        } catch (error) { tableContent.innerHTML = '<div class="empty-data">网络错误</div>'; }
     }
 
     function renderTableWithPagination() {
-        const start = (currentPage - 1) * pageSize;
-        const pageData = totalData.slice(start, start + pageSize);
+        let start = (currentPage - 1) * pageSize;
+        let pageData = totalData.slice(start, start + pageSize);
         renderTable(pageData);
         renderPagination();
         document.getElementById('stats').innerText = `共 ${totalData.length} 条记录`;
     }
 
     function renderPagination() {
-        const totalPages = Math.ceil(totalData.length / pageSize);
-        const paginationDiv = document.getElementById('pagination');
+        let totalPages = Math.ceil(totalData.length / pageSize);
+        let paginationDiv = document.getElementById('pagination');
         if (totalPages <= 1) { paginationDiv.innerHTML = ''; return; }
         let html = '';
         html += `<button onclick="goToPage(1)" ${currentPage === 1 ? 'disabled' : ''}>首页</button>`;
@@ -1270,29 +602,25 @@
         paginationDiv.innerHTML = html;
     }
 
-    function goToPage(page) {
-        const totalPages = Math.ceil(totalData.length / pageSize);
-        if (page < 1 || page > totalPages) return;
-        currentPage = page;
-        renderTableWithPagination();
-    }
+    function goToPage(page) { let totalPages = Math.ceil(totalData.length / pageSize); if (page < 1 || page > totalPages) return; currentPage = page; renderTableWithPagination(); }
 
     function renderTable(data) {
-        const tableContent = document.getElementById('tableContent');
+        let tableContent = document.getElementById('tableContent');
         if (!data || data.length === 0) { tableContent.innerHTML = '<div class="empty-data">暂无数据</div>'; return; }
-        const table = document.createElement('table'); table.className = 'data-table';
-        const thead = document.createElement('thead');
-        const headerRow = document.createElement('tr');
-        const headers = ['序号', '姓名', '性别', '年龄', '电话', '店名', '配镜用途', '左眼球镜', '左眼柱镜', '左眼轴位', '右眼球镜', '右眼柱镜', '右眼轴位', '镜架型号', '镜片种类', '总金额', '顾问', '操作'];
-        headers.forEach(h => { const th = document.createElement('th'); th.textContent = h; headerRow.appendChild(th); });
+        let table = document.createElement('table'); table.className = 'data-table';
+        let thead = document.createElement('thead');
+        let headerRow = document.createElement('tr');
+        let headers = ['序号', '姓名', '性别', '年龄', '电话', '配镜用途', '配镜日期', '左眼球镜', '左眼柱镜', '左眼轴位', '右眼球镜', '右眼柱镜', '右眼轴位', '镜架型号', '镜片种类', '总金额', '顾问', '店名', '操作'];
+        headers.forEach(h => { let th = document.createElement('th'); th.textContent = h; headerRow.appendChild(th); });
         thead.appendChild(headerRow); table.appendChild(thead);
-        const tbody = document.createElement('tbody');
+        let tbody = document.createElement('tbody');
         data.forEach(item => {
-            const row = document.createElement('tr');
-            const fields = [item.serialNo || '-', item.name || '-', item.gender || '-', item.age || '-', item.phone || '-', item.shopName || '-', item.glassesPurpose || '-', item.leftSphere || '-', item.leftCylinder || '-', item.leftAxis || '-', item.rightSphere || '-', item.rightCylinder || '-', item.rightAxis || '-', item.frameModel || '-', item.lensType || '-', item.totalAmount ? '¥' + item.totalAmount : '-', item.consultant || '-'];
-            fields.forEach(f => { const td = document.createElement('td'); td.textContent = f; row.appendChild(td); });
-            const actionTd = document.createElement('td');
-            const editBtn = document.createElement('button'); editBtn.textContent = '编辑'; editBtn.className = 'edit-btn';
+            let row = document.createElement('tr');
+            let dateStr = item.prescriptionDate ? (item.prescriptionDate.includes('T') ? item.prescriptionDate.replace('T', ' ') : item.prescriptionDate).substring(0, 16) : '-';
+            let fields = [item.serialNo || '-', item.name || '-', item.gender || '-', item.age || '-', item.phone || '-', item.glassesPurpose || '-', dateStr, item.leftSphere || '-', item.leftCylinder || '-', item.leftAxis || '-', item.rightSphere || '-', item.rightCylinder || '-', item.rightAxis || '-', item.frameModel || '-', item.lensType || '-', item.totalAmount ? '¥' + item.totalAmount : '-', item.consultant || '-', item.shopName || '-'];
+            fields.forEach(f => { let td = document.createElement('td'); td.textContent = f; row.appendChild(td); });
+            let actionTd = document.createElement('td');
+            let editBtn = document.createElement('button'); editBtn.textContent = '编辑'; editBtn.className = 'edit-btn';
             editBtn.onclick = (function(id) { return function() { editRecord(id); }; })(item.id);
             actionTd.appendChild(editBtn); row.appendChild(actionTd);
             tbody.appendChild(row);
@@ -1300,25 +628,12 @@
         table.appendChild(tbody); tableContent.innerHTML = ''; tableContent.appendChild(table);
     }
 
-    async function logout() {
-        await fetch(`${API_BASE}/logout`, { method: 'GET', credentials: 'include' });
-        showToast('已退出登录', 'success');
-        checkLoginStatus();
-    }
+    async function logout() { await fetch(`${API_BASE}/logout`, { method: 'GET', credentials: 'include' }); showToast('已退出登录', 'success'); checkLoginStatus(); }
 
-    // ========== 初始化 ==========
     window.onclick = function(event) { if (event.target === document.getElementById('editModal')) closeModal(); if (event.target === document.getElementById('pickerOverlay')) closePicker(); };
     document.getElementById('signToggleBtn')?.addEventListener('click', toggleSign);
 
-    window.onload = () => {
-        checkLoginStatus();
-        setupPriceCalculations();
-        setupPurposeListener();
-        bindPickerEvents();
-        // 监听模态框打开后重新绑定
-        const observer = new MutationObserver(() => { bindPickerEvents(); });
-        observer.observe(document.getElementById('editModal'), { attributes: true, attributeFilter: ['style'] });
-    };
+    window.onload = () => { checkLoginStatus(); setupPurposeListener(); bindPickerEvents(); };
 </script>
 </body>
 </html>

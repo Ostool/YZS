@@ -12,6 +12,8 @@ public interface UserDataRepository extends JpaRepository<UserData, Integer> {
     @Query("SELECT u FROM UserData u WHERE " +
             "u.name LIKE CONCAT('%', :keyword, '%') OR " +
             "u.shopName LIKE CONCAT('%', :keyword, '%') OR " +
-            "u.serialNo LIKE CONCAT('%', :keyword, '%')")
+            "u.serialNo LIKE CONCAT('%', :keyword, '%') OR " +
+            "u.phone LIKE CONCAT('%', :keyword, '%') OR " +
+            "u.glassesPurpose LIKE CONCAT('%', :keyword, '%')")
     List<UserData> searchByKeyword(@Param("keyword") String keyword);
 }
