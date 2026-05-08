@@ -202,6 +202,15 @@
             background: #5a6268;
         }
 
+        .btn-warning {
+            background: #ed8936;
+            color: white;
+        }
+
+        .btn-warning:hover {
+            background: #dd6b20;
+        }
+
         /* 表格容器 */
         .table-container {
             padding: 0 30px 30px 30px;
@@ -233,6 +242,62 @@
 
         .data-table tr:hover {
             background: #f8f9fa;
+        }
+
+        .edit-btn {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 5px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+
+        .edit-btn:hover {
+            background: #5a67d8;
+        }
+
+        /* 分页样式 */
+        .pagination {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+            margin-top: 20px;
+            padding: 20px;
+            flex-wrap: wrap;
+        }
+
+        .pagination button {
+            padding: 8px 16px;
+            border: 1px solid #ddd;
+            background: white;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .pagination button:hover:not(:disabled) {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
+        }
+
+        .pagination button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .pagination .active {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
+        }
+
+        .page-info {
+            margin: 0 15px;
+            color: #666;
         }
 
         /* 模态框样式 */
@@ -331,7 +396,8 @@
         }
 
         .form-group input,
-        .form-group select {
+        .form-group select,
+        .form-group textarea {
             padding: 10px;
             border: 1px solid #ddd;
             border-radius: 5px;
@@ -339,7 +405,8 @@
         }
 
         .form-group input:focus,
-        .form-group select:focus {
+        .form-group select:focus,
+        .form-group textarea:focus {
             outline: none;
             border-color: #667eea;
         }
@@ -387,7 +454,6 @@
             grid-template-columns: repeat(3, 1fr);
             gap: 15px;
             margin-bottom: 15px;
-            align-items: end;
         }
 
         .product-item {
@@ -451,6 +517,10 @@
             color: #666;
             font-size: 14px;
             border-top: 1px solid #e0e0e0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
         }
 
         .loading, .empty-data {
@@ -486,6 +556,11 @@
             .data-table th, .data-table td {
                 padding: 6px 8px;
             }
+            .stats {
+                flex-direction: column;
+                gap: 10px;
+                text-align: center;
+            }
         }
     </style>
 </head>
@@ -512,7 +587,7 @@
 <!-- 主界面 -->
 <div id="mainContainer" class="main-container">
     <div class="header">
-        <h1>👓 叶子说眼镜--配镜处方管理系统</h1>
+        <h1>👓 配镜处方管理系统</h1>
         <div class="user-info">
             <span>欢迎，<span id="currentUser">用户</span></span>
             <button class="logout-btn" onclick="logout()">退出登录</button>
@@ -534,32 +609,35 @@
         </div>
     </div>
 
-    <div class="stats" id="stats">
-        共 0 条记录
+    <div class="stats">
+        <span id="stats">共 0 条记录</span>
+        <div class="pagination" id="pagination"></div>
     </div>
 </div>
 
-<!-- 新增配镜处方模态框 -->
-<div id="addModal" class="modal">
+<!-- 新增/编辑配镜处方模态框 -->
+<div id="editModal" class="modal">
     <div class="modal-content">
         <div class="modal-header">
-            <h3>新增配镜处方</h3>
+            <h3 id="modalTitle">新增配镜处方</h3>
             <span class="close" onclick="closeModal()">&times;</span>
         </div>
         <div class="modal-body">
-            <form id="addUserForm">
+            <form id="editForm">
+                <input type="hidden" id="editId">
+
                 <!-- 基本信息 -->
                 <div class="form-section">
                     <h4>📋 基本信息</h4>
                     <div class="form-row">
                         <div class="form-group">
                             <label>姓名 <span style="color: red;">*</span></label>
-                            <input type="text" id="addName" placeholder="请输入姓名">
+                            <input type="text" id="editName" placeholder="请输入姓名">
                             <div class="error-message" id="nameError">请输入姓名</div>
                         </div>
                         <div class="form-group">
                             <label>性别 <span style="color: red;">*</span></label>
-                            <select id="addGender">
+                            <select id="editGender">
                                 <option value="">请选择</option>
                                 <option value="男">男</option>
                                 <option value="女">女</option>
@@ -568,27 +646,27 @@
                         </div>
                         <div class="form-group">
                             <label>年龄 <span style="color: red;">*</span></label>
-                            <input type="number" id="addAge" placeholder="请输入年龄">
+                            <input type="number" id="editAge" placeholder="请输入年龄">
                             <div class="error-message" id="ageError">请输入有效年龄</div>
                         </div>
                         <div class="form-group">
                             <label>店名 <span style="color: red;">*</span></label>
-                            <input type="text" id="addShopName" placeholder="请输入店名">
+                            <input type="text" id="editShopName" placeholder="请输入店名">
                             <div class="error-message" id="shopNameError">请输入店名</div>
                         </div>
                     </div>
                     <div class="form-row">
                         <div class="form-group">
                             <label>电话</label>
-                            <input type="tel" id="addPhone" placeholder="请输入电话">
+                            <input type="tel" id="editPhone" placeholder="请输入电话">
                         </div>
                         <div class="form-group">
                             <label>职业</label>
-                            <input type="text" id="addOccupation" placeholder="默认：无">
+                            <input type="text" id="editOccupation" placeholder="默认：无">
                         </div>
                         <div class="form-group">
                             <label>配镜用途 <span style="color: red;">*</span></label>
-                            <select id="addGlassesPurpose">
+                            <select id="editGlassesPurpose">
                                 <option value="">请选择</option>
                                 <option value="近用">近用</option>
                                 <option value="远用">远用</option>
@@ -609,35 +687,35 @@
                             <h5>左眼</h5>
                             <div class="form-group">
                                 <label>球镜 (SPH)</label>
-                                <input type="number" step="0.25" id="leftSphere" placeholder="例：-2.00">
+                                <input type="number" step="0.25" id="editLeftSphere" placeholder="例：-2.00">
                             </div>
                             <div class="form-group">
                                 <label>柱镜 (CYL)</label>
-                                <input type="number" step="0.25" id="leftCylinder" placeholder="例：-0.75">
+                                <input type="number" step="0.25" id="editLeftCylinder" placeholder="例：-0.75">
                             </div>
                             <div class="form-group">
                                 <label>轴位 (AXI)</label>
-                                <input type="number" id="leftAxis" placeholder="1-180">
+                                <input type="number" id="editLeftAxis" placeholder="1-180">
                             </div>
                             <div class="form-group" id="leftAddGroup" style="display: none;">
                                 <label>下加光 (ADD)</label>
-                                <input type="number" step="0.25" id="leftAdd" placeholder="下加光度数">
+                                <input type="number" step="0.25" id="editLeftAdd" placeholder="下加光度数">
                             </div>
                             <div class="form-group">
                                 <label>裸眼视力</label>
-                                <input type="text" id="leftUncorrectedVision" placeholder="例：0.8">
+                                <input type="text" id="editLeftUncorrectedVision" placeholder="例：0.8">
                             </div>
                             <div class="form-group">
                                 <label>矫正视力</label>
-                                <input type="text" id="leftCorrectedVision" placeholder="例：1.0">
+                                <input type="text" id="editLeftCorrectedVision" placeholder="例：1.0">
                             </div>
                             <div class="form-group">
                                 <label>瞳距 (PD)</label>
-                                <input type="number" step="0.5" id="leftPupilDistance" placeholder="mm">
+                                <input type="number" step="0.5" id="editLeftPupilDistance" placeholder="mm">
                             </div>
                             <div class="form-group">
                                 <label>瞳高 (PH)</label>
-                                <input type="number" step="0.5" id="leftPupilHeight" placeholder="mm">
+                                <input type="number" step="0.5" id="editLeftPupilHeight" placeholder="mm">
                             </div>
                         </div>
                         <!-- 右眼 -->
@@ -645,35 +723,35 @@
                             <h5>右眼</h5>
                             <div class="form-group">
                                 <label>球镜 (SPH)</label>
-                                <input type="number" step="0.25" id="rightSphere" placeholder="例：-2.00">
+                                <input type="number" step="0.25" id="editRightSphere" placeholder="例：-2.00">
                             </div>
                             <div class="form-group">
                                 <label>柱镜 (CYL)</label>
-                                <input type="number" step="0.25" id="rightCylinder" placeholder="例：-0.75">
+                                <input type="number" step="0.25" id="editRightCylinder" placeholder="例：-0.75">
                             </div>
                             <div class="form-group">
                                 <label>轴位 (AXI)</label>
-                                <input type="number" id="rightAxis" placeholder="1-180">
+                                <input type="number" id="editRightAxis" placeholder="1-180">
                             </div>
                             <div class="form-group" id="rightAddGroup" style="display: none;">
                                 <label>下加光 (ADD)</label>
-                                <input type="number" step="0.25" id="rightAdd" placeholder="下加光度数">
+                                <input type="number" step="0.25" id="editRightAdd" placeholder="下加光度数">
                             </div>
                             <div class="form-group">
                                 <label>裸眼视力</label>
-                                <input type="text" id="rightUncorrectedVision" placeholder="例：0.8">
+                                <input type="text" id="editRightUncorrectedVision" placeholder="例：0.8">
                             </div>
                             <div class="form-group">
                                 <label>矫正视力</label>
-                                <input type="text" id="rightCorrectedVision" placeholder="例：1.0">
+                                <input type="text" id="editRightCorrectedVision" placeholder="例：1.0">
                             </div>
                             <div class="form-group">
                                 <label>瞳距 (PD)</label>
-                                <input type="number" step="0.5" id="rightPupilDistance" placeholder="mm">
+                                <input type="number" step="0.5" id="editRightPupilDistance" placeholder="mm">
                             </div>
                             <div class="form-group">
                                 <label>瞳高 (PH)</label>
-                                <input type="number" step="0.5" id="rightPupilHeight" placeholder="mm">
+                                <input type="number" step="0.5" id="editRightPupilHeight" placeholder="mm">
                             </div>
                         </div>
                     </div>
@@ -689,19 +767,19 @@
                             <h5>镜架信息</h5>
                             <div class="form-group">
                                 <label>镜架型号</label>
-                                <input type="text" id="frameModel" placeholder="请输入镜架型号">
+                                <input type="text" id="editFrameModel" placeholder="请输入镜架型号">
                             </div>
                             <div class="form-group">
                                 <label>镜架原价</label>
-                                <input type="number" step="0.01" id="frameOriginalPrice" placeholder="0.00">
+                                <input type="number" step="0.01" id="editFrameOriginalPrice" placeholder="0.00">
                             </div>
                             <div class="form-group">
                                 <label>镜架折扣 (%)</label>
-                                <input type="number" step="1" id="frameDiscount" placeholder="例：80">
+                                <input type="number" step="1" id="editFrameDiscount" placeholder="例：80">
                             </div>
                             <div class="form-group">
                                 <label>最终镜架金额</label>
-                                <input type="number" step="0.01" id="frameFinalPrice" placeholder="自动计算">
+                                <input type="number" step="0.01" id="editFrameFinalPrice" placeholder="自动计算">
                             </div>
                         </div>
 
@@ -710,19 +788,19 @@
                             <h5>镜片信息</h5>
                             <div class="form-group">
                                 <label>镜片种类</label>
-                                <input type="text" id="lensType" placeholder="例：单光/防蓝光">
+                                <input type="text" id="editLensType" placeholder="例：单光/防蓝光">
                             </div>
                             <div class="form-group">
                                 <label>镜片原价</label>
-                                <input type="number" step="0.01" id="lensOriginalPrice" placeholder="0.00">
+                                <input type="number" step="0.01" id="editLensOriginalPrice" placeholder="0.00">
                             </div>
                             <div class="form-group">
                                 <label>镜片折扣 (%)</label>
-                                <input type="number" step="1" id="lensDiscount" placeholder="例：80">
+                                <input type="number" step="1" id="editLensDiscount" placeholder="例：80">
                             </div>
                             <div class="form-group">
                                 <label>最终镜片金额</label>
-                                <input type="number" step="0.01" id="lensFinalPrice" placeholder="自动计算">
+                                <input type="number" step="0.01" id="editLensFinalPrice" placeholder="自动计算">
                             </div>
                         </div>
 
@@ -731,7 +809,11 @@
                             <h5>其他项目</h5>
                             <div class="form-group">
                                 <label>其他项目说明</label>
-                                <textarea id="otherItems" rows="3" placeholder="其他收费项目说明" style="width:100%; padding:8px; border:1px solid #ddd; border-radius:5px;"></textarea>
+                                <textarea id="editOtherItems" rows="2" placeholder="其他收费项目说明" style="width:100%; padding:8px; border:1px solid #ddd; border-radius:5px;"></textarea>
+                            </div>
+                            <div class="form-group">
+                                <label>其他费用</label>
+                                <input type="number" step="0.01" id="editOtherCost" placeholder="0.00">
                             </div>
                         </div>
                     </div>
@@ -740,15 +822,15 @@
                     <div class="form-row" style="margin-top: 15px;">
                         <div class="form-group">
                             <label>配镜总金额</label>
-                            <input type="number" step="0.01" id="totalAmount" placeholder="自动计算">
+                            <input type="number" step="0.01" id="editTotalAmount" placeholder="自动计算" readonly style="background:#f0f0f0;">
                         </div>
                         <div class="form-group">
                             <label>配镜顾问</label>
-                            <input type="text" id="consultant" placeholder="配镜顾问姓名">
+                            <input type="text" id="editConsultant" placeholder="配镜顾问姓名">
                         </div>
                         <div class="form-group">
                             <label>是否需要回访</label>
-                            <select id="needFollowup">
+                            <select id="editNeedFollowup">
                                 <option value="否">否</option>
                                 <option value="是">是</option>
                             </select>
@@ -756,14 +838,14 @@
                     </div>
                     <div class="form-group">
                         <label>备注</label>
-                        <textarea id="remark" rows="2" placeholder="备注信息" style="width:100%; padding:8px; border:1px solid #ddd; border-radius:5px;"></textarea>
+                        <textarea id="editRemark" rows="2" placeholder="备注信息" style="width:100%; padding:8px; border:1px solid #ddd; border-radius:5px;"></textarea>
                     </div>
                 </div>
             </form>
         </div>
         <div class="modal-footer">
             <button class="btn btn-secondary" onclick="closeModal()">取消</button>
-            <button class="btn btn-success" onclick="submitAddUser()">确认添加</button>
+            <button class="btn btn-success" onclick="submitEdit()">确认保存</button>
         </div>
     </div>
 </div>
@@ -773,96 +855,93 @@
 
 <script>
     const API_BASE = '/api';
+    let currentPage = 1;
+    let pageSize = 10;
+    let totalData = [];
+    let currentSearchKeyword = '';
+    let isEditMode = false;
 
-    // 监听配镜用途变化，控制下加光字段显示
-    document.getElementById('addGlassesPurpose')?.addEventListener('change', function() {
+    // 监听配镜用途变化
+    function setupPurposeListener() {
+        const purposeSelect = document.getElementById('editGlassesPurpose');
+        if (purposeSelect) {
+            purposeSelect.removeEventListener('change', purposeChangeHandler);
+            purposeSelect.addEventListener('change', purposeChangeHandler);
+        }
+    }
+
+    function purposeChangeHandler() {
         const isProgressive = this.value === '渐进';
         const leftAddGroup = document.getElementById('leftAddGroup');
         const rightAddGroup = document.getElementById('rightAddGroup');
         if (leftAddGroup) leftAddGroup.style.display = isProgressive ? 'block' : 'none';
         if (rightAddGroup) rightAddGroup.style.display = isProgressive ? 'block' : 'none';
-    });
+    }
 
-    // 监听金额变化，自动计算
+    // 金额计算
     function setupPriceCalculations() {
-        const frameOriginal = document.getElementById('frameOriginalPrice');
-        const frameDiscount = document.getElementById('frameDiscount');
-        const frameFinal = document.getElementById('frameFinalPrice');
-        const lensOriginal = document.getElementById('lensOriginalPrice');
-        const lensDiscount = document.getElementById('lensDiscount');
-        const lensFinal = document.getElementById('lensFinalPrice');
-        const totalAmount = document.getElementById('totalAmount');
+        const frameOriginal = document.getElementById('editFrameOriginalPrice');
+        const frameDiscount = document.getElementById('editFrameDiscount');
+        const frameFinal = document.getElementById('editFrameFinalPrice');
+        const lensOriginal = document.getElementById('editLensOriginalPrice');
+        const lensDiscount = document.getElementById('editLensDiscount');
+        const lensFinal = document.getElementById('editLensFinalPrice');
+        const otherCost = document.getElementById('editOtherCost');
+        const totalAmount = document.getElementById('editTotalAmount');
 
         function calcFrameFinal() {
-            const original = parseFloat(frameOriginal.value) || 0;
-            const discount = parseFloat(frameDiscount.value) || 100;
+            const original = parseFloat(frameOriginal?.value) || 0;
+            const discount = parseFloat(frameDiscount?.value) || 100;
             const final = original * discount / 100;
-            frameFinal.value = final.toFixed(2);
+            if (frameFinal) frameFinal.value = final.toFixed(2);
             calcTotal();
         }
 
         function calcLensFinal() {
-            const original = parseFloat(lensOriginal.value) || 0;
-            const discount = parseFloat(lensDiscount.value) || 100;
+            const original = parseFloat(lensOriginal?.value) || 0;
+            const discount = parseFloat(lensDiscount?.value) || 100;
             const final = original * discount / 100;
-            lensFinal.value = final.toFixed(2);
+            if (lensFinal) lensFinal.value = final.toFixed(2);
             calcTotal();
         }
 
         function calcTotal() {
-            const frame = parseFloat(frameFinal.value) || 0;
-            const lens = parseFloat(lensFinal.value) || 0;
-            totalAmount.value = (frame + lens).toFixed(2);
+            const frame = parseFloat(frameFinal?.value) || 0;
+            const lens = parseFloat(lensFinal?.value) || 0;
+            const other = parseFloat(otherCost?.value) || 0;
+            if (totalAmount) totalAmount.value = (frame + lens + other).toFixed(2);
         }
 
         if (frameOriginal) frameOriginal.addEventListener('input', calcFrameFinal);
         if (frameDiscount) frameDiscount.addEventListener('input', calcFrameFinal);
         if (lensOriginal) lensOriginal.addEventListener('input', calcLensFinal);
         if (lensDiscount) lensDiscount.addEventListener('input', calcLensFinal);
+        if (otherCost) otherCost.addEventListener('input', calcTotal);
     }
 
     // 验证表单
     function validateForm() {
         let isValid = true;
-        const name = document.getElementById('addName')?.value.trim();
-        if (!name) {
-            showError('addName', 'nameError');
-            isValid = false;
-        } else {
-            clearError('addName', 'nameError');
-        }
 
-        const gender = document.getElementById('addGender')?.value;
-        if (!gender) {
-            showError('addGender', 'genderError');
-            isValid = false;
-        } else {
-            clearError('addGender', 'genderError');
-        }
+        const name = document.getElementById('editName')?.value.trim();
+        if (!name) { showError('editName', 'nameError'); isValid = false; }
+        else { clearError('editName', 'nameError'); }
 
-        const age = document.getElementById('addAge')?.value;
-        if (!age || age < 1 || age > 120) {
-            showError('addAge', 'ageError');
-            isValid = false;
-        } else {
-            clearError('addAge', 'ageError');
-        }
+        const gender = document.getElementById('editGender')?.value;
+        if (!gender) { showError('editGender', 'genderError'); isValid = false; }
+        else { clearError('editGender', 'genderError'); }
 
-        const shopName = document.getElementById('addShopName')?.value.trim();
-        if (!shopName) {
-            showError('addShopName', 'shopNameError');
-            isValid = false;
-        } else {
-            clearError('addShopName', 'shopNameError');
-        }
+        const age = document.getElementById('editAge')?.value;
+        if (!age || age < 1 || age > 120) { showError('editAge', 'ageError'); isValid = false; }
+        else { clearError('editAge', 'ageError'); }
 
-        const purpose = document.getElementById('addGlassesPurpose')?.value;
-        if (!purpose) {
-            showError('addGlassesPurpose', 'purposeError');
-            isValid = false;
-        } else {
-            clearError('addGlassesPurpose', 'purposeError');
-        }
+        const shopName = document.getElementById('editShopName')?.value.trim();
+        if (!shopName) { showError('editShopName', 'shopNameError'); isValid = false; }
+        else { clearError('editShopName', 'shopNameError'); }
+
+        const purpose = document.getElementById('editGlassesPurpose')?.value;
+        if (!purpose) { showError('editGlassesPurpose', 'purposeError'); isValid = false; }
+        else { clearError('editGlassesPurpose', 'purposeError'); }
 
         return isValid;
     }
@@ -887,7 +966,7 @@
             const el = document.getElementById(id);
             if (el) el.style.display = 'none';
         });
-        const errorInputs = ['addName', 'addGender', 'addAge', 'addShopName', 'addGlassesPurpose'];
+        const errorInputs = ['editName', 'editGender', 'editAge', 'editShopName', 'editGlassesPurpose'];
         errorInputs.forEach(id => {
             const el = document.getElementById(id);
             if (el) el.classList.remove('error-input');
@@ -895,9 +974,10 @@
     }
 
     function closeModal() {
-        const modal = document.getElementById('addModal');
+        const modal = document.getElementById('editModal');
         if (modal) modal.style.display = 'none';
         clearErrors();
+        isEditMode = false;
     }
 
     function showToast(message, type) {
@@ -911,69 +991,176 @@
     // 收集表单数据
     function collectFormData() {
         return {
-            name: document.getElementById('addName')?.value.trim(),
-            gender: document.getElementById('addGender')?.value,
-            age: parseInt(document.getElementById('addAge')?.value),
-            shopName: document.getElementById('addShopName')?.value.trim(),
-            phone: document.getElementById('addPhone')?.value,
-            occupation: document.getElementById('addOccupation')?.value || '无',
-            glassesPurpose: document.getElementById('addGlassesPurpose')?.value,
-            leftSphere: parseFloat(document.getElementById('leftSphere')?.value) || null,
-            leftCylinder: parseFloat(document.getElementById('leftCylinder')?.value) || null,
-            leftAxis: parseInt(document.getElementById('leftAxis')?.value) || null,
-            leftAdd: parseFloat(document.getElementById('leftAdd')?.value) || null,
-            leftUncorrectedVision: document.getElementById('leftUncorrectedVision')?.value,
-            leftCorrectedVision: document.getElementById('leftCorrectedVision')?.value,
-            leftPupilDistance: parseFloat(document.getElementById('leftPupilDistance')?.value) || null,
-            leftPupilHeight: parseFloat(document.getElementById('leftPupilHeight')?.value) || null,
-            rightSphere: parseFloat(document.getElementById('rightSphere')?.value) || null,
-            rightCylinder: parseFloat(document.getElementById('rightCylinder')?.value) || null,
-            rightAxis: parseInt(document.getElementById('rightAxis')?.value) || null,
-            rightAdd: parseFloat(document.getElementById('rightAdd')?.value) || null,
-            rightUncorrectedVision: document.getElementById('rightUncorrectedVision')?.value,
-            rightCorrectedVision: document.getElementById('rightCorrectedVision')?.value,
-            rightPupilDistance: parseFloat(document.getElementById('rightPupilDistance')?.value) || null,
-            rightPupilHeight: parseFloat(document.getElementById('rightPupilHeight')?.value) || null,
-            frameModel: document.getElementById('frameModel')?.value,
-            frameOriginalPrice: parseFloat(document.getElementById('frameOriginalPrice')?.value) || null,
-            frameDiscount: parseFloat(document.getElementById('frameDiscount')?.value) || null,
-            frameFinalPrice: parseFloat(document.getElementById('frameFinalPrice')?.value) || null,
-            lensType: document.getElementById('lensType')?.value,
-            lensOriginalPrice: parseFloat(document.getElementById('lensOriginalPrice')?.value) || null,
-            lensDiscount: parseFloat(document.getElementById('lensDiscount')?.value) || null,
-            lensFinalPrice: parseFloat(document.getElementById('lensFinalPrice')?.value) || null,
-            otherItems: document.getElementById('otherItems')?.value,
-            totalAmount: parseFloat(document.getElementById('totalAmount')?.value) || null,
-            consultant: document.getElementById('consultant')?.value,
-            needFollowup: document.getElementById('needFollowup')?.value,
-            remark: document.getElementById('remark')?.value
+            id: document.getElementById('editId')?.value ? parseInt(document.getElementById('editId').value) : null,
+            name: document.getElementById('editName')?.value.trim(),
+            gender: document.getElementById('editGender')?.value,
+            age: parseInt(document.getElementById('editAge')?.value),
+            shopName: document.getElementById('editShopName')?.value.trim(),
+            phone: document.getElementById('editPhone')?.value,
+            occupation: document.getElementById('editOccupation')?.value || '无',
+            glassesPurpose: document.getElementById('editGlassesPurpose')?.value,
+            leftSphere: parseFloat(document.getElementById('editLeftSphere')?.value) || null,
+            leftCylinder: parseFloat(document.getElementById('editLeftCylinder')?.value) || null,
+            leftAxis: parseInt(document.getElementById('editLeftAxis')?.value) || null,
+            leftAdd: parseFloat(document.getElementById('editLeftAdd')?.value) || null,
+            leftUncorrectedVision: document.getElementById('editLeftUncorrectedVision')?.value,
+            leftCorrectedVision: document.getElementById('editLeftCorrectedVision')?.value,
+            leftPupilDistance: parseFloat(document.getElementById('editLeftPupilDistance')?.value) || null,
+            leftPupilHeight: parseFloat(document.getElementById('editLeftPupilHeight')?.value) || null,
+            rightSphere: parseFloat(document.getElementById('editRightSphere')?.value) || null,
+            rightCylinder: parseFloat(document.getElementById('editRightCylinder')?.value) || null,
+            rightAxis: parseInt(document.getElementById('editRightAxis')?.value) || null,
+            rightAdd: parseFloat(document.getElementById('editRightAdd')?.value) || null,
+            rightUncorrectedVision: document.getElementById('editRightUncorrectedVision')?.value,
+            rightCorrectedVision: document.getElementById('editRightCorrectedVision')?.value,
+            rightPupilDistance: parseFloat(document.getElementById('editRightPupilDistance')?.value) || null,
+            rightPupilHeight: parseFloat(document.getElementById('editRightPupilHeight')?.value) || null,
+            frameModel: document.getElementById('editFrameModel')?.value,
+            frameOriginalPrice: parseFloat(document.getElementById('editFrameOriginalPrice')?.value) || null,
+            frameDiscount: parseFloat(document.getElementById('editFrameDiscount')?.value) || null,
+            frameFinalPrice: parseFloat(document.getElementById('editFrameFinalPrice')?.value) || null,
+            lensType: document.getElementById('editLensType')?.value,
+            lensOriginalPrice: parseFloat(document.getElementById('editLensOriginalPrice')?.value) || null,
+            lensDiscount: parseFloat(document.getElementById('editLensDiscount')?.value) || null,
+            lensFinalPrice: parseFloat(document.getElementById('editLensFinalPrice')?.value) || null,
+            otherItems: document.getElementById('editOtherItems')?.value,
+            otherCost: parseFloat(document.getElementById('editOtherCost')?.value) || 0,
+            totalAmount: parseFloat(document.getElementById('editTotalAmount')?.value) || null,
+            consultant: document.getElementById('editConsultant')?.value,
+            needFollowup: document.getElementById('editNeedFollowup')?.value,
+            remark: document.getElementById('editRemark')?.value
         };
     }
 
-    async function submitAddUser() {
+    // 填充表单数据（编辑时）
+    function fillFormData(data) {
+        document.getElementById('editId').value = data.id || '';
+        document.getElementById('editName').value = data.name || '';
+        document.getElementById('editGender').value = data.gender || '';
+        document.getElementById('editAge').value = data.age || '';
+        document.getElementById('editShopName').value = data.shopName || '';
+        document.getElementById('editPhone').value = data.phone || '';
+        document.getElementById('editOccupation').value = data.occupation || '无';
+        document.getElementById('editGlassesPurpose').value = data.glassesPurpose || '';
+
+        document.getElementById('editLeftSphere').value = data.leftSphere || '';
+        document.getElementById('editLeftCylinder').value = data.leftCylinder || '';
+        document.getElementById('editLeftAxis').value = data.leftAxis || '';
+        document.getElementById('editLeftAdd').value = data.leftAdd || '';
+        document.getElementById('editLeftUncorrectedVision').value = data.leftUncorrectedVision || '';
+        document.getElementById('editLeftCorrectedVision').value = data.leftCorrectedVision || '';
+        document.getElementById('editLeftPupilDistance').value = data.leftPupilDistance || '';
+        document.getElementById('editLeftPupilHeight').value = data.leftPupilHeight || '';
+
+        document.getElementById('editRightSphere').value = data.rightSphere || '';
+        document.getElementById('editRightCylinder').value = data.rightCylinder || '';
+        document.getElementById('editRightAxis').value = data.rightAxis || '';
+        document.getElementById('editRightAdd').value = data.rightAdd || '';
+        document.getElementById('editRightUncorrectedVision').value = data.rightUncorrectedVision || '';
+        document.getElementById('editRightCorrectedVision').value = data.rightCorrectedVision || '';
+        document.getElementById('editRightPupilDistance').value = data.rightPupilDistance || '';
+        document.getElementById('editRightPupilHeight').value = data.rightPupilHeight || '';
+
+        document.getElementById('editFrameModel').value = data.frameModel || '';
+        document.getElementById('editFrameOriginalPrice').value = data.frameOriginalPrice || '';
+        document.getElementById('editFrameDiscount').value = data.frameDiscount || '';
+        document.getElementById('editFrameFinalPrice').value = data.frameFinalPrice || '';
+        document.getElementById('editLensType').value = data.lensType || '';
+        document.getElementById('editLensOriginalPrice').value = data.lensOriginalPrice || '';
+        document.getElementById('editLensDiscount').value = data.lensDiscount || '';
+        document.getElementById('editLensFinalPrice').value = data.lensFinalPrice || '';
+        document.getElementById('editOtherItems').value = data.otherItems || '';
+        document.getElementById('editOtherCost').value = data.otherCost || 0;
+        document.getElementById('editTotalAmount').value = data.totalAmount || '';
+        document.getElementById('editConsultant').value = data.consultant || '';
+        document.getElementById('editNeedFollowup').value = data.needFollowup || '否';
+        document.getElementById('editRemark').value = data.remark || '';
+
+        // 触发一下配镜用途变化，控制下加光显示
+        const purposeSelect = document.getElementById('editGlassesPurpose');
+        if (purposeSelect) {
+            const event = new Event('change');
+            purposeSelect.dispatchEvent(event);
+        }
+
+        // 触发金额计算
+        setTimeout(() => {
+            const frameOriginal = document.getElementById('editFrameOriginalPrice');
+            const frameDiscount = document.getElementById('editFrameDiscount');
+            const lensOriginal = document.getElementById('editLensOriginalPrice');
+            const lensDiscount = document.getElementById('editLensDiscount');
+            if (frameOriginal) frameOriginal.dispatchEvent(new Event('input'));
+            if (lensOriginal) lensOriginal.dispatchEvent(new Event('input'));
+        }, 100);
+    }
+
+    // 提交新增/编辑
+    async function submitEdit() {
         if (!validateForm()) return;
-        const userData = collectFormData();
+
+        const formData = collectFormData();
+        const isUpdate = !!formData.id;
+        const url = isUpdate ? `${API_BASE}/updateUser` : `${API_BASE}/addUser`;
+
         try {
-            const response = await fetch(`${API_BASE}/addUser`, {
+            const response = await fetch(url, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 credentials: 'include',
-                body: JSON.stringify(userData)
+                body: JSON.stringify(formData)
             });
             const result = await response.json();
             if (result.success) {
                 closeModal();
-                showToast('添加成功！新用户序号：' + result.serialNo, 'success');
+                showToast(isUpdate ? '修改成功！' : '添加成功！新用户序号：' + result.serialNo, 'success');
                 loadAllData();
-                document.getElementById('addUserForm')?.reset();
             } else {
                 showToast(result.message, 'error');
             }
         } catch (error) {
-            showToast('添加失败，请稍后重试', 'error');
+            showToast(isUpdate ? '修改失败，请稍后重试' : '添加失败，请稍后重试', 'error');
         }
     }
 
+    // 编辑记录
+    async function editRecord(id) {
+        try {
+            const response = await fetch(`${API_BASE}/getUser/${id}`, {
+                method: 'GET',
+                credentials: 'include'
+            });
+            const result = await response.json();
+            if (result.success) {
+                isEditMode = true;
+                document.getElementById('modalTitle').textContent = '编辑配镜处方';
+                fillFormData(result.data);
+                document.getElementById('editModal').style.display = 'block';
+            } else {
+                showToast(result.message, 'error');
+            }
+        } catch (error) {
+            showToast('获取数据失败', 'error');
+        }
+    }
+
+    // 显示新增模态框
+    function showAddModal() {
+        isEditMode = false;
+        document.getElementById('modalTitle').textContent = '新增配镜处方';
+        document.getElementById('editForm').reset();
+        document.getElementById('editId').value = '';
+        clearErrors();
+        setupPriceCalculations();
+        setupPurposeListener();
+        const purposeSelect = document.getElementById('editGlassesPurpose');
+        if (purposeSelect) {
+            const event = new Event('change');
+            purposeSelect.dispatchEvent(event);
+        }
+        document.getElementById('editModal').style.display = 'block';
+    }
+
+    // 登录检查
     async function checkLoginStatus() {
         try {
             const response = await fetch(`${API_BASE}/checkLogin`, { method: 'GET', credentials: 'include' });
@@ -994,6 +1181,7 @@
         }
     }
 
+    // 登录表单提交
     document.getElementById('loginForm')?.addEventListener('submit', async (e) => {
         e.preventDefault();
         const username = document.getElementById('username').value;
@@ -1024,36 +1212,29 @@
         }
     });
 
-    function showAddModal() {
-        const modal = document.getElementById('addModal');
-        if (modal) modal.style.display = 'block';
-        clearErrors();
-        setupPriceCalculations();
-        const purposeSelect = document.getElementById('addGlassesPurpose');
-        if (purposeSelect) {
-            const event = new Event('change');
-            purposeSelect.dispatchEvent(event);
-        }
-    }
-
+    // 加载所有数据
     async function loadAllData() {
+        currentSearchKeyword = '';
+        document.getElementById('searchInput').value = '';
         await fetchData('');
-        const searchInput = document.getElementById('searchInput');
-        if (searchInput) searchInput.value = '';
     }
 
+    // 搜索数据
     async function searchData() {
-        const keyword = document.getElementById('searchInput')?.value || '';
-        await fetchData(keyword);
+        currentSearchKeyword = document.getElementById('searchInput')?.value || '';
+        currentPage = 1;
+        await fetchData(currentSearchKeyword);
     }
 
     function handleSearchKeyPress(event) {
         if (event.key === 'Enter') searchData();
     }
 
+    // 获取数据
     async function fetchData(keyword) {
         const tableContent = document.getElementById('tableContent');
         if (tableContent) tableContent.innerHTML = '<div class="loading">加载中...</div>';
+
         try {
             const response = await fetch(`${API_BASE}/getData`, {
                 method: 'POST',
@@ -1063,9 +1244,8 @@
             });
             const result = await response.json();
             if (result.success) {
-                renderTable(result.data);
-                const stats = document.getElementById('stats');
-                if (stats) stats.textContent = `共 ${result.data.length} 条记录`;
+                totalData = result.data || [];
+                renderTableWithPagination();
             } else {
                 if (tableContent) tableContent.innerHTML = `<div class="empty-data">${result.message || '获取数据失败'}</div>`;
                 if (result.message === '未登录') checkLoginStatus();
@@ -1075,34 +1255,104 @@
         }
     }
 
+    // 分页渲染表格
+    function renderTableWithPagination() {
+        const start = (currentPage - 1) * pageSize;
+        const end = start + pageSize;
+        const pageData = totalData.slice(start, end);
+
+        renderTable(pageData);
+        renderPagination();
+
+        const stats = document.getElementById('stats');
+        if (stats) stats.textContent = `共 ${totalData.length} 条记录`;
+    }
+
+    // 渲染分页控件
+    function renderPagination() {
+        const totalPages = Math.ceil(totalData.length / pageSize);
+        const paginationDiv = document.getElementById('pagination');
+        if (!paginationDiv) return;
+
+        if (totalPages <= 1) {
+            paginationDiv.innerHTML = '';
+            return;
+        }
+
+        let html = '';
+        html += `<button onclick="goToPage(1)" ${currentPage === 1 ? 'disabled' : ''}>首页</button>`;
+        html += `<button onclick="goToPage(${currentPage - 1})" ${currentPage === 1 ? 'disabled' : ''}>上一页</button>`;
+
+        // 显示页码
+        let startPage = Math.max(1, currentPage - 2);
+        let endPage = Math.min(totalPages, currentPage + 2);
+
+        if (startPage > 1) html += `<span>...</span>`;
+        for (let i = startPage; i <= endPage; i++) {
+            html += `<button class="${currentPage === i ? 'active' : ''}" onclick="goToPage(${i})">${i}</button>`;
+        }
+        if (endPage < totalPages) html += `<span>...</span>`;
+
+        html += `<button onclick="goToPage(${currentPage + 1})" ${currentPage === totalPages ? 'disabled' : ''}>下一页</button>`;
+        html += `<button onclick="goToPage(${totalPages})" ${currentPage === totalPages ? 'disabled' : ''}>末页</button>`;
+        html += `<span class="page-info">第 ${currentPage} / ${totalPages} 页</span>`;
+
+        paginationDiv.innerHTML = html;
+    }
+
+    function goToPage(page) {
+        const totalPages = Math.ceil(totalData.length / pageSize);
+        if (page < 1 || page > totalPages) return;
+        currentPage = page;
+        renderTableWithPagination();
+    }
+
+    // 渲染表格
     function renderTable(data) {
         const tableContent = document.getElementById('tableContent');
         if (!data || data.length === 0) {
             if (tableContent) tableContent.innerHTML = '<div class="empty-data">暂无数据</div>';
             return;
         }
+
         const table = document.createElement('table');
         table.className = 'data-table';
+
         const thead = document.createElement('thead');
         const headerRow = document.createElement('tr');
-        const headers = ['序号', '姓名', '性别', '年龄', '电话', '店名', '配镜用途', '左眼球镜', '左眼柱镜', '右眼球镜', '右眼柱镜', '镜架型号', '镜片种类', '总金额', '顾问'];
+        const headers = ['序号', '姓名', '性别', '年龄', '电话', '店名', '配镜用途',
+            '左眼球镜', '左眼柱镜', '左眼轴位', '右眼球镜', '右眼柱镜', '右眼轴位',
+            '镜架型号', '镜片种类', '总金额', '顾问', '操作'];
         headers.forEach(h => { const th = document.createElement('th'); th.textContent = h; headerRow.appendChild(th); });
         thead.appendChild(headerRow);
         table.appendChild(thead);
+
         const tbody = document.createElement('tbody');
         data.forEach(item => {
             const row = document.createElement('tr');
             const fields = [
                 item.serialNo || '-', item.name || '-', item.gender || '-', item.age || '-',
                 item.phone || '-', item.shopName || '-', item.glassesPurpose || '-',
-                item.leftSphere || '-', item.leftCylinder || '-', item.rightSphere || '-',
-                item.rightCylinder || '-', item.frameModel || '-', item.lensType || '-',
+                item.leftSphere || '-', item.leftCylinder || '-', item.leftAxis || '-',
+                item.rightSphere || '-', item.rightCylinder || '-', item.rightAxis || '-',
+                item.frameModel || '-', item.lensType || '-',
                 item.totalAmount ? '¥' + item.totalAmount : '-', item.consultant || '-'
             ];
             fields.forEach(f => { const td = document.createElement('td'); td.textContent = f; row.appendChild(td); });
+
+            // 操作按钮列
+            const actionTd = document.createElement('td');
+            const editBtn = document.createElement('button');
+            editBtn.textContent = '编辑';
+            editBtn.className = 'edit-btn';
+            editBtn.onclick = (function(id) { return function() { editRecord(id); }; })(item.id);
+            actionTd.appendChild(editBtn);
+            row.appendChild(actionTd);
+
             tbody.appendChild(row);
         });
         table.appendChild(tbody);
+
         if (tableContent) { tableContent.innerHTML = ''; tableContent.appendChild(table); }
     }
 
@@ -1117,13 +1367,14 @@
     }
 
     window.onclick = function(event) {
-        const modal = document.getElementById('addModal');
+        const modal = document.getElementById('editModal');
         if (event.target === modal) closeModal();
     };
 
     window.onload = () => {
         checkLoginStatus();
         setupPriceCalculations();
+        setupPurposeListener();
     };
 </script>
 </body>

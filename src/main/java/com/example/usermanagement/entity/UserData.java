@@ -124,12 +124,16 @@ public class UserData {
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
+    @Column(name = "other_cost")
+    private BigDecimal otherCost;
+
     @PrePersist
     protected void onCreate() {
         createdAt = LocalDateTime.now();
         updatedAt = LocalDateTime.now();
         if (occupation == null) occupation = "无";
         if (needFollowup == null) needFollowup = "否";
+
     }
 
     @PreUpdate

@@ -59,4 +59,6 @@ public class AddUserRequest {
     private String consultant;
     private String needFollowup;
     private String remark;
+    private BigDecimal otherCost;
+    private Integer id;  // 用于编辑时标识记录
 }

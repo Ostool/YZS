@@ -4,6 +4,8 @@ package com.example.usermanagement.controller;
 import com.example.usermanagement.dto.AddUserRequest;
 import com.example.usermanagement.dto.LoginRequest;
 import com.example.usermanagement.dto.LoginResponse;
+import com.example.usermanagement.entity.UserData;
+import com.example.usermanagement.repository.UserDataRepository;
 import com.example.usermanagement.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -22,6 +24,9 @@ public class UserController {
 
     @Autowired
     private UserService userService;
+
+    @Autowired
+    private UserDataRepository userDataRepository;
 
     @PostMapping("/login")
     public ResponseEntity<LoginResponse> login(@Valid @RequestBody LoginRequest request, HttpSession session) {
@@ -73,5 +78,38 @@ public class UserController {
             result.put("isLogin", false);
         }
         return ResponseEntity.ok(result);
+    }
+
+    // 获取单条数据（用于编辑）
+    @GetMapping("/getUser/{id}")
+    public ResponseEntity<Map<String, Object>> getUser(@PathVariable Integer id, HttpSession session) {
+        Map<String, Object> result = new HashMap<>();
+        if (session.getAttribute("userId") == null) {
+            result.put("success", false);
+            result.put("message", "未登录");
+            return ResponseEntity.status(401).body(result);
+        }
+
+        UserData userData = userDataRepository.findById(id).orElse(null);
+        if (userData == null) {
+            result.put("success", false);
+            result.put("message", "数据不存在");
+            return ResponseEntity.badRequest().body(result);
+        }
+
+        result.put("success", true);
+        result.put("data", userData);
+        return ResponseEntity.ok(result);
+    }
+
+    // 更新用户数据
+    @PostMapping("/updateUser")
+    public ResponseEntity<Map<String, Object>> updateUser(@Valid @RequestBody AddUserRequest request, HttpSession session) {
+        Map<String, Object> result = userService.updateUserData(request, session);
+        if (result.containsKey("success") && (boolean) result.get("success")) {
+            return ResponseEntity.ok(result);
+        } else {
+            return ResponseEntity.badRequest().body(result);
+        }
     }
 }
