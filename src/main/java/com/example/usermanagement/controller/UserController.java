@@ -2,7 +2,7 @@ package com.example.usermanagement.controller;
 
 import com.example.usermanagement.dto.AddUserRequest;
 import com.example.usermanagement.dto.LoginRequest;
-import com.example.usermanagement.dto.LoginResponse;
+import com.example.usermanagement.dto.UserCreateRequest;
 import com.example.usermanagement.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -21,12 +21,52 @@ public class UserController {
     private UserService userService;
 
     @PostMapping("/login")
-    public ResponseEntity<LoginResponse> login(@Valid @RequestBody LoginRequest request, HttpSession session) {
-        LoginResponse response = userService.login(request, session);
-        if (response.isSuccess()) {
-            return ResponseEntity.ok(response);
+    public ResponseEntity<Map<String, Object>> login(@Valid @RequestBody LoginRequest request, HttpSession session) {
+        Map<String, Object> result = userService.login(request, session);
+        if ((boolean) result.get("success")) {
+            return ResponseEntity.ok(result);
         } else {
-            return ResponseEntity.badRequest().body(response);
+            return ResponseEntity.badRequest().body(result);
+        }
+    }
+
+    @GetMapping("/currentUser")
+    public ResponseEntity<Map<String, Object>> getCurrentUser(HttpSession session) {
+        Map<String, Object> result = userService.getCurrentUser(session);
+        if ((boolean) result.get("success")) {
+            return ResponseEntity.ok(result);
+        } else {
+            return ResponseEntity.status(401).body(result);
+        }
+    }
+
+    @PostMapping("/createUser")
+    public ResponseEntity<Map<String, Object>> createUser(@Valid @RequestBody UserCreateRequest request, HttpSession session) {
+        Map<String, Object> result = userService.createUser(request, session);
+        if ((boolean) result.get("success")) {
+            return ResponseEntity.ok(result);
+        } else {
+            return ResponseEntity.badRequest().body(result);
+        }
+    }
+
+    @GetMapping("/userList")
+    public ResponseEntity<Map<String, Object>> getUserList(HttpSession session) {
+        Map<String, Object> result = userService.getUserList(session);
+        if ((boolean) result.get("success")) {
+            return ResponseEntity.ok(result);
+        } else {
+            return ResponseEntity.status(403).body(result);
+        }
+    }
+
+    @DeleteMapping("/deleteUser/{userId}")
+    public ResponseEntity<Map<String, Object>> deleteUser(@PathVariable Integer userId, HttpSession session) {
+        Map<String, Object> result = userService.deleteUser(userId, session);
+        if ((boolean) result.get("success")) {
+            return ResponseEntity.ok(result);
+        } else {
+            return ResponseEntity.badRequest().body(result);
         }
     }
 
@@ -34,17 +74,27 @@ public class UserController {
     public ResponseEntity<Map<String, Object>> getData(@RequestBody(required = false) Map<String, String> params, HttpSession session) {
         String keyword = params != null ? params.get("search") : null;
         Map<String, Object> result = userService.getData(keyword, session);
-        if (result.containsKey("success") && (boolean) result.get("success")) {
+        if ((boolean) result.get("success")) {
             return ResponseEntity.ok(result);
         } else {
             return ResponseEntity.status(401).body(result);
         }
     }
 
+    @DeleteMapping("/deleteData/{dataId}")
+    public ResponseEntity<Map<String, Object>> deleteData(@PathVariable Integer dataId, HttpSession session) {
+        Map<String, Object> result = userService.deleteData(dataId, session);
+        if ((boolean) result.get("success")) {
+            return ResponseEntity.ok(result);
+        } else {
+            return ResponseEntity.badRequest().body(result);
+        }
+    }
+
     @PostMapping("/addUser")
     public ResponseEntity<Map<String, Object>> addUser(@Valid @RequestBody AddUserRequest request, HttpSession session) {
         Map<String, Object> result = userService.addUserData(request, session);
-        if (result.containsKey("success") && (boolean) result.get("success")) {
+        if ((boolean) result.get("success")) {
             return ResponseEntity.ok(result);
         } else {
             return ResponseEntity.badRequest().body(result);
@@ -54,7 +104,7 @@ public class UserController {
     @GetMapping("/getUser/{id}")
     public ResponseEntity<Map<String, Object>> getUser(@PathVariable Integer id, HttpSession session) {
         Map<String, Object> result = userService.getUserData(id, session);
-        if (result.containsKey("success") && (boolean) result.get("success")) {
+        if ((boolean) result.get("success")) {
             return ResponseEntity.ok(result);
         } else {
             return ResponseEntity.badRequest().body(result);
@@ -76,25 +126,10 @@ public class UserController {
         if (session.getAttribute("userId") != null) {
             result.put("isLogin", true);
             result.put("username", session.getAttribute("username"));
+            result.put("roleLevel", session.getAttribute("roleLevel"));
         } else {
             result.put("isLogin", false);
         }
         return ResponseEntity.ok(result);
-    }
-
-    @PostMapping("/updateUser")
-    public ResponseEntity<Map<String, Object>> updateUser(@Valid @RequestBody AddUserRequest request, HttpSession session) {
-        // 添加日志打印
-        System.out.println("========== 收到更新请求 ==========");
-        System.out.println("接收到的数据: " + request);
-        System.out.println("用户ID: " + request.getId());
-        System.out.println("姓名: " + request.getName());
-
-        Map<String, Object> result = userService.addUserData(request, session);
-        if (result.containsKey("success") && (boolean) result.get("success")) {
-            return ResponseEntity.ok(result);
-        } else {
-            return ResponseEntity.badRequest().body(result);
-        }
     }
 }
