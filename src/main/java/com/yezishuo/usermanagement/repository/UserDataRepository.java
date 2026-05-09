@@ -1,6 +1,6 @@
-package com.example.usermanagement.repository;
+package com.yezishuo.usermanagement.repository;
 
-import com.example.usermanagement.entity.UserData;
+import com.yezishuo.usermanagement.entity.UserData;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;

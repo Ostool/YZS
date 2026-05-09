@@ -1,4 +1,4 @@
-package com.example.usermanagement.util;
+package com.yezishuo.usermanagement.util;
 
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 

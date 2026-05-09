@@ -1,7 +1,8 @@
-package com.example.usermanagement.dto;
+package com.yezishuo.usermanagement.dto;
 
 import lombok.Data;
 import java.math.BigDecimal;
+import java.util.List;
 
 @Data
 public class AddUserRequest {
@@ -48,4 +49,10 @@ public class AddUserRequest {
     private String consultant;
     private String needFollowup;
     private String remark;
+
+    private String prescriptionImages;  // 处方图片路径
+    private List<String> imageFiles;    // 上传的图片文件（Base64）
+
+    private List<String> existingImages;  // 保留的已有图片路径
+    private List<String> newImages;       // 新上传的Base64图片
 }

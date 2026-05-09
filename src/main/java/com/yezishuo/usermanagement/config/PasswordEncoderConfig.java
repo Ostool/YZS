@@ -1,4 +1,4 @@
-package com.example.usermanagement.config;
+package com.yezishuo.usermanagement.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

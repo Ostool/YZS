@@ -1,4 +1,4 @@
-package com.example.usermanagement.entity;
+package com.yezishuo.usermanagement.entity;
 
 import lombok.Data;
 import javax.persistence.*;
@@ -136,4 +136,7 @@ public class UserData {
     protected void onUpdate() {
         updatedAt = LocalDateTime.now();
     }
+
+    @Column(name = "prescription_images")
+    private String prescriptionImages;  // 存储图片路径，多个用逗号分隔
 }

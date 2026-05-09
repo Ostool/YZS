@@ -60,14 +60,26 @@
         .btn-danger:hover { background: #e53e3e; }
 
         .table-container { padding: 0 30px 30px 30px; overflow-x: auto; }
-        .data-table { width: 100%; border-collapse: collapse; margin-top: 20px; font-size: 13px; }
-        .data-table th, .data-table td { padding: 10px 12px; text-align: left; border-bottom: 1px solid #e0e0e0; }
-        .data-table th { background: #f8f9fa; font-weight: 600; color: #555; border-bottom: 2px solid #e0e0e0; position: sticky; top: 0; }
+        .data-table { width: max-content; min-width: 100%; border-collapse: collapse; margin-top: 20px; font-size: 13px; }
+        .data-table th, .data-table td { padding: 12px 16px; text-align: left; border-bottom: 1px solid #e0e0e0; white-space: nowrap; }
+        .data-table th { background: #f8f9fa; font-weight: 600; color: #555; border-bottom: 2px solid #e0e0e0; position: sticky; top: 0; z-index: 10; }
         .data-table tr:hover { background: #f8f9fa; }
+
         .edit-btn { background: #667eea; color: white; border: none; padding: 5px 12px; border-radius: 4px; cursor: pointer; font-size: 12px; margin-right: 5px; }
         .edit-btn:hover { background: #5a67d8; }
         .delete-btn { background: #f56565; color: white; border: none; padding: 5px 12px; border-radius: 4px; cursor: pointer; font-size: 12px; }
         .delete-btn:hover { background: #e53e3e; }
+
+        .prescription-icon { display: inline-block; width: 32px; height: 32px; background: #667eea; color: white; border-radius: 5px; text-align: center; line-height: 32px; cursor: pointer; font-size: 18px; transition: all 0.3s; }
+        .prescription-icon:hover { background: #5a67d8; transform: scale(1.05); }
+
+        .image-preview-modal { display: none; position: fixed; z-index: 3000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.9); justify-content: center; align-items: center; flex-direction: column; }
+        .image-preview-container { position: relative; max-width: 90%; max-height: 80%; }
+        .image-preview-container img { max-width: 100%; max-height: 80vh; border-radius: 8px; }
+        .preview-close { position: absolute; top: -40px; right: 0; color: white; font-size: 30px; cursor: pointer; }
+        .preview-nav { margin-top: 20px; display: flex; gap: 20px; }
+        .preview-nav button { padding: 10px 20px; background: rgba(255,255,255,0.2); border: none; color: white; border-radius: 5px; cursor: pointer; }
+        .preview-nav button:hover { background: rgba(255,255,255,0.4); }
 
         .pagination { display: flex; justify-content: center; align-items: center; gap: 10px; margin-top: 20px; padding: 20px; flex-wrap: wrap; }
         .pagination button { padding: 8px 16px; border: 1px solid #ddd; background: white; border-radius: 5px; cursor: pointer; transition: all 0.3s; }
@@ -108,6 +120,16 @@
         .product-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin-bottom: 15px; }
         .product-item { background: white; border: 1px solid #e0e0e0; border-radius: 8px; padding: 12px; }
         .product-item h5 { margin-bottom: 12px; color: #667eea; font-size: 14px; text-align: center; }
+
+        .image-upload-area { display: flex; flex-wrap: wrap; gap: 15px; margin-top: 10px; }
+        .image-upload-item { position: relative; width: 100px; height: 100px; border: 2px dashed #ddd; border-radius: 8px; display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer; transition: all 0.3s; overflow: hidden; background: #f8f9fa; }
+        .image-upload-item:hover { border-color: #667eea; }
+        .image-upload-item.has-image { border: 2px solid #48bb78; }
+        .image-upload-item img { width: 100%; height: 100%; object-fit: cover; }
+        .image-upload-item .remove-btn { position: absolute; top: 2px; right: 2px; background: #f56565; color: white; border: none; border-radius: 50%; width: 20px; height: 20px; font-size: 12px; cursor: pointer; display: flex; align-items: center; justify-content: center; z-index: 10; }
+        .image-upload-item .remove-btn:hover { background: #e53e3e; }
+        .image-upload-item .add-icon { font-size: 30px; color: #ccc; }
+        .image-upload-item .add-text { font-size: 10px; color: #999; }
 
         .modal-footer { padding: 15px 25px 25px; display: flex; gap: 10px; justify-content: flex-end; border-top: 1px solid #e0e0e0; }
 
@@ -151,7 +173,6 @@
     </style>
 </head>
 <body>
-<!-- 登录界面 -->
 <div id="loginContainer" class="login-container">
     <div class="login-box">
         <h2>配镜处方管理系统</h2>
@@ -164,7 +185,6 @@
     </div>
 </div>
 
-<!-- 主界面 -->
 <div id="mainContainer" class="main-container">
     <div class="header">
         <h1>👓 配镜处方管理系统</h1>
@@ -176,7 +196,6 @@
         </div>
     </div>
 
-    <!-- 操作栏：搜索框 + 日期筛选 -->
     <div class="action-bar">
         <div class="search-area">
             <input type="text" id="searchInput" placeholder="🔍 搜索姓名、电话、配镜用途、店名或序号..." onkeypress="handleSearchKeyPress(event)">
@@ -200,15 +219,13 @@
 
     <div class="stats"><span id="stats">共 0 条记录</span><div class="pagination" id="pagination"></div></div>
 
-    <!-- 统计信息展示 -->
-    <div class="statistics" id="statistics">
+    <div class="statistics">
         <div class="stat-card"><strong>📅 今日</strong><span>订单: <span id="todayCount">0</span> 笔</span><br><span class="amount">¥<span id="todayAmount">0.00</span></span></div>
         <div class="stat-card"><strong>📆 本月</strong><span>订单: <span id="monthCount">0</span> 笔</span><br><span class="amount">¥<span id="monthAmount">0.00</span></span></div>
         <div class="stat-card"><strong>📊 本年</strong><span>订单: <span id="yearCount">0</span> 笔</span><br><span class="amount">¥<span id="yearAmount">0.00</span></span></div>
     </div>
 </div>
 
-<!-- 编辑模态框 -->
 <div id="editModal" class="modal">
     <div class="modal-content">
         <div class="modal-header"><h3 id="modalTitle">新增配镜处方</h3><span class="close" onclick="closeModal()">&times;</span></div>
@@ -221,7 +238,7 @@
                         <div class="form-group"><label>姓名 <span style="color:red;">*</span></label><input type="text" id="editName"><div class="error-message" id="nameError">请输入姓名</div></div>
                         <div class="form-group"><label>性别 <span style="color:red;">*</span></label><select id="editGender"><option value="">请选择</option><option value="男">男</option><option value="女">女</option></select><div class="error-message" id="genderError">请选择性别</div></div>
                         <div class="form-group"><label>年龄 <span style="color:red;">*</span></label><input type="number" id="editAge"><div class="error-message" id="ageError">请输入有效年龄</div></div>
-                        <div class="form-group"><label>配镜日期</label><input type="datetime-local" id="editPrescriptionDate" class="datetime-input"></div>
+                        <div class="form-group"><label>配镜日期</label><input type="datetime-local" id="editPrescriptionDate"></div>
                     </div>
                     <div class="form-row">
                         <div class="form-group"><label>电话</label><input type="tel" id="editPhone"></div>
@@ -247,6 +264,11 @@
                             <div class="error-message" id="shopNameError">请选择店名</div>
                         </div>
                     </div>
+                </div>
+
+                <div class="form-section">
+                    <h4>🖼️ 处方图片（最多6张）</h4>
+                    <div class="image-upload-area" id="imageUploadArea"></div>
                 </div>
 
                 <div class="form-section">
@@ -309,7 +331,18 @@
     </div>
 </div>
 
-<!-- 用户管理模态框 -->
+<div id="imagePreviewModal" class="image-preview-modal">
+    <div class="image-preview-container">
+        <span class="preview-close" onclick="closeImagePreview()">&times;</span>
+        <img id="previewImage" src="" alt="处方图片">
+        <div class="preview-nav">
+            <button onclick="prevImage()">上一张</button>
+            <span id="imageIndex" style="color:white; margin:0 10px;">1/1</span>
+            <button onclick="nextImage()">下一张</button>
+        </div>
+    </div>
+</div>
+
 <div id="userManageModal" class="modal user-modal">
     <div class="modal-content" style="max-width: 700px;">
         <div class="modal-header"><h3>用户管理</h3><span class="close" onclick="closeUserManageModal()">&times;</span></div>
@@ -331,7 +364,6 @@
     </div>
 </div>
 
-<!-- 删除确认模态框 -->
 <div id="confirmModal" class="modal">
     <div class="modal-content" style="max-width: 400px;">
         <div class="modal-header"><h3>确认删除</h3><span class="close" onclick="closeConfirmModal()">&times;</span></div>
@@ -344,7 +376,6 @@
     </div>
 </div>
 
-<!-- 表格选择器弹窗 -->
 <div id="pickerOverlay" class="picker-overlay">
     <div class="picker-container">
         <div class="picker-header"><h4 id="pickerTitle">选择数值</h4><button id="signToggleBtn" class="sign-toggle-btn" style="display:none;">负值 -</button><span class="close" onclick="closePicker()">&times;</span></div>
@@ -365,93 +396,231 @@
     let currentStartDate = '';
     let currentEndDate = '';
 
-    // ========== 数据生成函数 ==========
+    // 图片相关变量
+    let uploadedImages = []; // 存储 { file: base64数据, isExisting: true/false, path: 原路径 }
+    let currentPreviewImages = [];
+    let currentPreviewIndex = 0;
+    let currentEditImagePaths = []; // 编辑时已有的图片路径
+
+    function getImageUrl(path) {
+        if (!path) return '';
+        if (path.startsWith('http')) return path;
+        if (path.startsWith('/uploads')) return API_BASE + path;
+        return path;
+    }
+
+    function initImageUpload(existingImagePaths) {
+        const container = document.getElementById('imageUploadArea');
+        if (!container) return;
+        container.innerHTML = '';
+
+        // 构建图片列表
+        let allImages = [];
+        if (existingImagePaths && existingImagePaths.length > 0) {
+            allImages = existingImagePaths.map(path => ({
+                isExisting: true,
+                path: path,
+                data: getImageUrl(path)
+            }));
+            currentEditImagePaths = [...existingImagePaths];
+        }
+        // 添加新上传的图片
+        for (let i = 0; i < uploadedImages.length; i++) {
+            allImages.push({
+                isExisting: false,
+                path: null,
+                data: uploadedImages[i]
+            });
+        }
+
+        // 显示所有图片
+        for (let i = 0; i < allImages.length; i++) {
+            addImageItem(container, allImages[i], i);
+        }
+
+        // 如果少于6张，显示添加按钮
+        if (allImages.length < 6) {
+            addAddButton(container);
+        }
+    }
+
+    function addImageItem(container, imgInfo, index) {
+        const div = document.createElement('div');
+        div.className = 'image-upload-item has-image';
+        div.innerHTML = `
+            <img src="${imgInfo.data}" alt="处方图片${index+1}" onclick="previewImageInModal(${index})">
+            <button class="remove-btn" onclick="removeImageItem(${index})">×</button>
+        `;
+        container.appendChild(div);
+    }
+
+    function addAddButton(container) {
+        const div = document.createElement('div');
+        div.className = 'image-upload-item';
+        div.innerHTML = `
+            <div class="add-icon">+</div>
+            <div class="add-text">点击上传</div>
+            <input type="file" accept="image/jpeg,image/png,image/jpg" style="display:none;" onchange="handleImageSelect(this)">
+        `;
+        div.onclick = (e) => {
+            e.stopPropagation();
+            const fileInput = div.querySelector('input');
+            fileInput.click();
+        };
+        container.appendChild(div);
+    }
+
+    function handleImageSelect(input) {
+        const file = input.files[0];
+        if (!file) return;
+        if (!file.type.match('image.*')) {
+            showToast('请选择图片文件', 'error');
+            return;
+        }
+        if (file.size > 5 * 1024 * 1024) {
+            showToast('图片大小不能超过5MB', 'error');
+            return;
+        }
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            uploadedImages.push(e.target.result);
+            refreshImageUploadArea();
+        };
+        reader.readAsDataURL(file);
+    }
+
+    function removeImageItem(index) {
+        // 获取当前所有图片
+        let allImages = [];
+        // 已存在的图片
+        for (let i = 0; i < currentEditImagePaths.length; i++) {
+            allImages.push({ isExisting: true, path: currentEditImagePaths[i], data: getImageUrl(currentEditImagePaths[i]) });
+        }
+        // 新上传的图片
+        for (let i = 0; i < uploadedImages.length; i++) {
+            allImages.push({ isExisting: false, path: null, data: uploadedImages[i] });
+        }
+        if (index < allImages.length) {
+            const removed = allImages[index];
+            if (removed.isExisting) {
+                // 删除已存在的图片：从 currentEditImagePaths 中移除
+                const pathIndex = currentEditImagePaths.indexOf(removed.path);
+                if (pathIndex !== -1) currentEditImagePaths.splice(pathIndex, 1);
+            } else {
+                // 删除新上传的图片：从 uploadedImages 中移除
+                const uploadIndex = uploadedImages.indexOf(removed.data);
+                if (uploadIndex !== -1) uploadedImages.splice(uploadIndex, 1);
+            }
+        }
+        refreshImageUploadArea();
+    }
+
+    function refreshImageUploadArea() {
+        initImageUpload(currentEditImagePaths);
+    }
+
+    function previewImageInModal(index) {
+        let previewUrls = [];
+        // 构建图片URL列表
+        for (let i = 0; i < currentEditImagePaths.length; i++) {
+            previewUrls.push(getImageUrl(currentEditImagePaths[i]));
+        }
+        for (let i = 0; i < uploadedImages.length; i++) {
+            previewUrls.push(uploadedImages[i]);
+        }
+        if (index >= 0 && index < previewUrls.length) {
+            currentPreviewImages = previewUrls;
+            currentPreviewIndex = index;
+            document.getElementById('previewImage').src = currentPreviewImages[currentPreviewIndex];
+            document.getElementById('imageIndex').innerText = `${currentPreviewIndex + 1}/${currentPreviewImages.length}`;
+            document.getElementById('imagePreviewModal').style.display = 'flex';
+        }
+    }
+
+    function closeImagePreview() {
+        document.getElementById('imagePreviewModal').style.display = 'none';
+        currentPreviewImages = [];
+    }
+
+    function prevImage() {
+        if (currentPreviewIndex > 0) {
+            currentPreviewIndex--;
+            document.getElementById('previewImage').src = currentPreviewImages[currentPreviewIndex];
+            document.getElementById('imageIndex').innerText = `${currentPreviewIndex + 1}/${currentPreviewImages.length}`;
+        }
+    }
+
+    function nextImage() {
+        if (currentPreviewIndex < currentPreviewImages.length - 1) {
+            currentPreviewIndex++;
+            document.getElementById('previewImage').src = currentPreviewImages[currentPreviewIndex];
+            document.getElementById('imageIndex').innerText = `${currentPreviewIndex + 1}/${currentPreviewImages.length}`;
+        }
+    }
+
+    function showTableImagePreview(imagesArray, startIndex) {
+        if (!imagesArray || imagesArray.length === 0) {
+            showToast('没有图片', 'error');
+            return;
+        }
+        currentPreviewImages = imagesArray;
+        currentPreviewIndex = startIndex;
+        document.getElementById('previewImage').src = currentPreviewImages[currentPreviewIndex];
+        document.getElementById('imageIndex').innerText = `${currentPreviewIndex + 1}/${currentPreviewImages.length}`;
+        document.getElementById('imagePreviewModal').style.display = 'flex';
+    }
+
     function generateDiopterValues() {
         let values = [];
         for (let d = 0; d <= 1600; d += 25) {
-            let val = (d / 100).toFixed(2);
-            values.push(val);
+            values.push((d / 100).toFixed(2));
         }
         return values;
     }
+
     function displayDiopterValues(positive) {
         return generateDiopterValues().map(v => (positive ? '+' : '-') + v);
     }
-    function generateAxisValues() { let values = []; for (let i = 1; i <= 180; i++) values.push(i); return values; }
-    function generateVisionValues() {
-        return [0.1, 0.12, 0.15, 0.2, 0.25, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0, 1.2, 1.5, 2.0];
-    }
-    function generatePdValues() {
-        let values = [];
-        for (let i = 25; i <= 40; i += 0.5) {
-            values.push(i.toFixed(1));
-        }
-        return values;
-    }
 
-    // ========== 表格选择器 ==========
-    function showPicker(inputElement, type, title) {
-        currentPickerInput = inputElement; currentPickerType = type;
+    function generateAxisValues() { let v = []; for (let i = 1; i <= 180; i++) v.push(i); return v; }
+    function generateVisionValues() { return [0.1, 0.12, 0.15, 0.2, 0.25, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0, 1.2, 1.5, 2.0]; }
+    function generatePdValues() { let v = []; for (let i = 25; i <= 40; i += 0.5) v.push(i.toFixed(1)); return v; }
+
+    function showPicker(input, type, title) {
+        currentPickerInput = input; currentPickerType = type;
         document.getElementById('pickerTitle').innerText = title;
         let signBtn = document.getElementById('signToggleBtn'), html = '';
         let cols = 8;
-
         if (type === 'diopter') {
             signBtn.style.display = 'block';
             signBtn.innerText = currentSign === -1 ? '负值 -' : '正值 +';
-            let rawValues = displayDiopterValues(currentSign === 1);
-            let values = rawValues.map(v => {
-                let match = v.match(/^([+-]?)(\d+(?:\.\d+)?)$/);
-                if (match) {
-                    let sign = match[1];
-                    let num = parseFloat(match[2]);
-                    if (!isNaN(num)) {
-                        return (sign === '-' ? '-' : (sign === '+' ? '+' : '')) + Math.abs(num).toFixed(2);
-                    }
-                }
-                return v;
-            });
+            let raw = displayDiopterValues(currentSign === 1);
+            let values = raw.map(v => { let m = v.match(/^([+-]?)(\d+(?:\.\d+)?)$/); if (m) { let s = m[1]; let n = parseFloat(m[2]); if (!isNaN(n)) return (s === '-' ? '-' : (s === '+' ? '+' : '')) + Math.abs(n).toFixed(2); } return v; });
             html = '<table class="picker-table">';
-            for (let i = 0; i < values.length; i++) {
-                if (i % cols === 0) html += '<tr>';
-                html += `<td onclick="selectValue('${values[i]}')">${values[i]}</td>`;
-                if ((i + 1) % cols === 0) html += '</tr>';
-            }
+            for (let i = 0; i < values.length; i++) { if (i % cols === 0) html += '<tr>'; html += `<td onclick="selectValue('${values[i]}')">${values[i]}</td>`; if ((i+1)%cols===0) html += '</tr>'; }
             if (values.length % cols !== 0) html += '</tr>';
             html += '</table>';
         } else if (type === 'axis') {
             signBtn.style.display = 'none';
             let values = generateAxisValues();
             html = '<table class="picker-table">';
-            for (let i = 0; i < values.length; i++) {
-                if (i % cols === 0) html += '<tr>';
-                html += `<td onclick="selectValue('${values[i]}')">${values[i]}°</td>`;
-                if ((i + 1) % cols === 0) html += '</tr>';
-            }
+            for (let i = 0; i < values.length; i++) { if (i % cols === 0) html += '<tr>'; html += `<td onclick="selectValue('${values[i]}')">${values[i]}°</td>`; if ((i+1)%cols===0) html += '</tr>'; }
             if (values.length % cols !== 0) html += '</tr>';
             html += '</table>';
         } else if (type === 'vision') {
             signBtn.style.display = 'none';
             let values = generateVisionValues();
             html = '<table class="picker-table">';
-            for (let i = 0; i < values.length; i++) {
-                if (i % cols === 0) html += '<tr>';
-                html += `<td onclick="selectValue('${values[i]}')">${values[i]}</td>`;
-                if ((i + 1) % cols === 0) html += '</tr>';
-            }
+            for (let i = 0; i < values.length; i++) { if (i % cols === 0) html += '<tr>'; html += `<td onclick="selectValue('${values[i]}')">${values[i]}</td>`; if ((i+1)%cols===0) html += '<tr>'; }
             if (values.length % cols !== 0) html += '</tr>';
-            html += '</table>';
+            html += '<tr>';
         } else if (type === 'pd') {
             signBtn.style.display = 'none';
             let values = generatePdValues();
             html = '<table class="picker-table">';
-            for (let i = 0; i < values.length; i++) {
-                if (i % cols === 0) html += '<tr>';
-                html += `<td onclick="selectValue('${values[i]}')">${values[i]}mm</td>`;
-                if ((i + 1) % cols === 0) html += '</tr>';
-            }
+            for (let i = 0; i < values.length; i++) { if (i % cols === 0) html += '<tr>'; html += `<td onclick="selectValue('${values[i]}')">${values[i]}mm</td>`; if ((i+1)%cols===0) html += '</tr>'; }
             if (values.length % cols !== 0) html += '<tr>';
-            html += '</table>';
+            html += '</tr>';
         }
         document.getElementById('pickerTableContainer').innerHTML = html;
         document.getElementById('pickerOverlay').style.display = 'flex';
@@ -459,135 +628,66 @@
 
     function selectValue(value) {
         if (currentPickerInput) {
-            let numValue = parseFloat(value);
-            if (!isNaN(numValue)) {
-                let formattedValue = numValue.toFixed(2);
-                if (currentPickerType === 'diopter' && currentSign === -1 && !value.startsWith('-')) {
-                    currentPickerInput.value = '-' + formattedValue;
-                } else if (currentPickerType === 'diopter' && value.startsWith('+')) {
-                    currentPickerInput.value = '+' + formattedValue;
-                } else if (currentPickerType === 'diopter' && !value.startsWith('-') && !value.startsWith('+')) {
-                    currentPickerInput.value = formattedValue;
-                } else if (currentPickerType === 'diopter') {
-                    let sign = value.charAt(0);
-                    let num = parseFloat(value.substring(1));
-                    if (!isNaN(num)) {
-                        currentPickerInput.value = sign + num.toFixed(2);
-                    } else {
-                        currentPickerInput.value = value;
-                    }
-                } else {
-                    currentPickerInput.value = value;
-                }
-            } else {
-                currentPickerInput.value = value;
-            }
-            const event = new Event('input', { bubbles: true });
-            currentPickerInput.dispatchEvent(event);
+            let num = parseFloat(value);
+            if (!isNaN(num)) {
+                let fmt = num.toFixed(2);
+                if (currentPickerType === 'diopter' && currentSign === -1 && !value.startsWith('-')) currentPickerInput.value = '-' + fmt;
+                else if (currentPickerType === 'diopter' && value.startsWith('+')) currentPickerInput.value = '+' + fmt;
+                else if (currentPickerType === 'diopter' && !value.startsWith('-') && !value.startsWith('+')) currentPickerInput.value = fmt;
+                else if (currentPickerType === 'diopter') { let s = value.charAt(0); let n = parseFloat(value.substring(1)); if (!isNaN(n)) currentPickerInput.value = s + n.toFixed(2); else currentPickerInput.value = value; }
+                else currentPickerInput.value = value;
+            } else currentPickerInput.value = value;
+            currentPickerInput.dispatchEvent(new Event('input', { bubbles: true }));
         }
         closePicker();
     }
 
     function toggleSign() {
         currentSign *= -1;
-        let signBtn = document.getElementById('signToggleBtn');
-        signBtn.innerText = currentSign === -1 ? '负值 -' : '正值 +';
-        let rawValues = displayDiopterValues(currentSign === 1);
-        let values = rawValues.map(v => {
-            let match = v.match(/^([+-]?)(\d+(?:\.\d+)?)$/);
-            if (match) {
-                let sign = match[1];
-                let num = parseFloat(match[2]);
-                if (!isNaN(num)) {
-                    return (sign === '-' ? '-' : (sign === '+' ? '+' : '')) + Math.abs(num).toFixed(2);
-                }
-            }
-            return v;
-        });
-        let cols = 8;
-        let html = '<table class="picker-table">';
-        for (let i = 0; i < values.length; i++) {
-            if (i % cols === 0) html += '<tr>';
-            html += `<td onclick="selectValue('${values[i]}')">${values[i]}</td>`;
-            if ((i + 1) % cols === 0) html += '</tr>';
-        }
+        let btn = document.getElementById('signToggleBtn');
+        btn.innerText = currentSign === -1 ? '负值 -' : '正值 +';
+        let raw = displayDiopterValues(currentSign === 1);
+        let values = raw.map(v => { let m = v.match(/^([+-]?)(\d+(?:\.\d+)?)$/); if (m) { let s = m[1]; let n = parseFloat(m[2]); if (!isNaN(n)) return (s === '-' ? '-' : (s === '+' ? '+' : '')) + Math.abs(n).toFixed(2); } return v; });
+        let cols = 8, html = '<table class="picker-table">';
+        for (let i = 0; i < values.length; i++) { if (i % cols === 0) html += '<tr>'; html += `<td onclick="selectValue('${values[i]}')">${values[i]}</td>`; if ((i+1)%cols===0) html += '</tr>'; }
         if (values.length % cols !== 0) html += '</tr>';
         html += '</table>';
         document.getElementById('pickerTableContainer').innerHTML = html;
     }
     function closePicker() { document.getElementById('pickerOverlay').style.display = 'none'; currentPickerInput = null; }
 
-    // ========== 配镜用途监听 ==========
     function setupPurposeListener() {
-        let purposeSelect = document.getElementById('editGlassesPurpose');
-        if (purposeSelect) {
-            purposeSelect.addEventListener('change', function() {
-                let isProgressive = this.value === '渐进';
-                let leftAddGroup = document.getElementById('leftAddGroup');
-                let rightAddGroup = document.getElementById('rightAddGroup');
-                if (leftAddGroup) leftAddGroup.style.display = isProgressive ? 'block' : 'none';
-                if (rightAddGroup) rightAddGroup.style.display = isProgressive ? 'block' : 'none';
-            });
-        }
+        let ps = document.getElementById('editGlassesPurpose');
+        if (ps) ps.addEventListener('change', function() { let isP = this.value === '渐进'; document.getElementById('leftAddGroup').style.display = isP ? 'block' : 'none'; document.getElementById('rightAddGroup').style.display = isP ? 'block' : 'none'; });
     }
 
-    // ========== 权限控制 ==========
     function updateUIBasedOnRole() {
-        const isSuperAdmin = (currentRoleLevel === 0);
-        const isGuest = (currentRoleLevel === 2);
-        const userManageBtn = document.getElementById('userManageBtn');
-        if (userManageBtn) userManageBtn.style.display = isSuperAdmin ? 'inline-block' : 'none';
-        const addBtn = document.getElementById('addBtn');
-        if (addBtn) addBtn.style.display = isGuest ? 'none' : 'inline-block';
-        const roleBadge = document.getElementById('userRoleBadge');
-        if (roleBadge) {
-            if (isSuperAdmin) { roleBadge.textContent = '超级管理员'; roleBadge.className = 'role-badge role-super'; }
-            else if (currentRoleLevel === 1) { roleBadge.textContent = '普通用户'; roleBadge.className = 'role-badge role-normal'; }
-            else { roleBadge.textContent = '游客'; roleBadge.className = 'role-badge role-guest'; }
-        }
+        let isSuper = currentRoleLevel === 0, isGuest = currentRoleLevel === 2;
+        let umBtn = document.getElementById('userManageBtn'); if (umBtn) umBtn.style.display = isSuper ? 'inline-block' : 'none';
+        let addBtn = document.getElementById('addBtn'); if (addBtn) addBtn.style.display = isGuest ? 'none' : 'inline-block';
+        let badge = document.getElementById('userRoleBadge');
+        if (badge) { if (isSuper) { badge.textContent = '超级管理员'; badge.className = 'role-badge role-super'; } else if (currentRoleLevel === 1) { badge.textContent = '普通用户'; badge.className = 'role-badge role-normal'; } else { badge.textContent = '游客'; badge.className = 'role-badge role-guest'; } }
     }
 
-    function showDeleteConfirm(id, type, message) {
-        pendingDeleteId = id; pendingDeleteType = type;
-        document.getElementById('confirmMessage').innerText = message;
-        document.getElementById('confirmModal').style.display = 'block';
-    }
+    function showDeleteConfirm(id, type, msg) { pendingDeleteId = id; pendingDeleteType = type; document.getElementById('confirmMessage').innerText = msg; document.getElementById('confirmModal').style.display = 'block'; }
     function closeConfirmModal() { document.getElementById('confirmModal').style.display = 'none'; pendingDeleteId = null; pendingDeleteType = null; }
     async function executeDelete() {
         if (!pendingDeleteId) return;
         let url = pendingDeleteType === 'data' ? `${API_BASE}/deleteData/${pendingDeleteId}` : `${API_BASE}/deleteUser/${pendingDeleteId}`;
-        try {
-            const response = await fetch(url, { method: 'DELETE', credentials: 'include' });
-            const result = await response.json();
-            if (result.success) {
-                showToast(result.message, 'success');
-                if (pendingDeleteType === 'data') loadAllData();
-                else loadUserList();
-            } else showToast(result.message, 'error');
-        } catch (error) { showToast('删除失败', 'error'); }
+        try { let res = await fetch(url, { method: 'DELETE', credentials: 'include' }); let r = await res.json(); if (r.success) { showToast(r.message, 'success'); if (pendingDeleteType === 'data') loadAllData(); else loadUserList(); } else showToast(r.message, 'error'); } catch(e) { showToast('删除失败', 'error'); }
         closeConfirmModal();
     }
     document.getElementById('confirmDeleteBtn')?.addEventListener('click', executeDelete);
 
-    // ========== 金额计算 ==========
     function setupPriceCalculations() {
-        const frameActual = document.getElementById('editFrameActualPrice');
-        const lensActual = document.getElementById('editLensActualPrice');
-        const otherCost = document.getElementById('editOtherCost');
-        const totalAmount = document.getElementById('editTotalAmount');
-        function calcTotal() {
-            const frame = parseFloat(frameActual?.value) || 0;
-            const lens = parseFloat(lensActual?.value) || 0;
-            const other = parseFloat(otherCost?.value) || 0;
-            if (totalAmount) totalAmount.value = (frame + lens + other).toFixed(2);
-        }
-        if (frameActual) { frameActual.addEventListener('input', calcTotal); frameActual.addEventListener('change', calcTotal); }
-        if (lensActual) { lensActual.addEventListener('input', calcTotal); lensActual.addEventListener('change', calcTotal); }
-        if (otherCost) { otherCost.addEventListener('input', calcTotal); otherCost.addEventListener('change', calcTotal); }
-        calcTotal();
+        let fa = document.getElementById('editFrameActualPrice'), la = document.getElementById('editLensActualPrice'), oc = document.getElementById('editOtherCost'), ta = document.getElementById('editTotalAmount');
+        let calc = () => { let f = parseFloat(fa?.value)||0, l = parseFloat(la?.value)||0, o = parseFloat(oc?.value)||0; if (ta) ta.value = (f + l + o).toFixed(2); };
+        if (fa) { fa.addEventListener('input', calc); fa.addEventListener('change', calc); }
+        if (la) { la.addEventListener('input', calc); la.addEventListener('change', calc); }
+        if (oc) { oc.addEventListener('input', calc); oc.addEventListener('change', calc); }
+        calc();
     }
 
-    // ========== 表单数据填充 ==========
     function fillFormData(data) {
         document.getElementById('editId').value = data.id || '';
         document.getElementById('editName').value = data.name || '';
@@ -597,46 +697,31 @@
         document.getElementById('editPhone').value = data.phone || '';
         document.getElementById('editOccupation').value = data.occupation || '无';
         document.getElementById('editGlassesPurpose').value = data.glassesPurpose || '';
+
+        // 初始化图片 - 保存已有图片路径
+        currentEditImagePaths = [];
+        if (data.prescriptionImages && data.prescriptionImages !== '') {
+            currentEditImagePaths = data.prescriptionImages.split(',');
+        }
+        uploadedImages = [];
+        initImageUpload(currentEditImagePaths);
+
         if (data.prescriptionDate) {
-            let dateStr = data.prescriptionDate;
-            if (dateStr.includes('T')) dateStr = dateStr.replace('T', ' ');
-            let dt = new Date(dateStr);
+            let ds = data.prescriptionDate;
+            if (ds.includes('T')) ds = ds.replace('T', ' ');
+            let dt = new Date(ds);
             if (!isNaN(dt.getTime())) {
-                let year = dt.getFullYear(), month = String(dt.getMonth() + 1).padStart(2, '0'), day = String(dt.getDate()).padStart(2, '0');
-                let hours = String(dt.getHours()).padStart(2, '0'), minutes = String(dt.getMinutes()).padStart(2, '0');
-                document.getElementById('editPrescriptionDate').value = `${year}-${month}-${day}T${hours}:${minutes}`;
+                let y = dt.getFullYear(), m = String(dt.getMonth()+1).padStart(2,'0'), d = String(dt.getDate()).padStart(2,'0');
+                let h = String(dt.getHours()).padStart(2,'0'), mi = String(dt.getMinutes()).padStart(2,'0');
+                document.getElementById('editPrescriptionDate').value = `${y}-${m}-${d}T${h}:${mi}`;
             }
-        } else {
-            let now = new Date();
-            let year = now.getFullYear(), month = String(now.getMonth() + 1).padStart(2, '0'), day = String(now.getDate()).padStart(2, '0');
-            let hours = String(now.getHours()).padStart(2, '0'), minutes = String(now.getMinutes()).padStart(2, '0');
-            document.getElementById('editPrescriptionDate').value = `${year}-${month}-${day}T${hours}:${minutes}`;
-        }
-        // 格式化球镜和柱镜为两位小数
-        let leftSphereVal = data.leftSphere;
-        if (leftSphereVal !== null && leftSphereVal !== undefined && leftSphereVal !== '') {
-            let num = parseFloat(leftSphereVal);
-            if (!isNaN(num)) leftSphereVal = num.toFixed(2);
-        }
-        document.getElementById('editLeftSphere').value = leftSphereVal || '';
-        let leftCylinderVal = data.leftCylinder;
-        if (leftCylinderVal !== null && leftCylinderVal !== undefined && leftCylinderVal !== '') {
-            let num = parseFloat(leftCylinderVal);
-            if (!isNaN(num)) leftCylinderVal = num.toFixed(2);
-        }
-        document.getElementById('editLeftCylinder').value = leftCylinderVal || '';
-        let rightSphereVal = data.rightSphere;
-        if (rightSphereVal !== null && rightSphereVal !== undefined && rightSphereVal !== '') {
-            let num = parseFloat(rightSphereVal);
-            if (!isNaN(num)) rightSphereVal = num.toFixed(2);
-        }
-        document.getElementById('editRightSphere').value = rightSphereVal || '';
-        let rightCylinderVal = data.rightCylinder;
-        if (rightCylinderVal !== null && rightCylinderVal !== undefined && rightCylinderVal !== '') {
-            let num = parseFloat(rightCylinderVal);
-            if (!isNaN(num)) rightCylinderVal = num.toFixed(2);
-        }
-        document.getElementById('editRightCylinder').value = rightCylinderVal || '';
+        } else { let n = new Date(); document.getElementById('editPrescriptionDate').value = `${n.getFullYear()}-${String(n.getMonth()+1).padStart(2,'0')}-${String(n.getDate()).padStart(2,'0')}T${String(n.getHours()).padStart(2,'0')}:${String(n.getMinutes()).padStart(2,'0')}`; }
+
+        let fmt = v => { if (v!==null && v!==undefined && v!=='') { let n = parseFloat(v); if (!isNaN(n)) return n.toFixed(2); } return v||''; };
+        document.getElementById('editLeftSphere').value = fmt(data.leftSphere);
+        document.getElementById('editLeftCylinder').value = fmt(data.leftCylinder);
+        document.getElementById('editRightSphere').value = fmt(data.rightSphere);
+        document.getElementById('editRightCylinder').value = fmt(data.rightCylinder);
         document.getElementById('editLeftAxis').value = data.leftAxis || '';
         document.getElementById('editLeftAdd').value = data.leftAdd || '';
         document.getElementById('editLeftUncorrectedVision').value = data.leftUncorrectedVision || '';
@@ -661,14 +746,16 @@
         document.getElementById('editConsultant').value = data.consultant || '';
         document.getElementById('editNeedFollowup').value = data.needFollowup || '否';
         document.getElementById('editRemark').value = data.remark || '';
-        const purposeSelect = document.getElementById('editGlassesPurpose');
-        if (purposeSelect) { const event = new Event('change'); purposeSelect.dispatchEvent(event); }
-        setTimeout(() => { setupPriceCalculations(); }, 100);
+        let ps = document.getElementById('editGlassesPurpose');
+        if (ps) ps.dispatchEvent(new Event('change'));
+        setTimeout(() => setupPriceCalculations(), 100);
     }
 
     function collectFormData() {
-        let prescriptionDate = document.getElementById('editPrescriptionDate')?.value;
-        let formattedDate = prescriptionDate ? prescriptionDate.replace('T', ' ') + ':00' : null;
+        let pd = document.getElementById('editPrescriptionDate')?.value;
+        let fd = pd ? pd.replace('T', ' ') + ':00' : null;
+        // 构建最终图片路径：保留已有的 + 新上传的（新上传的需要后端保存，前端只传base64）
+        let finalImagePaths = [...currentEditImagePaths];
         return {
             id: document.getElementById('editId')?.value ? parseInt(document.getElementById('editId').value) : null,
             name: document.getElementById('editName')?.value.trim(),
@@ -678,7 +765,7 @@
             phone: document.getElementById('editPhone')?.value,
             occupation: document.getElementById('editOccupation')?.value || '无',
             glassesPurpose: document.getElementById('editGlassesPurpose')?.value,
-            prescriptionDate: formattedDate,
+            prescriptionDate: fd,
             leftSphere: parseFloat(document.getElementById('editLeftSphere')?.value) || null,
             leftCylinder: parseFloat(document.getElementById('editLeftCylinder')?.value) || null,
             leftAxis: parseInt(document.getElementById('editLeftAxis')?.value) || null,
@@ -706,368 +793,161 @@
             totalAmount: parseFloat(document.getElementById('editTotalAmount')?.value) || null,
             consultant: document.getElementById('editConsultant')?.value,
             needFollowup: document.getElementById('editNeedFollowup')?.value,
-            remark: document.getElementById('editRemark')?.value
+            remark: document.getElementById('editRemark')?.value,
+            existingImages: currentEditImagePaths,  // 保留的已有图片路径
+            newImages: uploadedImages              // 新上传的Base64图片
         };
     }
 
     function validateForm() {
-        let isValid = true;
-        const name = document.getElementById('editName')?.value.trim();
-        if (!name) { showError('editName', 'nameError'); isValid = false; } else { clearError('editName', 'nameError'); }
-        const gender = document.getElementById('editGender')?.value;
-        if (!gender) { showError('editGender', 'genderError'); isValid = false; } else { clearError('editGender', 'genderError'); }
-        const age = document.getElementById('editAge')?.value;
-        if (!age || age < 1 || age > 120) { showError('editAge', 'ageError'); isValid = false; } else { clearError('editAge', 'ageError'); }
-        const shopName = document.getElementById('editShopName')?.value;
-        if (!shopName) { showError('editShopName', 'shopNameError'); isValid = false; } else { clearError('editShopName', 'shopNameError'); }
-        const purpose = document.getElementById('editGlassesPurpose')?.value;
-        if (!purpose) { showError('editGlassesPurpose', 'purposeError'); isValid = false; } else { clearError('editGlassesPurpose', 'purposeError'); }
-        return isValid;
+        let ok = true;
+        if (!document.getElementById('editName')?.value.trim()) { showError('editName','nameError'); ok=false; } else clearError('editName','nameError');
+        if (!document.getElementById('editGender')?.value) { showError('editGender','genderError'); ok=false; } else clearError('editGender','genderError');
+        let a = document.getElementById('editAge')?.value; if (!a || a<1 || a>120) { showError('editAge','ageError'); ok=false; } else clearError('editAge','ageError');
+        if (!document.getElementById('editShopName')?.value) { showError('editShopName','shopNameError'); ok=false; } else clearError('editShopName','shopNameError');
+        if (!document.getElementById('editGlassesPurpose')?.value) { showError('editGlassesPurpose','purposeError'); ok=false; } else clearError('editGlassesPurpose','purposeError');
+        return ok;
     }
-
-    function showError(inputId, errorId) {
-        let inputEl = document.getElementById(inputId);
-        let errorEl = document.getElementById(errorId);
-        if (inputEl) inputEl.classList.add('error-input');
-        if (errorEl) errorEl.style.display = 'block';
-    }
-    function clearError(inputId, errorId) {
-        let inputEl = document.getElementById(inputId);
-        let errorEl = document.getElementById(errorId);
-        if (inputEl) inputEl.classList.remove('error-input');
-        if (errorEl) errorEl.style.display = 'none';
-    }
-    function clearErrors() {
-        ['nameError', 'genderError', 'ageError', 'shopNameError', 'purposeError'].forEach(id => { let el = document.getElementById(id); if (el) el.style.display = 'none'; });
-        ['editName', 'editGender', 'editAge', 'editShopName', 'editGlassesPurpose'].forEach(id => { let el = document.getElementById(id); if (el) el.classList.remove('error-input'); });
-    }
-
+    function showError(iid,eid) { let ie=document.getElementById(iid); if(ie) ie.classList.add('error-input'); let ee=document.getElementById(eid); if(ee) ee.style.display='block'; }
+    function clearError(iid,eid) { let ie=document.getElementById(iid); if(ie) ie.classList.remove('error-input'); let ee=document.getElementById(eid); if(ee) ee.style.display='none'; }
+    function clearErrors() { ['nameError','genderError','ageError','shopNameError','purposeError'].forEach(id=>{let e=document.getElementById(id);if(e)e.style.display='none';}); ['editName','editGender','editAge','editShopName','editGlassesPurpose'].forEach(id=>{let e=document.getElementById(id);if(e)e.classList.remove('error-input');}); }
     function closeModal() { document.getElementById('editModal').style.display = 'none'; clearErrors(); }
     function closeUserManageModal() { document.getElementById('userManageModal').style.display = 'none'; }
-    function showToast(message, type) { let toast = document.getElementById('toast'); toast.textContent = message; toast.className = 'toast ' + type; toast.style.display = 'block'; setTimeout(() => { toast.style.display = 'none'; }, 3000); }
+    function showToast(msg,type) { let t=document.getElementById('toast'); t.textContent=msg; t.className='toast '+type; t.style.display='block'; setTimeout(()=>t.style.display='none',3000); }
 
     async function submitEdit() {
         if (!validateForm()) return;
-        let formData = collectFormData();
-        let isUpdate = !!formData.id;
+        let data = collectFormData();
+        let isUpdate = !!data.id;
         try {
-            let response = await fetch(`${API_BASE}/addUser`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, credentials: 'include', body: JSON.stringify(formData) });
-            let result = await response.json();
-            if (result.success) { closeModal(); showToast(isUpdate ? '修改成功！' : '添加成功！', 'success'); loadAllData(); }
-            else { showToast(result.message, 'error'); }
-        } catch (error) { showToast(isUpdate ? '修改失败' : '添加失败', 'error'); }
+            let res = await fetch(`${API_BASE}/addUser`, { method:'POST', headers:{'Content-Type':'application/json'}, credentials:'include', body:JSON.stringify(data) });
+            let r = await res.json();
+            if (r.success) { closeModal(); showToast(isUpdate?'修改成功！':'添加成功！','success'); loadAllData(); }
+            else showToast(r.message,'error');
+        } catch(e) { showToast(isUpdate?'修改失败':'添加失败','error'); }
     }
 
     async function editRecord(id) {
-        if (currentRoleLevel === 2) { showToast('游客账号无权限修改数据', 'error'); return; }
+        if (currentRoleLevel === 2) { showToast('游客账号无权限修改数据','error'); return; }
         try {
-            let response = await fetch(`${API_BASE}/getUser/${id}`, { method: 'GET', credentials: 'include' });
-            let result = await response.json();
-            if (result.success) { document.getElementById('modalTitle').textContent = '编辑配镜处方'; fillFormData(result.data); document.getElementById('editModal').style.display = 'block'; }
-            else { showToast(result.message, 'error'); }
-        } catch (error) { showToast('获取数据失败', 'error'); }
+            let res = await fetch(`${API_BASE}/getUser/${id}`, { method:'GET', credentials:'include' });
+            let r = await res.json();
+            if (r.success) { document.getElementById('modalTitle').textContent = '编辑配镜处方'; fillFormData(r.data); document.getElementById('editModal').style.display = 'block'; }
+            else showToast(r.message,'error');
+        } catch(e) { showToast('获取数据失败','error'); }
     }
 
     function showAddModal() {
-        if (currentRoleLevel === 2) { showToast('游客账号无权限新增数据', 'error'); return; }
+        if (currentRoleLevel === 2) { showToast('游客账号无权限新增数据','error'); return; }
         document.getElementById('modalTitle').textContent = '新增配镜处方';
         document.getElementById('editForm').reset();
         document.getElementById('editId').value = '';
         document.getElementById('editShopName').value = '';
+        currentEditImagePaths = [];
+        uploadedImages = [];
+        initImageUpload([]);
         clearErrors();
-        let now = new Date();
-        let year = now.getFullYear(), month = String(now.getMonth() + 1).padStart(2, '0'), day = String(now.getDate()).padStart(2, '0');
-        let hours = String(now.getHours()).padStart(2, '0'), minutes = String(now.getMinutes()).padStart(2, '0');
-        document.getElementById('editPrescriptionDate').value = `${year}-${month}-${day}T${hours}:${minutes}`;
+        let n = new Date();
+        document.getElementById('editPrescriptionDate').value = `${n.getFullYear()}-${String(n.getMonth()+1).padStart(2,'0')}-${String(n.getDate()).padStart(2,'0')}T${String(n.getHours()).padStart(2,'0')}:${String(n.getMinutes()).padStart(2,'0')}`;
         document.getElementById('editOccupation').value = '无';
         document.getElementById('editNeedFollowup').value = '否';
         document.getElementById('editOtherCost').value = 0;
-        let purposeSelect = document.getElementById('editGlassesPurpose');
-        if (purposeSelect) { let event = new Event('change'); purposeSelect.dispatchEvent(event); }
+        let ps = document.getElementById('editGlassesPurpose');
+        if (ps) ps.dispatchEvent(new Event('change'));
         setupPriceCalculations();
         document.getElementById('editModal').style.display = 'block';
     }
 
     function bindPickerEvents() {
-        let pickerFields = ['editLeftSphere', 'editLeftCylinder', 'editLeftAxis', 'editLeftUncorrectedVision', 'editLeftCorrectedVision', 'editLeftPupilDistance', 'editRightSphere', 'editRightCylinder', 'editRightAxis', 'editRightUncorrectedVision', 'editRightCorrectedVision', 'editRightPupilDistance'];
-        let fieldTypes = { 'editLeftSphere': 'diopter', 'editLeftCylinder': 'diopter', 'editRightSphere': 'diopter', 'editRightCylinder': 'diopter', 'editLeftAxis': 'axis', 'editRightAxis': 'axis', 'editLeftUncorrectedVision': 'vision', 'editLeftCorrectedVision': 'vision', 'editRightUncorrectedVision': 'vision', 'editRightCorrectedVision': 'vision', 'editLeftPupilDistance': 'pd', 'editRightPupilDistance': 'pd' };
-        let fieldTitles = { 'diopter': '选择度数', 'axis': '选择轴位', 'vision': '选择视力', 'pd': '选择瞳距' };
-        pickerFields.forEach(fieldId => { let element = document.getElementById(fieldId); if (element) { element.addEventListener('click', function() { showPicker(this, fieldTypes[fieldId], fieldTitles[fieldTypes[fieldId]]); }); } });
+        let fields = ['editLeftSphere','editLeftCylinder','editLeftAxis','editLeftUncorrectedVision','editLeftCorrectedVision','editLeftPupilDistance','editRightSphere','editRightCylinder','editRightAxis','editRightUncorrectedVision','editRightCorrectedVision','editRightPupilDistance'];
+        let types = { 'editLeftSphere':'diopter','editLeftCylinder':'diopter','editRightSphere':'diopter','editRightCylinder':'diopter','editLeftAxis':'axis','editRightAxis':'axis','editLeftUncorrectedVision':'vision','editLeftCorrectedVision':'vision','editRightUncorrectedVision':'vision','editRightCorrectedVision':'vision','editLeftPupilDistance':'pd','editRightPupilDistance':'pd' };
+        let titles = { 'diopter':'选择度数','axis':'选择轴位','vision':'选择视力','pd':'选择瞳距' };
+        fields.forEach(fid=>{ let el=document.getElementById(fid); if(el) el.addEventListener('click',()=>showPicker(el,types[fid],titles[types[fid]])); });
     }
 
-    // ========== 用户管理 ==========
     async function showUserManageModal() {
-        if (currentRoleLevel !== 0) { showToast('权限不足', 'error'); return; }
+        if (currentRoleLevel !== 0) { showToast('权限不足','error'); return; }
         document.getElementById('userManageModal').style.display = 'block';
         await loadUserList();
     }
     async function loadUserList() {
-        try {
-            let response = await fetch(`${API_BASE}/userList`, { method: 'GET', credentials: 'include' });
-            let result = await response.json();
-            if (result.success) renderUserList(result.data);
-            else showToast(result.message, 'error');
-        } catch (error) { showToast('加载用户列表失败', 'error'); }
+        try { let res=await fetch(`${API_BASE}/userList`,{method:'GET',credentials:'include'}); let r=await res.json(); if(r.success) renderUserList(r.data); else showToast(r.message,'error'); } catch(e){ showToast('加载失败','error'); }
     }
     function renderUserList(users) {
-        const container = document.getElementById('userListContainer');
-        if (!users || users.length === 0) { container.innerHTML = '<div style="text-align:center; padding:20px;">暂无其他用户</div>'; return; }
-        let html = '<table class="user-table"><thead><tr><th>用户名</th><th>真实姓名</th><th>所属店名</th><th>角色</th><th>操作</th></tr></thead><tbody>';
-        users.forEach(user => {
-            let roleText = user.roleLevel === 0 ? '超级管理员' : (user.roleLevel === 1 ? '普通用户' : '游客');
-            let roleClass = user.roleLevel === 0 ? 'role-super' : (user.roleLevel === 1 ? 'role-normal' : 'role-guest');
-            html += `<tr><td>${escapeHtml(user.username)}</td><td>${escapeHtml(user.realName || '-')}</td><td>${escapeHtml(user.shopName || '-')}</td><td><span class="role-badge ${roleClass}">${roleText}</span></td><td><button class="btn btn-danger" onclick="deleteUserAccount(${user.id}, '${escapeHtml(user.username)}')" style="padding:4px 10px;">删除</button></td></tr>`;
-        });
-        html += '</tbody></table>';
-        container.innerHTML = html;
+        let c=document.getElementById('userListContainer');
+        if(!users||users.length===0){ c.innerHTML='<div style="text-align:center;padding:20px;">暂无其他用户</div>'; return; }
+        let h='<table class="user-table"><thead><tr><th>用户名</th><th>真实姓名</th><th>所属店名</th><th>角色</th><th>操作</th></tr></thead><tbody>';
+        users.forEach(u=>{ let rt=u.roleLevel===0?'超级管理员':(u.roleLevel===1?'普通用户':'游客'); let rc=u.roleLevel===0?'role-super':(u.roleLevel===1?'role-normal':'role-guest'); h+=`<tr><td>${escapeHtml(u.username)}</td><td>${escapeHtml(u.realName||'-')}</td><td>${escapeHtml(u.shopName||'-')}</td><td><span class="role-badge ${rc}">${rt}</span></td><td><button class="btn btn-danger" onclick="deleteUserAccount(${u.id},'${escapeHtml(u.username)}')">删除</button></td></tr>`; });
+        h+='</tbody></table>'; c.innerHTML=h;
     }
-    function escapeHtml(str) { if (!str) return ''; return str.replace(/[&<>]/g, function(m) { if (m === '&') return '&amp;'; if (m === '<') return '&lt;'; if (m === '>') return '&gt;'; return m; }); }
-    function deleteUserAccount(userId, username) { showDeleteConfirm(userId, 'user', `确定要删除用户 "${username}" 吗？此操作不可恢复！`); }
+    function escapeHtml(s){ if(!s) return ''; return s.replace(/[&<>]/g,m=>{if(m==='&')return '&amp;';if(m==='<')return '&lt;';if(m==='>')return '&gt;';return m;}); }
+    function deleteUserAccount(uid,uname){ showDeleteConfirm(uid,'user',`确定删除用户"${uname}"吗？不可恢复！`); }
     async function createUser() {
-        const username = document.getElementById('newUsername').value.trim();
-        const password = document.getElementById('newPassword').value;
-        const realName = document.getElementById('newRealName').value.trim();
-        const shopName = document.getElementById('newShopName').value.trim();
-        const roleLevel = parseInt(document.getElementById('newRoleLevel').value);
-        if (!username) { showToast('请输入用户名', 'error'); return; }
-        if (!password) { showToast('请输入密码', 'error'); return; }
-        if (password.length < 3) { showToast('密码长度至少3位', 'error'); return; }
-        if (roleLevel === 1 && !shopName) { showToast('普通用户需要填写所属店名', 'error'); return; }
-        try {
-            let response = await fetch(`${API_BASE}/createUser`, {
-                method: 'POST', headers: { 'Content-Type': 'application/json' }, credentials: 'include',
-                body: JSON.stringify({ username, password, realName, shopName, roleLevel })
-            });
-            let result = await response.json();
-            if (result.success) {
-                showToast('创建用户成功', 'success');
-                document.getElementById('newUsername').value = '';
-                document.getElementById('newPassword').value = '';
-                document.getElementById('newRealName').value = '';
-                document.getElementById('newShopName').value = '';
-                await loadUserList();
-            } else { showToast(result.message, 'error'); }
-        } catch (error) { showToast('创建失败', 'error'); }
+        let un=document.getElementById('newUsername').value.trim(), pw=document.getElementById('newPassword').value, rn=document.getElementById('newRealName').value.trim(), sn=document.getElementById('newShopName').value.trim(), rl=parseInt(document.getElementById('newRoleLevel').value);
+        if(!un){ showToast('请输入用户名','error'); return; }
+        if(!pw){ showToast('请输入密码','error'); return; }
+        if(pw.length<3){ showToast('密码至少3位','error'); return; }
+        if(rl===1&&!sn){ showToast('普通用户需要填写店名','error'); return; }
+        try{ let res=await fetch(`${API_BASE}/createUser`,{method:'POST',headers:{'Content-Type':'application/json'},credentials:'include',body:JSON.stringify({username:un,password:pw,realName:rn,shopName:sn,roleLevel:rl})}); let r=await res.json(); if(r.success){ showToast('创建成功','success'); document.getElementById('newUsername').value=''; document.getElementById('newPassword').value=''; document.getElementById('newRealName').value=''; document.getElementById('newShopName').value=''; await loadUserList(); }else showToast(r.message,'error'); }catch(e){ showToast('创建失败','error'); }
     }
 
-    // ========== 日期筛选和数据加载 ==========
-    async function filterByDateRange(range) {
-        currentDateRange = range;
-        currentStartDate = '';
-        currentEndDate = '';
-        currentPage = 1;
-        let keyword = document.getElementById('searchInput')?.value || '';
-        await fetchData(keyword, range, '', '');
-        // 高亮当前选中的按钮
-        document.querySelectorAll('.btn-date').forEach(btn => btn.classList.remove('active'));
-        if (event && event.target) event.target.classList.add('active');
+    async function filterByDateRange(range) { currentDateRange=range; currentStartDate=''; currentEndDate=''; currentPage=1; let kw=document.getElementById('searchInput')?.value||''; await fetchData(kw,range,'',''); document.querySelectorAll('.btn-date').forEach(btn=>btn.classList.remove('active')); if(event&&event.target) event.target.classList.add('active'); }
+    async function filterByCustomDate() { let sd=document.getElementById('startDate').value, ed=document.getElementById('endDate').value; if(!sd||!ed){ showToast('请选择日期','error'); return; } if(sd>ed){ showToast('开始日期不能大于结束日期','error'); return; } currentDateRange=''; currentStartDate=sd; currentEndDate=ed; currentPage=1; let kw=document.getElementById('searchInput')?.value||''; await fetchData(kw,'',sd,ed); document.querySelectorAll('.btn-date').forEach(btn=>btn.classList.remove('active')); }
+    async function clearDateFilter() { currentDateRange=''; currentStartDate=''; currentEndDate=''; document.getElementById('startDate').value=''; document.getElementById('endDate').value=''; currentPage=1; let kw=document.getElementById('searchInput')?.value||''; await fetchData(kw,'','',''); document.querySelectorAll('.btn-date').forEach(btn=>btn.classList.remove('active')); }
+    async function fetchData(kw,dr,sd,ed) {
+        let tc=document.getElementById('tableContent'); tc.innerHTML='<div class="loading">加载中...</div>';
+        try{ let body={search:kw||''}; if(dr) body.dateRange=dr; if(sd) body.startDate=sd; if(ed) body.endDate=ed; let res=await fetch(`${API_BASE}/getData`,{method:'POST',headers:{'Content-Type':'application/json'},credentials:'include',body:JSON.stringify(body)}); let r=await res.json(); if(r.success){ totalData=r.data||[]; renderTableWithPagination(); await loadStatistics(kw,dr,sd,ed); }else{ tc.innerHTML=`<div class="empty-data">${r.message||'获取失败'}</div>`; if(r.message==='未登录') checkLoginStatus(); } }catch(e){ tc.innerHTML='<div class="empty-data">网络错误</div>'; }
     }
-    async function filterByCustomDate() {
-        let startDate = document.getElementById('startDate').value;
-        let endDate = document.getElementById('endDate').value;
-        if (!startDate || !endDate) { showToast('请选择开始和结束日期', 'error'); return; }
-        if (startDate > endDate) { showToast('开始日期不能大于结束日期', 'error'); return; }
-        currentDateRange = '';
-        currentStartDate = startDate;
-        currentEndDate = endDate;
-        currentPage = 1;
-        let keyword = document.getElementById('searchInput')?.value || '';
-        await fetchData(keyword, '', startDate, endDate);
-        document.querySelectorAll('.btn-date').forEach(btn => btn.classList.remove('active'));
-    }
-    async function clearDateFilter() {
-        currentDateRange = '';
-        currentStartDate = '';
-        currentEndDate = '';
-        document.getElementById('startDate').value = '';
-        document.getElementById('endDate').value = '';
-        currentPage = 1;
-        let keyword = document.getElementById('searchInput')?.value || '';
-        await fetchData(keyword, '', '', '');
-        document.querySelectorAll('.btn-date').forEach(btn => btn.classList.remove('active'));
-    }
-    async function fetchData(keyword, dateRange, startDate, endDate) {
-        let tableContent = document.getElementById('tableContent');
-        tableContent.innerHTML = '<div class="loading">加载中...</div>';
-        try {
-            let body = { search: keyword || '' };
-            if (dateRange) body.dateRange = dateRange;
-            if (startDate) body.startDate = startDate;
-            if (endDate) body.endDate = endDate;
-            let response = await fetch(`${API_BASE}/getData`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                credentials: 'include',
-                body: JSON.stringify(body)
-            });
-            let result = await response.json();
-            if (result.success) {
-                totalData = result.data || [];
-                renderTableWithPagination();
-                // 同步更新统计数据（使用相同的筛选条件）
-                await loadStatistics(keyword, dateRange, startDate, endDate);
-            } else {
-                tableContent.innerHTML = `<div class="empty-data">${result.message || '获取数据失败'}</div>`;
-                if (result.message === '未登录') checkLoginStatus();
-            }
-        } catch (error) {
-            tableContent.innerHTML = '<div class="empty-data">网络错误</div>';
-        }
-    }
-    async function loadStatistics(keyword, dateRange, startDate, endDate) {
-        try {
-            let body = {};
-            if (keyword && keyword.trim()) body.search = keyword.trim();
-            if (dateRange) body.dateRange = dateRange;
-            if (startDate) body.startDate = startDate;
-            if (endDate) body.endDate = endDate;
-
-            let response = await fetch(`${API_BASE}/statistics`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                credentials: 'include',
-                body: JSON.stringify(body)
-            });
-            let result = await response.json();
-            if (result.success) {
-                document.getElementById('todayCount').innerText = result.todayCount;
-                document.getElementById('todayAmount').innerText = result.todayAmount.toFixed(2);
-                document.getElementById('monthCount').innerText = result.monthCount;
-                document.getElementById('monthAmount').innerText = result.monthAmount.toFixed(2);
-                document.getElementById('yearCount').innerText = result.yearCount;
-                document.getElementById('yearAmount').innerText = result.yearAmount.toFixed(2);
-            }
-        } catch (error) {
-            console.error('加载统计失败', error);
-        }
+    async function loadStatistics(kw,dr,sd,ed) {
+        try{ let body={}; if(kw&&kw.trim()) body.search=kw.trim(); if(dr) body.dateRange=dr; if(sd) body.startDate=sd; if(ed) body.endDate=ed; let res=await fetch(`${API_BASE}/statistics`,{method:'POST',headers:{'Content-Type':'application/json'},credentials:'include',body:JSON.stringify(body)}); let r=await res.json(); if(r.success){ document.getElementById('todayCount').innerText=r.todayCount; document.getElementById('todayAmount').innerText=r.todayAmount.toFixed(2); document.getElementById('monthCount').innerText=r.monthCount; document.getElementById('monthAmount').innerText=r.monthAmount.toFixed(2); document.getElementById('yearCount').innerText=r.yearCount; document.getElementById('yearAmount').innerText=r.yearAmount.toFixed(2); } }catch(e){ console.error('统计失败',e); }
     }
 
-    // ========== 登录和其他 ==========
     async function checkLoginStatus() {
-        try {
-            let response = await fetch(`${API_BASE}/checkLogin`, { method: 'GET', credentials: 'include' });
-            let result = await response.json();
-            if (result.isLogin) {
-                document.getElementById('currentUser').innerText = result.username;
-                currentRoleLevel = result.roleLevel || 2;
-                updateUIBasedOnRole();
-                document.getElementById('loginContainer').style.display = 'none';
-                document.getElementById('mainContainer').style.display = 'block';
-                loadAllData();
-                loadStatistics();
-            } else {
-                document.getElementById('loginContainer').style.display = 'flex';
-                document.getElementById('mainContainer').style.display = 'none';
-            }
-        } catch (error) {
-            document.getElementById('loginContainer').style.display = 'flex';
-            document.getElementById('mainContainer').style.display = 'none';
-        }
+        try{ let res=await fetch(`${API_BASE}/checkLogin`,{method:'GET',credentials:'include'}); let r=await res.json(); if(r.isLogin){ document.getElementById('currentUser').innerText=r.username; currentRoleLevel=r.roleLevel||2; updateUIBasedOnRole(); document.getElementById('loginContainer').style.display='none'; document.getElementById('mainContainer').style.display='block'; await fetchData('','','',''); showToast('登录成功','success'); }else{ document.getElementById('loginContainer').style.display='flex'; document.getElementById('mainContainer').style.display='none'; } }catch(e){ document.getElementById('loginContainer').style.display='flex'; document.getElementById('mainContainer').style.display='none'; }
     }
-    document.getElementById('loginForm')?.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        let username = document.getElementById('username').value, password = document.getElementById('password').value, errorDiv = document.getElementById('loginError');
-        errorDiv.style.display = 'none';
-        try {
-            let response = await fetch(`${API_BASE}/login`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, credentials: 'include', body: JSON.stringify({ username, password }) });
-            let result = await response.json();
-            if (result.success) {
-                currentRoleLevel = result.user.roleLevel;
-                document.getElementById('currentUser').innerText = result.user.username;
-                updateUIBasedOnRole();
-                document.getElementById('loginContainer').style.display = 'none';
-                document.getElementById('mainContainer').style.display = 'block';
-                await fetchData('', '', '', '');  // 这会自动加载统计
-                showToast('登录成功', 'success');
-            } else { errorDiv.innerText = result.message; errorDiv.style.display = 'block'; }
-        } catch (error) { errorDiv.innerText = '网络错误'; errorDiv.style.display = 'block'; }
-    });
-    async function loadAllData() {
-        currentSearchKeyword = '';
-        currentDateRange = '';
-        currentStartDate = '';
-        currentEndDate = '';
-        document.getElementById('searchInput').value = '';
-        document.getElementById('startDate').value = '';
-        document.getElementById('endDate').value = '';
-        await fetchData('', '', '', '');
-        document.querySelectorAll('.btn-date').forEach(btn => btn.classList.remove('active'));
-    }
-    async function searchData() {
-        currentSearchKeyword = document.getElementById('searchInput')?.value || '';
-        currentPage = 1;
-        await fetchData(currentSearchKeyword, currentDateRange, currentStartDate, currentEndDate);
-    }
-    function handleSearchKeyPress(event) { if (event.key === 'Enter') searchData(); }
-    function renderTableWithPagination() {
-        let start = (currentPage - 1) * pageSize;
-        let pageData = totalData.slice(start, start + pageSize);
-        renderTable(pageData);
-        renderPagination();
-        document.getElementById('stats').innerText = `共 ${totalData.length} 条记录`;
-    }
-    function renderPagination() {
-        let totalPages = Math.ceil(totalData.length / pageSize);
-        let paginationDiv = document.getElementById('pagination');
-        if (totalPages <= 1) { paginationDiv.innerHTML = ''; return; }
-        let html = '';
-        html += `<button onclick="goToPage(1)" ${currentPage === 1 ? 'disabled' : ''}>首页</button>`;
-        html += `<button onclick="goToPage(${currentPage - 1})" ${currentPage === 1 ? 'disabled' : ''}>上一页</button>`;
-        let startPage = Math.max(1, currentPage - 2), endPage = Math.min(totalPages, currentPage + 2);
-        if (startPage > 1) html += `<span>...</span>`;
-        for (let i = startPage; i <= endPage; i++) html += `<button class="${currentPage === i ? 'active' : ''}" onclick="goToPage(${i})">${i}</button>`;
-        if (endPage < totalPages) html += `<span>...</span>`;
-        html += `<button onclick="goToPage(${currentPage + 1})" ${currentPage === totalPages ? 'disabled' : ''}>下一页</button>`;
-        html += `<button onclick="goToPage(${totalPages})" ${currentPage === totalPages ? 'disabled' : ''}>末页</button>`;
-        html += `<span class="page-info">第 ${currentPage} / ${totalPages} 页</span>`;
-        paginationDiv.innerHTML = html;
-    }
-    function goToPage(page) { let totalPages = Math.ceil(totalData.length / pageSize); if (page < 1 || page > totalPages) return; currentPage = page; renderTableWithPagination(); }
+    document.getElementById('loginForm')?.addEventListener('submit',async(e)=>{ e.preventDefault(); let un=document.getElementById('username').value,pw=document.getElementById('password').value,err=document.getElementById('loginError'); err.style.display='none'; try{ let res=await fetch(`${API_BASE}/login`,{method:'POST',headers:{'Content-Type':'application/json'},credentials:'include',body:JSON.stringify({username:un,password:pw})}); let r=await res.json(); if(r.success){ currentRoleLevel=r.user.roleLevel; document.getElementById('currentUser').innerText=r.user.username; updateUIBasedOnRole(); document.getElementById('loginContainer').style.display='none'; document.getElementById('mainContainer').style.display='block'; await fetchData('','','',''); showToast('登录成功','success'); }else{ err.innerText=r.message; err.style.display='block'; } }catch(e){ err.innerText='网络错误'; err.style.display='block'; } });
+    async function loadAllData() { currentSearchKeyword=''; currentDateRange=''; currentStartDate=''; currentEndDate=''; document.getElementById('searchInput').value=''; document.getElementById('startDate').value=''; document.getElementById('endDate').value=''; await fetchData('','','',''); document.querySelectorAll('.btn-date').forEach(btn=>btn.classList.remove('active')); }
+    async function searchData() { currentSearchKeyword=document.getElementById('searchInput')?.value||''; currentPage=1; await fetchData(currentSearchKeyword,currentDateRange,currentStartDate,currentEndDate); }
+    function handleSearchKeyPress(e){ if(e.key==='Enter') searchData(); }
+    function renderTableWithPagination() { let start=(currentPage-1)*pageSize; let pageData=totalData.slice(start,start+pageSize); renderTable(pageData); renderPagination(); document.getElementById('stats').innerText=`共 ${totalData.length} 条记录`; }
+    function renderPagination() { let tp=Math.ceil(totalData.length/pageSize); let pd=document.getElementById('pagination'); if(tp<=1){ pd.innerHTML=''; return; } let h=''; h+=`<button onclick="goToPage(1)" ${currentPage===1?'disabled':''}>首页</button>`; h+=`<button onclick="goToPage(${currentPage-1})" ${currentPage===1?'disabled':''}>上一页</button>`; let sp=Math.max(1,currentPage-2),ep=Math.min(tp,currentPage+2); if(sp>1) h+='<span>...</span>'; for(let i=sp;i<=ep;i++) h+=`<button class="${currentPage===i?'active':''}" onclick="goToPage(${i})">${i}</button>`; if(ep<tp) h+='<span>...</span>'; h+=`<button onclick="goToPage(${currentPage+1})" ${currentPage===tp?'disabled':''}>下一页</button>`; h+=`<button onclick="goToPage(${tp})" ${currentPage===tp?'disabled':''}>末页</button>`; h+=`<span class="page-info">第 ${currentPage} / ${tp} 页</span>`; pd.innerHTML=h; }
+    function goToPage(p){ let tp=Math.ceil(totalData.length/pageSize); if(p<1||p>tp) return; currentPage=p; renderTableWithPagination(); }
     function renderTable(data) {
-        let tableContent = document.getElementById('tableContent');
-        if (!data || data.length === 0) { tableContent.innerHTML = '<div class="empty-data">暂无数据</div>'; return; }
-        const isSuperAdmin = (currentRoleLevel === 0);
-        const isGuest = (currentRoleLevel === 2);
-        let table = document.createElement('table'); table.className = 'data-table';
-        let thead = document.createElement('thead');
-        let headerRow = document.createElement('tr');
-        let headers = ['序号', '姓名', '性别', '年龄', '配镜用途', '配镜日期', '左眼球镜', '左眼柱镜', '左眼轴位', '右眼球镜', '右眼柱镜', '右眼轴位', '镜架型号', '镜片种类', '顾问', '店名'];
-        if (!isGuest) { headers.push('电话'); headers.push('总金额'); }
+        let tc=document.getElementById('tableContent');
+        if(!data||data.length===0){ tc.innerHTML='<div class="empty-data">暂无数据</div>'; return; }
+        let isSuper=currentRoleLevel===0, isGuest=currentRoleLevel===2;
+        let t=document.createElement('table'); t.className='data-table';
+        let th=document.createElement('thead'); let tr=document.createElement('tr');
+        let headers=['序号','姓名','性别','年龄','配镜用途','配镜日期','处方','左眼球镜','左眼柱镜','左眼轴位','右眼球镜','右眼柱镜','右眼轴位','镜架型号','镜片种类','顾问','店名'];
+        if(!isGuest){ headers.push('电话'); headers.push('总金额'); }
         headers.push('操作');
-        headers.forEach(h => { let th = document.createElement('th'); th.textContent = h; headerRow.appendChild(th); });
-        thead.appendChild(headerRow); table.appendChild(thead);
-        let tbody = document.createElement('tbody');
-        data.forEach(item => {
-            let row = document.createElement('tr');
-            let dateStr = item.prescriptionDate ? (item.prescriptionDate.includes('T') ? item.prescriptionDate.replace('T', ' ') : item.prescriptionDate).substring(0, 16) : '-';
-            let fields = [item.serialNo || '-', item.name || '-', item.gender || '-', item.age || '-', item.glassesPurpose || '-', dateStr, item.leftSphere || '-', item.leftCylinder || '-', item.leftAxis || '-', item.rightSphere || '-', item.rightCylinder || '-', item.rightAxis || '-', item.frameModel || '-', item.lensType || '-', item.consultant || '-', item.shopName || '-'];
-            if (!isGuest) { fields.push(item.phone || '-'); fields.push(item.totalAmount ? '¥' + item.totalAmount : '-'); }
-            fields.forEach(f => { let td = document.createElement('td'); td.textContent = f; row.appendChild(td); });
-            let actionTd = document.createElement('td');
-            if (!isGuest) {
-                let editBtn = document.createElement('button'); editBtn.textContent = '编辑'; editBtn.className = 'edit-btn';
-                editBtn.onclick = (function(id) { return function() { editRecord(id); }; })(item.id);
-                actionTd.appendChild(editBtn);
+        headers.forEach(h=>{ let thh=document.createElement('th'); thh.textContent=h; tr.appendChild(thh); });
+        th.appendChild(tr); t.appendChild(th);
+        let tb=document.createElement('tbody');
+        data.forEach(item=>{
+            let row=document.createElement('tr');
+            let dateStr=item.prescriptionDate?(item.prescriptionDate.includes('T')?item.prescriptionDate.replace('T',' '):item.prescriptionDate).substring(0,16):'-';
+            let images=[];
+            if(item.prescriptionImages&&item.prescriptionImages!==''){
+                let paths=item.prescriptionImages.split(',');
+                images=paths.map(p=>p.startsWith('http')?p:(API_BASE+p));
             }
-            if (isSuperAdmin) {
-                let deleteBtn = document.createElement('button'); deleteBtn.textContent = '删除'; deleteBtn.className = 'delete-btn';
-                deleteBtn.onclick = (function(id) { return function() { showDeleteConfirm(id, 'data', '确定要删除这条配镜记录吗？此操作不可恢复！'); }; })(item.id);
-                actionTd.appendChild(deleteBtn);
-            }
+            let prescriptionHtml=`<div class="prescription-icon" onclick="showTableImagePreview(${JSON.stringify(images)},0)">📷</div>`;
+            let fields=[item.serialNo||'-',item.name||'-',item.gender||'-',item.age||'-',item.glassesPurpose||'-',dateStr,prescriptionHtml,item.leftSphere||'-',item.leftCylinder||'-',item.leftAxis||'-',item.rightSphere||'-',item.rightCylinder||'-',item.rightAxis||'-',item.frameModel||'-',item.lensType||'-',item.consultant||'-',item.shopName||'-'];
+            if(!isGuest){ fields.push(item.phone||'-'); fields.push(item.totalAmount?'¥'+item.totalAmount:'-'); }
+            fields.forEach(f=>{ let td=document.createElement('td'); td.innerHTML=f; row.appendChild(td); });
+            let actionTd=document.createElement('td');
+            if(!isGuest){ let eb=document.createElement('button'); eb.textContent='编辑'; eb.className='edit-btn'; eb.onclick=(function(id){return function(){editRecord(id);}})(item.id); actionTd.appendChild(eb); }
+            if(isSuper){ let db=document.createElement('button'); db.textContent='删除'; db.className='delete-btn'; db.onclick=(function(id){return function(){showDeleteConfirm(id,'data','确定删除这条记录吗？不可恢复！');}})(item.id); actionTd.appendChild(db); }
             row.appendChild(actionTd);
-            tbody.appendChild(row);
+            tb.appendChild(row);
         });
-        table.appendChild(tbody); tableContent.innerHTML = ''; tableContent.appendChild(table);
+        t.appendChild(tb); tc.innerHTML=''; tc.appendChild(t);
     }
-    async function logout() { await fetch(`${API_BASE}/logout`, { method: 'GET', credentials: 'include' }); showToast('已退出登录', 'success'); checkLoginStatus(); }
-    window.onclick = function(event) {
-        if (event.target === document.getElementById('editModal')) closeModal();
-        if (event.target === document.getElementById('pickerOverlay')) closePicker();
-        if (event.target === document.getElementById('userManageModal')) closeUserManageModal();
-        if (event.target === document.getElementById('confirmModal')) closeConfirmModal();
-    };
-    document.getElementById('signToggleBtn')?.addEventListener('click', toggleSign);
-    window.onload = () => { checkLoginStatus(); setupPurposeListener(); bindPickerEvents(); };
+    async function logout() { await fetch(`${API_BASE}/logout`,{method:'GET',credentials:'include'}); showToast('已退出登录','success'); checkLoginStatus(); }
+    window.onclick=function(e){ if(e.target===document.getElementById('editModal')) closeModal(); if(e.target===document.getElementById('pickerOverlay')) closePicker(); if(e.target===document.getElementById('userManageModal')) closeUserManageModal(); if(e.target===document.getElementById('confirmModal')) closeConfirmModal(); if(e.target===document.getElementById('imagePreviewModal')) closeImagePreview(); };
+    document.getElementById('signToggleBtn')?.addEventListener('click',toggleSign);
+    window.onload=()=>{ checkLoginStatus(); setupPurposeListener(); bindPickerEvents(); };
 </script>
 </body>
 </html>

@@ -1,4 +1,4 @@
-package com.example.usermanagement.dto;
+package com.yezishuo.usermanagement.dto;
 
 import lombok.Data;
 import javax.validation.constraints.NotBlank;

@@ -1,10 +1,11 @@
-package com.example.usermanagement.service;
+package com.yezishuo.usermanagement.service;
 
-import com.example.usermanagement.dto.*;
-import com.example.usermanagement.entity.User;
-import com.example.usermanagement.entity.UserData;
-import com.example.usermanagement.repository.UserDataRepository;
-import com.example.usermanagement.repository.UserRepository;
+import com.yezishuo.usermanagement.dto.*;
+import com.yezishuo.usermanagement.entity.User;
+import com.yezishuo.usermanagement.entity.UserData;
+import com.yezishuo.usermanagement.repository.UserDataRepository;
+import com.yezishuo.usermanagement.repository.UserRepository;
+import com.yezishuo.usermanagement.util.ImageUploadUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -26,6 +27,9 @@ public class UserService {
 
     @Autowired
     private BCryptPasswordEncoder passwordEncoder;
+
+    @Autowired
+    private ImageUploadUtil imageUploadUtil;
 
     // 登录方法 - 返回用户权限信息
     public Map<String, Object> login(LoginRequest request, HttpSession session) {
@@ -447,6 +451,7 @@ public class UserService {
             UserData userData;
             boolean isNew = (request.getId() == null);
 
+
             if (!isNew) {
                 userData = userDataRepository.findById(request.getId()).orElse(null);
                 if (userData == null) {
@@ -459,6 +464,47 @@ public class UserService {
                 long count = userDataRepository.count();
                 String serialNo = String.format("%03d", count + 1);
                 userData.setSerialNo(serialNo);
+            }
+            // 保存图片
+            if (request.getImageFiles() != null && !request.getImageFiles().isEmpty()) {
+                List<String> savedPaths = new ArrayList<>();
+                for (String base64Image : request.getImageFiles()) {
+                    if (base64Image != null && !base64Image.isEmpty()) {
+                        String savedPath = imageUploadUtil.saveBase64Image(base64Image);
+                        if (savedPath != null) {
+                            savedPaths.add(savedPath);
+                        }
+                    }
+                }
+                if (!savedPaths.isEmpty()) {
+                    userData.setPrescriptionImages(String.join(",", savedPaths));
+                }
+            }
+            // 处理图片
+            List<String> finalImagePaths = new ArrayList<>();
+
+            // 1. 保留已有的图片
+            if (request.getExistingImages() != null) {
+                finalImagePaths.addAll(request.getExistingImages());
+            }
+
+            // 2. 保存新上传的图片
+            if (request.getNewImages() != null && !request.getNewImages().isEmpty()) {
+                for (String base64Image : request.getNewImages()) {
+                    if (base64Image != null && !base64Image.isEmpty()) {
+                        String savedPath = imageUploadUtil.saveBase64Image(base64Image);
+                        if (savedPath != null) {
+                            finalImagePaths.add(savedPath);
+                        }
+                    }
+                }
+            }
+
+            // 3. 保存到数据库
+            if (!finalImagePaths.isEmpty()) {
+                userData.setPrescriptionImages(String.join(",", finalImagePaths));
+            } else {
+                userData.setPrescriptionImages(null);
             }
 
             // 基本信息
@@ -532,6 +578,21 @@ public class UserService {
             BigDecimal total = frameActual.add(lensActual).add(otherCost);
             userData.setTotalAmount(total);
 
+            // 在保存用户数据之前，处理图片
+            if (request.getImageFiles() != null && !request.getImageFiles().isEmpty()) {
+                List<String> savedPaths = new ArrayList<>();
+                for (String base64Image : request.getImageFiles()) {
+                    if (base64Image != null && !base64Image.isEmpty()) {
+                        String savedPath = imageUploadUtil.saveBase64Image(base64Image);
+                        if (savedPath != null) {
+                            savedPaths.add(savedPath);
+                        }
+                    }
+                }
+                if (!savedPaths.isEmpty()) {
+                    userData.setPrescriptionImages(String.join(",", savedPaths));
+                }
+            }
             userDataRepository.save(userData);
 
             result.put("success", true);

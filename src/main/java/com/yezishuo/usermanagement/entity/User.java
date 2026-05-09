@@ -1,4 +1,4 @@
-package com.example.usermanagement.entity;
+package com.yezishuo.usermanagement.entity;
 
 import lombok.Data;
 import javax.persistence.*;

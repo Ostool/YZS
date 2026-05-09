@@ -1,14 +1,19 @@
-package com.example.usermanagement.controller;
+package com.yezishuo.usermanagement.controller;
 
-import com.example.usermanagement.dto.AddUserRequest;
-import com.example.usermanagement.dto.LoginRequest;
-import com.example.usermanagement.dto.UserCreateRequest;
-import com.example.usermanagement.service.UserService;
+import com.yezishuo.usermanagement.dto.AddUserRequest;
+import com.yezishuo.usermanagement.dto.LoginRequest;
+import com.yezishuo.usermanagement.dto.UserCreateRequest;
+import com.yezishuo.usermanagement.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import javax.servlet.http.HttpSession;
 import javax.validation.Valid;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -148,5 +153,19 @@ public class UserController {
             result.put("isLogin", false);
         }
         return ResponseEntity.ok(result);
+    }
+
+    // 在启动类或配置类中添加静态资源映射
+// 或者直接在 Controller 中添加图片访问接口
+    @GetMapping("/uploads/pictures/{filename}")
+    public ResponseEntity<byte[]> getImage(@PathVariable String filename) {
+        try {
+            String filePath = System.getProperty("user.dir") + "/uploads/pictures/" + filename;
+            Path path = Paths.get(filePath);
+            byte[] imageBytes = Files.readAllBytes(path);
+            return ResponseEntity.ok().contentType(MediaType.IMAGE_JPEG).body(imageBytes);
+        } catch (IOException e) {
+            return ResponseEntity.notFound().build();
+        }
     }
 }
