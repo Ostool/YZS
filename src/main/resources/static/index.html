@@ -405,7 +405,10 @@
     function getImageUrl(path) {
         if (!path) return '';
         if (path.startsWith('http')) return path;
-        if (path.startsWith('/uploads')) return API_BASE + path;
+        if (path.startsWith('/uploads')) {
+            // 直接返回原路径，不加任何前缀
+            return path;
+        }
         return path;
     }
 
@@ -563,7 +566,13 @@
             showToast('没有图片', 'error');
             return;
         }
-        currentPreviewImages = imagesArray;
+        // 确保图片路径正确（不加 API_BASE）
+        let fullUrls = imagesArray.map(p => {
+            if (p.startsWith('http')) return p;
+            if (p.startsWith('/uploads')) return p;
+            return p;
+        });
+        currentPreviewImages = fullUrls;
         currentPreviewIndex = startIndex;
         document.getElementById('previewImage').src = currentPreviewImages[currentPreviewIndex];
         document.getElementById('imageIndex').innerText = `${currentPreviewIndex + 1}/${currentPreviewImages.length}`;
@@ -929,8 +938,7 @@
             let dateStr=item.prescriptionDate?(item.prescriptionDate.includes('T')?item.prescriptionDate.replace('T',' '):item.prescriptionDate).substring(0,16):'-';
             let images=[];
             if(item.prescriptionImages&&item.prescriptionImages!==''){
-                let paths=item.prescriptionImages.split(',');
-                images=paths.map(p=>p.startsWith('http')?p:(API_BASE+p));
+                images=item.prescriptionImages.split(',');
             }
             let prescriptionHtml=`<div class="prescription-icon" onclick="showTableImagePreview(${JSON.stringify(images)},0)">📷</div>`;
             let fields=[item.serialNo||'-',item.name||'-',item.gender||'-',item.age||'-',item.glassesPurpose||'-',dateStr,prescriptionHtml,item.leftSphere||'-',item.leftCylinder||'-',item.leftAxis||'-',item.rightSphere||'-',item.rightCylinder||'-',item.rightAxis||'-',item.frameModel||'-',item.lensType||'-',item.consultant||'-',item.shopName||'-'];

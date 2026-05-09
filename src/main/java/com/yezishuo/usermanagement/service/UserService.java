@@ -421,6 +421,12 @@ public class UserService {
             return result;
         }
 
+        // 删除关联的图片文件
+        if (userData.getPrescriptionImages() != null && !userData.getPrescriptionImages().isEmpty()) {
+            String[] imagePaths = userData.getPrescriptionImages().split(",");
+            imageUploadUtil.deleteImages(Arrays.asList(imagePaths));
+        }
+
         userDataRepository.deleteById(dataId);
         result.put("success", true);
         result.put("message", "删除成功");
@@ -480,11 +486,16 @@ public class UserService {
                     userData.setPrescriptionImages(String.join(",", savedPaths));
                 }
             }
-            // 处理图片
+            // 处理图片：比较新旧图片，删除被移除的图片
+            List<String> oldImagePaths = null;
+            if (userData.getPrescriptionImages() != null && !userData.getPrescriptionImages().isEmpty()) {
+                oldImagePaths = Arrays.asList(userData.getPrescriptionImages().split(","));
+            }
+
             List<String> finalImagePaths = new ArrayList<>();
 
-            // 1. 保留已有的图片
-            if (request.getExistingImages() != null) {
+            // 1. 保留已有的图片（传入的 existingImages）
+            if (request.getExistingImages() != null && !request.getExistingImages().isEmpty()) {
                 finalImagePaths.addAll(request.getExistingImages());
             }
 
@@ -500,7 +511,16 @@ public class UserService {
                 }
             }
 
-            // 3. 保存到数据库
+            // 3. 删除不再使用的旧图片
+            if (oldImagePaths != null && !oldImagePaths.isEmpty()) {
+                List<String> pathsToDelete = new ArrayList<>(oldImagePaths);
+                pathsToDelete.removeAll(finalImagePaths);
+                if (!pathsToDelete.isEmpty()) {
+                    imageUploadUtil.deleteImages(pathsToDelete);
+                }
+            }
+
+            // 4. 保存到数据库
             if (!finalImagePaths.isEmpty()) {
                 userData.setPrescriptionImages(String.join(",", finalImagePaths));
             } else {
