@@ -40,4 +40,7 @@ public class User {
         if (roleLevel == null) roleLevel = 2;
         if (status == null) status = 1;
     }
+
+    @Column(name = "shop_name")
+    private String shopName;
 }

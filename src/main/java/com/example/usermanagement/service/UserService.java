@@ -12,9 +12,7 @@ import javax.servlet.http.HttpSession;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -144,6 +142,7 @@ public class UserService {
             } else {
                 newUser.setRole("guest");
             }
+            newUser.setShopName(request.getShopName());
 
             userRepository.save(newUser);
 
@@ -230,36 +229,164 @@ public class UserService {
     }
 
     // 获取数据（根据权限过滤）
-    public Map<String, Object> getData(String keyword, HttpSession session) {
+    // 修改 getData 方法，增加权限过滤
+    public Map<String, Object> getData(String keyword, HttpSession session, String dateRange, String startDate, String endDate) {
         Map<String, Object> result = new HashMap<>();
 
+        Integer userId = (Integer) session.getAttribute("userId");
         Integer currentRoleLevel = (Integer) session.getAttribute("roleLevel");
+        String currentUserShopName = (String) session.getAttribute("shopName");
 
-        if (session.getAttribute("userId") == null) {
+        if (userId == null) {
             result.put("success", false);
             result.put("message", "未登录");
             return result;
         }
 
-        List<UserData> data;
-        if (keyword != null && !keyword.trim().isEmpty()) {
-            data = userDataRepository.searchByKeyword(keyword);
-        } else {
-            data = userDataRepository.findAll();
+        // 获取当前用户的店名（用于普通用户过滤）
+        User currentUser = userRepository.findById(userId).orElse(null);
+        String shopName = currentUser != null ? currentUser.getShopName() : null;
+
+        List<UserData> data = new ArrayList<>();
+
+        try {
+            // 处理日期范围
+            LocalDateTime start = null;
+            LocalDateTime end = null;
+
+            if (dateRange != null && !dateRange.isEmpty()) {
+                LocalDateTime now = LocalDateTime.now();
+                switch (dateRange) {
+                    case "today":
+                        start = now.withHour(0).withMinute(0).withSecond(0);
+                        end = now.withHour(23).withMinute(59).withSecond(59);
+                        break;
+                    case "month":
+                        start = now.withDayOfMonth(1).withHour(0).withMinute(0).withSecond(0);
+                        end = now.withDayOfMonth(now.toLocalDate().lengthOfMonth()).withHour(23).withMinute(59).withSecond(59);
+                        break;
+                    case "year":
+                        start = now.withDayOfYear(1).withHour(0).withMinute(0).withSecond(0);
+                        end = now.withDayOfYear(now.toLocalDate().lengthOfYear()).withHour(23).withMinute(59).withSecond(59);
+                        break;
+                    default:
+                        break;
+                }
+            } else if (startDate != null && !startDate.isEmpty() && endDate != null && !endDate.isEmpty()) {
+                start = LocalDateTime.parse(startDate + " 00:00:00", DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+                end = LocalDateTime.parse(endDate + " 23:59:59", DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+            }
+
+            // 根据角色和参数查询数据
+            if (currentRoleLevel != null && currentRoleLevel == 1) {
+                // 普通用户：只能看自己店名的数据
+                if (start != null && end != null) {
+                    data = userDataRepository.findByDateRangeForNormalUser(start, end, shopName);
+                } else if (keyword != null && !keyword.trim().isEmpty()) {
+                    data = userDataRepository.searchByKeywordForNormalUser(keyword, shopName);
+                } else {
+                    data = userDataRepository.findByShopNameOrderByPrescriptionDateDesc(shopName);
+                }
+            } else {
+                // 超级管理员或游客：可以看所有数据
+                if (start != null && end != null) {
+                    data = userDataRepository.findByDateRange(start, end);
+                } else if (keyword != null && !keyword.trim().isEmpty()) {
+                    data = userDataRepository.searchByKeyword(keyword);
+                } else {
+                    data = userDataRepository.findAllByOrderByPrescriptionDateDesc();
+                }
+            }
+
+            // 计算总金额
+            BigDecimal totalAmount = data.stream()
+                    .map(UserData::getTotalAmount)
+                    .filter(Objects::nonNull)
+                    .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+            result.put("success", true);
+            result.put("data", data);
+            result.put("totalAmount", totalAmount);
+            result.put("userRoleLevel", currentRoleLevel);
+            result.put("canDelete", currentRoleLevel != null && currentRoleLevel == 0);
+            result.put("canEdit", currentRoleLevel != null && (currentRoleLevel == 0 || currentRoleLevel == 1));
+            result.put("canViewPhone", currentRoleLevel != null && currentRoleLevel != 2);
+            result.put("canViewAmount", currentRoleLevel != null && currentRoleLevel != 2);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            result.put("success", false);
+            result.put("message", "查询失败：" + e.getMessage());
         }
 
-        // 根据权限过滤敏感字段
-        boolean isSuperAdmin = (currentRoleLevel != null && currentRoleLevel == 0);
-        boolean isNormalUser = (currentRoleLevel != null && currentRoleLevel == 1);
-        boolean isGuest = (currentRoleLevel != null && currentRoleLevel == 2);
+        return result;
+    }
+
+    // 添加获取统计信息的方法
+    public Map<String, Object> getStatistics(HttpSession session, String keyword, String dateRange, String startDate, String endDate) {
+        Map<String, Object> result = new HashMap<>();
+
+        Integer userId = (Integer) session.getAttribute("userId");
+        Integer currentRoleLevel = (Integer) session.getAttribute("roleLevel");
+
+        if (userId == null) {
+            result.put("success", false);
+            result.put("message", "未登录");
+            return result;
+        }
+
+        User currentUser = userRepository.findById(userId).orElse(null);
+        String shopName = currentUser != null ? currentUser.getShopName() : null;
+
+        // 构建基础查询条件
+        List<UserData> todayData = new ArrayList<>();
+        List<UserData> monthData = new ArrayList<>();
+        List<UserData> yearData = new ArrayList<>();
+
+        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime todayStart = now.withHour(0).withMinute(0).withSecond(0);
+        LocalDateTime todayEnd = now.withHour(23).withMinute(59).withSecond(59);
+        LocalDateTime monthStart = now.withDayOfMonth(1).withHour(0).withMinute(0).withSecond(0);
+        LocalDateTime monthEnd = now.withDayOfMonth(now.toLocalDate().lengthOfMonth()).withHour(23).withMinute(59).withSecond(59);
+        LocalDateTime yearStart = now.withDayOfYear(1).withHour(0).withMinute(0).withSecond(0);
+        LocalDateTime yearEnd = now.withDayOfYear(now.toLocalDate().lengthOfYear()).withHour(23).withMinute(59).withSecond(59);
+
+        // 根据角色查询，并考虑搜索关键字
+        if (currentRoleLevel != null && currentRoleLevel == 1) {
+            // 普通用户：只查自己店名
+            if (keyword != null && !keyword.trim().isEmpty()) {
+                todayData = userDataRepository.searchByKeywordAndDateRangeForNormalUser(keyword, shopName, todayStart, todayEnd);
+                monthData = userDataRepository.searchByKeywordAndDateRangeForNormalUser(keyword, shopName, monthStart, monthEnd);
+                yearData = userDataRepository.searchByKeywordAndDateRangeForNormalUser(keyword, shopName, yearStart, yearEnd);
+            } else {
+                todayData = userDataRepository.findByDateRangeForNormalUser(todayStart, todayEnd, shopName);
+                monthData = userDataRepository.findByDateRangeForNormalUser(monthStart, monthEnd, shopName);
+                yearData = userDataRepository.findByDateRangeForNormalUser(yearStart, yearEnd, shopName);
+            }
+        } else {
+            // 超级管理员和游客
+            if (keyword != null && !keyword.trim().isEmpty()) {
+                todayData = userDataRepository.searchByKeywordAndDateRange(keyword, todayStart, todayEnd);
+                monthData = userDataRepository.searchByKeywordAndDateRange(keyword, monthStart, monthEnd);
+                yearData = userDataRepository.searchByKeywordAndDateRange(keyword, yearStart, yearEnd);
+            } else {
+                todayData = userDataRepository.findByDateRange(todayStart, todayEnd);
+                monthData = userDataRepository.findByDateRange(monthStart, monthEnd);
+                yearData = userDataRepository.findByDateRange(yearStart, yearEnd);
+            }
+        }
+
+        BigDecimal todayTotal = todayData.stream().map(UserData::getTotalAmount).filter(Objects::nonNull).reduce(BigDecimal.ZERO, BigDecimal::add);
+        BigDecimal monthTotal = monthData.stream().map(UserData::getTotalAmount).filter(Objects::nonNull).reduce(BigDecimal.ZERO, BigDecimal::add);
+        BigDecimal yearTotal = yearData.stream().map(UserData::getTotalAmount).filter(Objects::nonNull).reduce(BigDecimal.ZERO, BigDecimal::add);
 
         result.put("success", true);
-        result.put("data", data);
-        result.put("userRoleLevel", currentRoleLevel);
-        result.put("canDelete", isSuperAdmin);
-        result.put("canEdit", isSuperAdmin || isNormalUser);
-        result.put("canViewPhone", isSuperAdmin || isNormalUser);
-        result.put("canViewAmount", isSuperAdmin || isNormalUser);
+        result.put("todayCount", todayData.size());
+        result.put("todayAmount", todayTotal);
+        result.put("monthCount", monthData.size());
+        result.put("monthAmount", monthTotal);
+        result.put("yearCount", yearData.size());
+        result.put("yearAmount", yearTotal);
 
         return result;
     }

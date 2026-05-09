@@ -71,9 +71,26 @@ public class UserController {
     }
 
     @PostMapping("/getData")
-    public ResponseEntity<Map<String, Object>> getData(@RequestBody(required = false) Map<String, String> params, HttpSession session) {
+    public ResponseEntity<Map<String, Object>> getData(@RequestBody Map<String, String> params, HttpSession session) {
         String keyword = params != null ? params.get("search") : null;
-        Map<String, Object> result = userService.getData(keyword, session);
+        String dateRange = params != null ? params.get("dateRange") : null;
+        String startDate = params != null ? params.get("startDate") : null;
+        String endDate = params != null ? params.get("endDate") : null;
+        Map<String, Object> result = userService.getData(keyword, session, dateRange, startDate, endDate);
+        if ((boolean) result.get("success")) {
+            return ResponseEntity.ok(result);
+        } else {
+            return ResponseEntity.status(401).body(result);
+        }
+    }
+
+    @PostMapping("/statistics")
+    public ResponseEntity<Map<String, Object>> getStatistics(@RequestBody(required = false) Map<String, String> params, HttpSession session) {
+        String keyword = params != null ? params.get("search") : null;
+        String dateRange = params != null ? params.get("dateRange") : null;
+        String startDate = params != null ? params.get("startDate") : null;
+        String endDate = params != null ? params.get("endDate") : null;
+        Map<String, Object> result = userService.getStatistics(session, keyword, dateRange, startDate, endDate);
         if ((boolean) result.get("success")) {
             return ResponseEntity.ok(result);
         } else {

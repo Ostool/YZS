@@ -13,4 +13,5 @@ public class UserCreateRequest {
 
     private String realName;
     private Integer roleLevel;  // 0=超级管理员, 1=普通用户, 2=游客
+    private String shopName;
 }
