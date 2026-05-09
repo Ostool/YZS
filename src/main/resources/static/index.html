@@ -461,10 +461,10 @@
         const div = document.createElement('div');
         div.className = 'image-upload-item';
         div.innerHTML = `
-            <div class="add-icon">+</div>
-            <div class="add-text">点击上传</div>
-            <input type="file" accept="image/jpeg,image/png,image/jpg" style="display:none;" onchange="handleImageSelect(this)">
-        `;
+        <div class="add-icon">+</div>
+        <div class="add-text">点击上传</div>
+        <input type="file" accept="image/*" style="display:none;" onchange="handleImageSelect(this)">
+    `;
         div.onclick = (e) => {
             e.stopPropagation();
             const fileInput = div.querySelector('input');
