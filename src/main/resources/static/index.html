@@ -256,10 +256,11 @@
                                 <option value="揭阳进贤门店">揭阳进贤门店</option>
                                 <option value="揭阳东山门店">揭阳东山门店</option>
                                 <option value="汕头中华路店">汕头中华路店</option>
-                                <option value="广祥路店">广祥路店</option>
-                                <option value="两英店">两英店</option>
+                                <option value="广祥路店">潮南广祥路店</option>
+                                <option value="两英店">潮南两英店</option>
                                 <option value="潮阳谷饶店">潮阳谷饶店</option>
                                 <option value="普宁大坝店">普宁大坝店</option>
+                                <option value="叶子说总部">叶子说总部</option>
                             </select>
                             <div class="error-message" id="shopNameError">请选择店名</div>
                         </div>
@@ -398,9 +399,13 @@
 
     // 图片相关变量
     let uploadedImages = []; // 存储 { file: base64数据, isExisting: true/false, path: 原路径 }
+    let managerEditImagePaths = [];  // 管理器中编辑时已有的图片路径
+    let managerUploadedImages = [];   // 管理器中新上传的图片Base64
+    let currentEditId = null;         // 当前编辑的记录ID
     let currentPreviewImages = [];
     let currentPreviewIndex = 0;
     let currentEditImagePaths = []; // 编辑时已有的图片路径
+          // 当前编辑的记录ID
 
     function getImageUrl(path) {
         if (!path) return '';
@@ -749,8 +754,43 @@
     function closeConfirmModal() { document.getElementById('confirmModal').style.display = 'none'; pendingDeleteId = null; pendingDeleteType = null; }
     async function executeDelete() {
         if (!pendingDeleteId) return;
+
+        // 如果是删除数据，先获取关联的图片路径
+        if (pendingDeleteType === 'data') {
+            try {
+                let res = await fetch(`${API_BASE}/getUser/${pendingDeleteId}`, { method: 'GET', credentials: 'include' });
+                let r = await res.json();
+                if (r.success && r.data.prescriptionImages) {
+                    let imagePaths = r.data.prescriptionImages.split(',');
+                    if (imagePaths.length > 0) {
+                        // 通知后端删除图片文件
+                        await fetch(`${API_BASE}/deleteImages`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            credentials: 'include',
+                            body: JSON.stringify({ images: imagePaths })
+                        });
+                    }
+                }
+            } catch(e) {
+                console.error('获取图片失败', e);
+            }
+        }
+
         let url = pendingDeleteType === 'data' ? `${API_BASE}/deleteData/${pendingDeleteId}` : `${API_BASE}/deleteUser/${pendingDeleteId}`;
-        try { let res = await fetch(url, { method: 'DELETE', credentials: 'include' }); let r = await res.json(); if (r.success) { showToast(r.message, 'success'); if (pendingDeleteType === 'data') loadAllData(); else loadUserList(); } else showToast(r.message, 'error'); } catch(e) { showToast('删除失败', 'error'); }
+        try {
+            let res = await fetch(url, { method: 'DELETE', credentials: 'include' });
+            let r = await res.json();
+            if (r.success) {
+                showToast(r.message, 'success');
+                if (pendingDeleteType === 'data') loadAllData();
+                else loadUserList();
+            } else {
+                showToast(r.message, 'error');
+            }
+        } catch(e) {
+            showToast('删除失败', 'error');
+        }
         closeConfirmModal();
     }
     document.getElementById('confirmDeleteBtn')?.addEventListener('click', executeDelete);
@@ -923,8 +963,7 @@
     async function editRecord(id) {
         if (currentRoleLevel === 2) { showToast('游客账号无权限修改数据','error'); return; }
         try {
-            let res = await fetch(`${API_BASE}/getUser/${id}`, { method:'GET', credentials:'include' });
-            let r = await res.json();
+            let res = await fetch(`${API_BASE}/getUser/${id}`, { method:'GET', credentials:'include'});            let r = await res.json();
             if (r.success) { document.getElementById('modalTitle').textContent = '编辑配镜处方'; fillFormData(r.data); document.getElementById('editModal').style.display = 'block'; }
             else showToast(r.message,'error');
         } catch(e) { showToast('获取数据失败','error'); }
@@ -1024,7 +1063,8 @@
             if(item.prescriptionImages&&item.prescriptionImages!==''){
                 images=item.prescriptionImages.split(',');
             }
-            let prescriptionHtml=`<div class="prescription-icon" onclick="showTableImagePreview(${JSON.stringify(images)},0)">📷</div>`;
+            // 在 renderTable 函数中
+            let prescriptionHtml = `<div class="prescription-icon" onclick="openImageManager(${item.id}, ${JSON.stringify(images).replace(/"/g, '&quot;')})">📷</div>`;
             let fields=[item.serialNo||'-',item.name||'-',item.gender||'-',item.age||'-',item.glassesPurpose||'-',dateStr,prescriptionHtml,item.leftSphere||'-',item.leftCylinder||'-',item.leftAxis||'-',item.rightSphere||'-',item.rightCylinder||'-',item.rightAxis||'-',item.frameModel||'-',item.lensType||'-',item.consultant||'-',item.shopName||'-'];
             if(!isGuest){ fields.push(item.phone||'-'); fields.push(item.totalAmount?'¥'+item.totalAmount:'-'); }
             fields.forEach(f=>{ let td=document.createElement('td'); td.innerHTML=f; row.appendChild(td); });
@@ -1040,6 +1080,290 @@
     window.onclick=function(e){ if(e.target===document.getElementById('editModal')) closeModal(); if(e.target===document.getElementById('pickerOverlay')) closePicker(); if(e.target===document.getElementById('userManageModal')) closeUserManageModal(); if(e.target===document.getElementById('confirmModal')) closeConfirmModal(); if(e.target===document.getElementById('imagePreviewModal')) closeImagePreview(); };
     document.getElementById('signToggleBtn')?.addEventListener('click',toggleSign);
     window.onload=()=>{ checkLoginStatus(); setupPurposeListener(); bindPickerEvents(); };
+    // 打开图片管理器
+    // 打开图片管理器
+    function openImageManager(recordId, imagePaths) {
+        console.log('openImageManager 调用:', recordId, imagePaths);
+        if (!imagePaths) imagePaths = [];
+        currentEditId = recordId;
+        managerEditImagePaths = [...imagePaths];
+        managerUploadedImages = [];
+        renderImageManager();
+        document.getElementById('imageManagerModal').style.display = 'block';
+    }
+
+    // 渲染图片管理器
+    function renderImageManager() {
+        const container = document.getElementById('imageManagerArea');
+        if (!container) return;
+        container.innerHTML = '';
+
+        // 构建所有图片
+        let allImages = [];
+
+        // 已存在的图片
+        for (let i = 0; i < managerEditImagePaths.length; i++) {
+            let path = managerEditImagePaths[i];
+            let url = path.startsWith('http') ? path : (path.startsWith('/uploads') ? path : API_BASE + path);
+            allImages.push({
+                type: 'existing',
+                path: path,
+                url: url,
+                index: i
+            });
+        }
+
+        // 新上传的图片
+        for (let i = 0; i < managerUploadedImages.length; i++) {
+            allImages.push({
+                type: 'new',
+                data: managerUploadedImages[i],
+                url: managerUploadedImages[i],
+                index: i
+            });
+        }
+
+        // 显示图片
+        for (let i = 0; i < allImages.length; i++) {
+            addImageManagerItem(container, allImages[i], i);
+        }
+
+        // 控制添加按钮状态（最多6张）
+        const addBtn = document.getElementById('addImageManagerBtn');
+        if (addBtn) {
+            addBtn.disabled = (allImages.length >= 6);
+            addBtn.style.opacity = (allImages.length >= 6) ? '0.5' : '1';
+            addBtn.style.cursor = (allImages.length >= 6) ? 'not-allowed' : 'pointer';
+        }
+    }
+
+    // 添加图片管理项
+    function addImageManagerItem(container, imgInfo, index) {
+        const div = document.createElement('div');
+        div.className = 'image-upload-item has-image';
+        div.style.width = '120px';
+        div.style.height = '120px';
+        div.innerHTML = `
+        <img src="${imgInfo.url}" alt="图片${index+1}" style="width:100%; height:100%; object-fit:cover;" onclick="previewManagerImage(${index})">
+        <button class="remove-btn" onclick="removeManagerImage(${index})" style="position:absolute; top:5px; right:5px;">×</button>
+    `;
+        container.appendChild(div);
+    }
+
+    // 预览管理器中的图片
+    function previewManagerImage(index) {
+        let previewUrls = [];
+
+        // 收集所有图片URL
+        for (let i = 0; i < managerEditImagePaths.length; i++) {
+            let path = managerEditImagePaths[i];
+            let url = path.startsWith('http') ? path : (path.startsWith('/uploads') ? path : API_BASE + path);
+            previewUrls.push(url);
+        }
+        for (let i = 0; i < managerUploadedImages.length; i++) {
+            previewUrls.push(managerUploadedImages[i]);
+        }
+
+        if (index >= 0 && index < previewUrls.length) {
+            currentPreviewImages = previewUrls;
+            currentPreviewIndex = index;
+            document.getElementById('previewImage').src = currentPreviewImages[currentPreviewIndex];
+            document.getElementById('imageIndex').innerText = `${currentPreviewIndex + 1}/${currentPreviewImages.length}`;
+            document.getElementById('imagePreviewModal').style.display = 'flex';
+        }
+    }
+
+    // 删除管理器中的图片
+    function removeManagerImage(index) {
+        let allCount = managerEditImagePaths.length + managerUploadedImages.length;
+        if (index < managerEditImagePaths.length) {
+            // 删除已存在的图片
+            managerEditImagePaths.splice(index, 1);
+        } else {
+            // 删除新上传的图片
+            let newIndex = index - managerEditImagePaths.length;
+            managerUploadedImages.splice(newIndex, 1);
+        }
+        renderImageManager();
+    }
+
+    // 添加图片（从管理器）
+    function addImageInManager() {
+        let allCount = managerEditImagePaths.length + managerUploadedImages.length;
+        if (allCount >= 6) {
+            showToast('最多只能上传6张图片', 'error');
+            return;
+        }
+        document.getElementById('managerFileInput').click();
+    }
+
+    // 处理管理器中选择的图片
+    async function handleManagerImageSelect(input) {
+        const files = Array.from(input.files);
+        if (files.length === 0) return;
+
+        let remainingSlots = 6 - (managerEditImagePaths.length + managerUploadedImages.length);
+        let filesToProcess = files.slice(0, remainingSlots);
+
+        if (filesToProcess.length < files.length) {
+            showToast(`最多还能添加${remainingSlots}张图片，已自动过滤多余图片`, 'error');
+        }
+
+        showToast(`正在处理 ${filesToProcess.length} 张图片...`, 'success');
+
+        for (const file of filesToProcess) {
+            if (!file.type.match('image.*')) {
+                showToast('请选择图片文件', 'error');
+                continue;
+            }
+
+            const originalSizeKB = file.size / 1024;
+            console.log(`原始图片大小: ${originalSizeKB.toFixed(2)}KB`);
+
+            try {
+                const compressedImage = await compressImage(file, 200);
+                const compressedSizeKB = Math.round((compressedImage.length * 3/4) / 1024);
+                console.log(`压缩后大小: ${compressedSizeKB}KB`);
+                managerUploadedImages.push(compressedImage);
+                showToast(`已压缩 (${originalSizeKB.toFixed(0)}KB → ${compressedSizeKB}KB)`, 'success');
+            } catch (error) {
+                console.error('压缩图片失败:', error);
+                showToast('图片处理失败', 'error');
+            }
+        }
+
+        renderImageManager();
+        input.value = '';
+    }
+
+    // 保存图片管理器的修改
+    // 保存图片管理器的修改
+    async function saveImagesFromManager() {
+        if (!currentEditId) {
+            showToast('保存失败，记录ID不存在', 'error');
+            return;
+        }
+
+        console.log('currentEditId:', currentEditId);
+
+        // 先获取原来的图片路径（用于对比删除）
+        let oldImagePaths = [];
+        try {
+            let res = await fetch(`${API_BASE}/getUser/${currentEditId}`, { method: 'GET', credentials: 'include' });
+            let r = await res.json();
+            console.log('获取到的记录数据:', r);
+
+            if (r.success && r.data) {
+                if (r.data.prescriptionImages && r.data.prescriptionImages !== '') {
+                    oldImagePaths = r.data.prescriptionImages.split(',');
+                }
+            } else {
+                console.log('获取失败:', r.message);
+            }
+        } catch(e) {
+            console.error('获取原图片失败', e);
+        }
+
+        console.log('oldImagePaths:', oldImagePaths);
+        console.log('managerEditImagePaths:', managerEditImagePaths);
+
+        // 构建最终的图片路径
+        let finalImagePaths = [...managerEditImagePaths];
+
+        // 找出需要删除的图片（在旧列表中但不在新列表中的）
+        let imagesToDelete = oldImagePaths.filter(oldPath => !finalImagePaths.includes(oldPath));
+
+        console.log('imagesToDelete:', imagesToDelete);
+
+        // 如果有新上传的图片，需要先上传到服务器
+        if (managerUploadedImages.length > 0) {
+            showToast('正在保存图片，请稍候...', 'success');
+
+            try {
+                let uploadPromises = managerUploadedImages.map(imgBase64 => {
+                    return fetch(`${API_BASE}/uploadImage`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        credentials: 'include',
+                        body: JSON.stringify({ image: imgBase64 })
+                    }).then(res => res.json());
+                });
+
+                let uploadResults = await Promise.all(uploadPromises);
+                for (let result of uploadResults) {
+                    if (result.success && result.path) {
+                        finalImagePaths.push(result.path);
+                    } else {
+                        showToast('部分图片上传失败', 'error');
+                    }
+                }
+            } catch (error) {
+                showToast('图片上传失败', 'error');
+                return;
+            }
+        }
+
+        // 构建请求体
+        let requestBody = {
+            id: currentEditId,
+            prescriptionImages: finalImagePaths.join(','),
+            imagesToDelete: imagesToDelete
+        };
+
+        console.log('发送请求体:', JSON.stringify(requestBody));
+
+        // 更新数据库
+        try {
+            let response = await fetch(`${API_BASE}/updateUserImages`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                credentials: 'include',
+                body: JSON.stringify(requestBody)
+            });
+            let result = await response.json();
+            if (result.success) {
+                showToast('图片保存成功', 'success');
+                closeImageManagerModal();
+                loadAllData();
+            } else {
+                showToast(result.message || '保存失败', 'error');
+            }
+        } catch (error) {
+            console.error('保存失败:', error);
+            showToast('保存失败', 'error');
+        }
+    }
+
+    // 关闭图片管理器
+    function closeImageManagerModal() {
+        document.getElementById('imageManagerModal').style.display = 'none';
+        currentEditId = null;
+        managerEditImagePaths = [];
+        managerUploadedImages = [];
+    }
 </script>
+<!-- 图片管理模态框 -->
+<div id="imageManagerModal" class="modal">
+    <div class="modal-content" style="max-width: 800px;">
+        <div class="modal-header">
+            <h3>处方图片管理</h3>
+            <span class="close" onclick="closeImageManagerModal()">&times;</span>
+        </div>
+        <div class="modal-body">
+            <div class="form-section">
+                <h4>📷 当前处方图片（最多6张）</h4>
+                <div class="image-manager-area" id="imageManagerArea" style="display: flex; flex-wrap: wrap; gap: 15px; margin-top: 15px;"></div>
+                <div style="margin-top: 15px;">
+                    <button class="btn btn-success" onclick="addImageInManager()" id="addImageManagerBtn" style="width: 100%;">➕ 添加图片</button>
+                </div>
+                <input type="file" id="managerFileInput" accept="image/*" style="display:none;" multiple onchange="handleManagerImageSelect(this)">
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-primary" onclick="saveImagesFromManager()">确认保存</button>
+            <button class="btn btn-secondary" onclick="closeImageManagerModal()">取消</button>
+        </div>
+    </div>
+</div>
 </body>
 </html>

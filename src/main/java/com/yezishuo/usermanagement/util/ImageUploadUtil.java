@@ -85,6 +85,9 @@ public class ImageUploadUtil {
      * @param relativePath 相对路径（例如：/uploads/pictures/20260509/xxx.jpg）
      * @return 完整文件路径
      */
+    /**
+     * 根据相对路径获取完整的文件路径
+     */
     private String getFullPath(String relativePath) {
         if (relativePath == null || relativePath.isEmpty()) {
             return null;
@@ -102,11 +105,17 @@ public class ImageUploadUtil {
      * @param imagePath 图片相对路径
      * @return 是否删除成功
      */
+    /**
+     * 删除单张图片
+     * @param imagePath 图片相对路径（如 /uploads/pictures/20260510/xxx.jpg）
+     * @return 是否删除成功
+     */
     public boolean deleteImage(String imagePath) {
         if (imagePath == null || imagePath.isEmpty()) {
             return false;
         }
         try {
+            // 构建完整文件路径
             String fullPath = getFullPath(imagePath);
             if (fullPath == null) {
                 return false;
@@ -115,11 +124,13 @@ public class ImageUploadUtil {
             if (file.exists()) {
                 boolean deleted = file.delete();
                 if (deleted) {
-                    System.out.println("图片已删除: " + fullPath);
+                    System.out.println("图片已物理删除: " + fullPath);
                 } else {
                     System.out.println("图片删除失败: " + fullPath);
                 }
                 return deleted;
+            } else {
+                System.out.println("图片文件不存在: " + fullPath);
             }
         } catch (Exception e) {
             System.err.println("删除图片异常: " + e.getMessage());
