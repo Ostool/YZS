@@ -1,0 +1,539 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>叶子说眼镜 · 内部公告平台</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            background: #f5f7fb;
+            font-family: system-ui, -apple-system, 'Segoe UI', Roboto, 'Noto Sans', sans-serif;
+            color: #1e293b;
+            line-height: 1.4;
+            padding: 20px 16px 48px;
+        }
+        :root {
+            --klein-blue: #002FA7;
+            --klein-light: #eef3ff;
+            --klein-hover: #0024a0;
+            --gray-border: #e9edf2;
+            --card-shadow: 0 4px 12px rgba(0, 0, 0, 0.03), 0 1px 2px rgba(0, 0, 0, 0.05);
+        }
+        .app-container { max-width: 1280px; margin: 0 auto; }
+        .brand-header {
+            background: white;
+            border-radius: 32px;
+            padding: 24px 28px;
+            margin-bottom: 24px;
+            box-shadow: var(--card-shadow);
+            border: 1px solid var(--gray-border);
+        }
+        .logo-area {
+            display: flex;
+            align-items: baseline;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin-bottom: 12px;
+            justify-content: space-between;
+        }
+        .brand-name { font-size: 28px; font-weight: 800; color: var(--klein-blue); letter-spacing: -0.3px; }
+        .brand-slogan { background: var(--klein-light); padding: 4px 14px; border-radius: 40px; font-size: 13px; color: var(--klein-blue); font-weight: 500; }
+        .admin-controls { display: flex; gap: 12px; align-items: center; }
+        .btn-admin {
+            background: var(--klein-blue);
+            color: white;
+            border: none;
+            padding: 8px 20px;
+            border-radius: 30px;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .btn-admin:hover { background: var(--klein-hover); transform: translateY(-1px); }
+        .btn-outline { background: transparent; border: 1px solid var(--klein-blue); color: var(--klein-blue); }
+        .btn-outline:hover { background: var(--klein-light); }
+        .company-desc {
+            background: #f8fafc;
+            border-radius: 24px;
+            padding: 16px 20px;
+            margin-top: 12px;
+            border-left: 4px solid var(--klein-blue);
+            font-size: 14px;
+            color: #2c3e66;
+        }
+        .vision-box { display: flex; flex-wrap: wrap; gap: 24px; margin-top: 8px; row-gap: 10px; }
+        .vision-item { display: flex; align-items: center; gap: 8px; font-size: 14px; }
+        .vision-tag { background: var(--klein-light); padding: 2px 12px; border-radius: 30px; color: var(--klein-blue); font-weight: 500; }
+        .date-badge { font-size: 14px; color: #5b6e8c; background: #f1f4f9; padding: 6px 14px; border-radius: 40px; display: inline-block; }
+
+        .reward-section {
+            background: linear-gradient(135deg, var(--klein-blue) 0%, #0039c7 100%);
+            border-radius: 32px;
+            padding: 20px 24px;
+            margin-bottom: 24px;
+            color: white;
+            box-shadow: 0 12px 24px rgba(0, 47, 167, 0.18);
+            position: relative;
+        }
+        .reward-header { display: flex; justify-content: space-between; align-items: baseline; flex-wrap: wrap; margin-bottom: 12px; }
+        .reward-header h3 { font-size: 20px; font-weight: 700; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+        .reward-badge { background: rgba(255,255,240,0.2); padding: 4px 12px; border-radius: 40px; font-size: 13px; }
+        .reward-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 16px; margin-top: 12px; }
+        .reward-card-item { background: rgba(255,255,255,0.08); backdrop-filter: blur(2px); border-radius: 24px; padding: 14px 18px; border: 1px solid rgba(255,255,255,0.2); position: relative; }
+        .reward-card-item strong { font-size: 16px; display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+        .reward-detail { font-size: 13.5px; line-height: 1.45; opacity: 0.92; }
+        .reward-remark { margin-top: 16px; background: rgba(0,0,0,0.2); border-radius: 20px; padding: 12px 16px; font-size: 12.5px; }
+        .reward-footer { margin-top: 12px; font-size: 13px; border-top: 1px solid rgba(255,255,255,0.2); padding-top: 12px; display: flex; flex-wrap: wrap; justify-content: space-between; }
+        .edit-icon, .delete-icon {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            background: rgba(0,0,0,0.5);
+            border-radius: 20px;
+            padding: 4px 8px;
+            font-size: 11px;
+            cursor: pointer;
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+        .reward-card-item:hover .edit-icon, .reward-card-item:hover .delete-icon, .section-card:hover .edit-icon, .list-item:hover .edit-icons { opacity: 1; }
+        .delete-icon { right: 60px; background: rgba(220, 50, 50, 0.7); }
+
+        .section-card { background: white; border-radius: 28px; margin-bottom: 28px; box-shadow: var(--card-shadow); border: 1px solid var(--gray-border); overflow: hidden; position: relative; }
+        .card-header { padding: 20px 24px 12px 24px; border-bottom: 1px solid #eff3f8; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; }
+        .card-title { font-size: 20px; font-weight: 700; color: #0f172a; display: flex; align-items: center; gap: 12px; }
+        .badge-icon { background: var(--klein-light); border-radius: 40px; padding: 4px 14px; font-size: 12px; color: var(--klein-blue); font-weight: 500; }
+        .edit-title-btn { background: transparent; border: 1px dashed #ccc; padding: 4px 12px; border-radius: 20px; font-size: 12px; cursor: pointer; }
+        .list-item { padding: 14px 24px; border-bottom: 1px solid #f0f2f6; display: flex; justify-content: space-between; flex-wrap: wrap; gap: 10px; position: relative; align-items: center; }
+        .amount { color: var(--klein-blue); font-weight: 700; }
+        .inspire-note { background: #fefce8; margin: 12px 24px 20px; padding: 12px 16px; border-radius: 20px; font-size: 13px; position: relative; }
+        .admin-actions { display: none; align-items: center; gap: 8px; }
+
+        .inspect-table-wrapper { overflow-x: auto; padding: 0 20px 20px 20px; }
+        .inspect-table { width: 100%; border-collapse: collapse; font-size: 14px; min-width: 800px; }
+        .inspect-table th { text-align: left; padding: 12px 12px; background: #f8fafd; color: #1e2f4e; font-weight: 600; border-bottom: 1px solid #e2e8f0; }
+        .inspect-table td { padding: 14px 12px; border-bottom: 1px solid #f0f2f6; vertical-align: middle; }
+        .image-preview { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+        .image-thumb { width: 60px; height: 60px; object-fit: cover; border-radius: 8px; cursor: pointer; border: 1px solid #ddd; transition: transform 0.2s; }
+        .image-thumb:hover { transform: scale(1.05); border-color: var(--klein-blue); }
+        .no-image { color: #999; font-size: 12px; font-style: italic; }
+        .upload-image-btn { background: var(--klein-light); border: 1px dashed var(--klein-blue); border-radius: 8px; padding: 4px 10px; font-size: 11px; cursor: pointer; color: var(--klein-blue); }
+        .upload-image-btn:hover { background: var(--klein-blue); color: white; }
+        .review-done { color: #2e7d32; background: #e8f5e9; border-radius: 20px; padding: 2px 10px; display: inline-block; }
+        .filter-bar { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+        .period-select { border: 1px solid #cfdfed; border-radius: 30px; padding: 6px 16px; background: white; font-size: 14px; }
+
+        .image-preview-modal { display: none; position: fixed; z-index: 2000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.9); justify-content: center; align-items: center; }
+        .image-preview-modal img { max-width: 90%; max-height: 90%; border-radius: 8px; }
+        .image-preview-close { position: absolute; top: 20px; right: 40px; color: white; font-size: 40px; cursor: pointer; }
+
+        .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); justify-content: center; align-items: center; }
+        .modal-content { background: white; border-radius: 28px; width: 90%; max-width: 600px; max-height: 85vh; overflow-y: auto; padding: 24px; }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; padding-bottom: 12px; border-bottom: 1px solid #eee; }
+        .modal-header h3 { font-size: 20px; }
+        .modal-close { font-size: 28px; cursor: pointer; color: #999; }
+        .form-group { margin-bottom: 16px; }
+        .form-group label { display: block; margin-bottom: 6px; font-weight: 500; }
+        .form-group input, .form-group textarea, .form-group select { width: 100%; padding: 10px 12px; border: 1px solid #ddd; border-radius: 12px; font-size: 14px; }
+        .btn-submit { background: var(--klein-blue); color: white; border: none; padding: 10px 24px; border-radius: 30px; cursor: pointer; font-size: 14px; }
+        .btn-cancel { background: #ccc; color: #333; border: none; padding: 10px 24px; border-radius: 30px; cursor: pointer; font-size: 14px; margin-right: 10px; }
+        .toast { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); background: #333; color: white; padding: 10px 20px; border-radius: 30px; font-size: 14px; z-index: 3000; display: none; }
+
+        @media (max-width: 720px) {
+            .reward-grid { grid-template-columns: 1fr; }
+            .card-header { flex-direction: column; align-items: flex-start; gap: 8px; }
+            .logo-area { flex-direction: column; }
+            .admin-controls { width: 100%; justify-content: space-between; }
+        }
+    </style>
+</head>
+<body>
+<div class="app-container">
+    <div class="brand-header">
+        <div class="logo-area">
+            <div>
+                <div class="brand-name">🍃 叶子说眼镜</div>
+                <div class="brand-slogan">内部公告 · 实时同步</div>
+            </div>
+            <div class="admin-controls">
+                <span class="date-badge" id="liveDate"></span>
+                <button class="btn-admin btn-outline" id="toggleModeBtn" onclick="toggleMode()">👑 切换管理员模式</button>
+                <button class="btn-admin" id="loginBtn" style="display:none;" onclick="showLoginModal()">登录</button>
+            </div>
+        </div>
+        <div class="company-desc" id="companyDesc"></div>
+    </div>
+
+    <!-- 1. 规章制度 -->
+    <div class="section-card">
+        <div class="card-header">
+            <div class="card-title">📖 公司规则制度 <span class="badge-icon" id="rulesVersion"></span></div>
+            <div class="admin-actions"><button class="edit-title-btn" onclick="addRuleItem()">➕ 新增</button></div>
+        </div>
+        <div id="rulesList"></div>
+        <div class="inspire-note" id="rulesNote"></div>
+    </div>
+
+    <!-- 2. 销售奖励 -->
+    <div class="reward-section">
+        <div class="reward-header">
+            <h3>🔥 <span id="rewardTitle"></span> <span class="reward-badge" id="rewardPeriod"></span></h3>
+            <div class="admin-actions"><button class="edit-title-btn" onclick="openAddRewardItem()">➕ 添加奖励板块</button></div>
+        </div>
+        <div id="rewardGrid"></div>
+        <div class="reward-remark" id="rewardRemark"></div>
+        <div class="reward-footer"><span id="rewardFooterLeft"></span><span id="rewardFooterRight"></span></div>
+    </div>
+
+    <!-- 3. 团建基金 -->
+    <div class="section-card">
+        <div class="card-header">
+            <div class="card-title">🤝 团建基金筹集明细 <span class="badge-icon">快乐建设资金</span></div>
+            <div class="admin-actions"><button class="edit-title-btn" onclick="addFundItem()">➕ 新增明细</button></div>
+        </div>
+        <div id="fundList"></div>
+        <div class="inspire-note" id="fundNote"></div>
+    </div>
+
+    <!-- 4. 巡检结果 -->
+    <div class="section-card">
+        <div class="card-header">
+            <div class="card-title">🧹 门店卫生检查结果告示 <span class="badge-icon">巡检结果</span></div>
+            <div class="filter-bar">
+                <label>📅 巡检批次：</label>
+                <select id="inspectPeriod" class="period-select"></select>
+                <div class="admin-actions"><button class="edit-title-btn" onclick="addInspectRecord()">➕ 新增记录</button></div>
+            </div>
+        </div>
+        <div class="inspect-table-wrapper">
+            <table class="inspect-table">
+                <thead><tr><th>门店</th><th>检查图片</th><th>整改期限</th><th>复查时间</th><th>复查结果</th><th class="admin-actions">操作</th></tr></thead>
+                <tbody id="inspectTableBody"></tbody>
+            </table>
+        </div>
+        <div class="inspire-note" id="inspectNote"></div>
+    </div>
+    <div class="footer-note" style="text-align:center; margin-top:24px; font-size:12px; color:#7c8aa0;">🍃 叶子说眼镜 · 所有公告最终解释权归行政部</div>
+</div>
+
+<!-- 登录模态框 -->
+<div id="loginModal" class="modal">
+    <div class="modal-content" style="max-width: 400px;">
+        <div class="modal-header"><h3>管理员登录</h3><span class="modal-close" onclick="closeLoginModal()">&times;</span></div>
+        <div class="modal-body">
+            <div class="form-group"><label>用户名</label><input type="text" id="loginUsername"></div>
+            <div class="form-group"><label>密码</label><input type="password" id="loginPassword"></div>
+            <div style="display:flex; gap:10px; justify-content:flex-end;">
+                <button class="btn-cancel" onclick="closeLoginModal()">取消</button>
+                <button class="btn-submit" onclick="doLogin()">登录</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 编辑模态框 -->
+<div id="editModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header"><h3 id="modalTitle">编辑内容</h3><span class="modal-close" onclick="closeEditModal()">&times;</span></div>
+        <div id="modalBody"></div>
+        <div style="margin-top:20px; text-align:right;">
+            <button class="btn-cancel" onclick="closeEditModal()">取消</button>
+            <button class="btn-submit" onclick="saveModal()">保存</button>
+        </div>
+    </div>
+</div>
+
+<!-- 图片预览 -->
+<div id="imagePreviewModal" class="image-preview-modal">
+    <span class="image-preview-close" onclick="closeImagePreview()">&times;</span>
+    <img id="previewImage" src="">
+</div>
+
+<!-- 图片上传 -->
+<div id="imageUploadModal" class="modal">
+    <div class="modal-content" style="max-width: 450px;">
+        <div class="modal-header"><h3>上传检查图片</h3><span class="modal-close" onclick="closeImageUploadModal()">&times;</span></div>
+        <div class="modal-body">
+            <div class="form-group"><label>选择图片</label><input type="file" id="uploadFileInput" accept="image/jpeg,image/png,image/jpg"></div>
+            <div id="uploadPreviewContainer" style="text-align:center;"></div>
+        </div>
+        <div style="padding: 0 24px 24px; text-align:right;">
+            <button class="btn-cancel" onclick="closeImageUploadModal()">取消</button>
+            <button class="btn-submit" onclick="confirmUploadImage()">确认上传</button>
+        </div>
+    </div>
+</div>
+
+<div id="toast" class="toast"></div>
+
+<script>
+    // ==================== 配置 ====================
+    const API_BASE = '/api';  // 注意：这里是 /api，不是 /api/auth
+    let isAdmin = false;
+    let currentUserRoleLevel = 2;
+    let currentEditCallback = null;
+    let currentUploadInspectionId = null;
+    let tempImageBase64 = null;
+    let currentInspectPeriod = '';
+
+    // 数据缓存
+    let rulesData = [], rulesNote = '', rulesVersion = '';
+    let rewardItems = [], rewardTitle = '', rewardPeriod = '', rewardRemark = '', rewardFooterLeft = '', rewardFooterRight = '';
+    let fundItems = [], fundNote = '', fundTotalBalance = 0;
+    let inspectPeriods = [], inspections = [], inspectNote = '';
+    let companyDesc = '', vision = '', mission = '', values = '';
+
+    // ==================== 工具函数 ====================
+    function showToast(msg) {
+        const toast = document.getElementById('toast');
+        toast.textContent = msg;
+        toast.style.display = 'block';
+        setTimeout(() => { toast.style.display = 'none'; }, 2000);
+    }
+
+    function compressImage(file, maxSizeKB = 300) {
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.readAsDataURL(file);
+            reader.onload = (e) => {
+                const img = new Image();
+                img.src = e.target.result;
+                img.onload = () => {
+                    let quality = 0.8, maxWidth = 1200, width = img.width, height = img.height;
+                    if (width > maxWidth) { height = height * (maxWidth / width); width = maxWidth; }
+                    const canvas = document.createElement('canvas');
+                    canvas.width = width; canvas.height = height;
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0, width, height);
+                    let result = canvas.toDataURL('image/jpeg', quality);
+                    let fileSizeKB = Math.round((result.length * 3/4) / 1024);
+                    while (fileSizeKB > maxSizeKB && quality > 0.3) {
+                        quality -= 0.1;
+                        result = canvas.toDataURL('image/jpeg', quality);
+                        fileSizeKB = Math.round((result.length * 3/4) / 1024);
+                    }
+                    resolve(result);
+                };
+                img.onerror = reject;
+            };
+            reader.onerror = reject;
+        });
+    }
+
+    document.getElementById('liveDate').innerHTML = new Date().toLocaleDateString('zh-CN');
+
+    async function apiFetch(url, options = {}) {
+        try {
+            const response = await fetch(`${API_BASE}${url}`, {
+                credentials: 'include',
+                headers: { 'Content-Type': 'application/json' },
+                ...options,
+                body: options.body ? JSON.stringify(options.body) : undefined
+            });
+            return await response.json();
+        } catch (error) {
+            console.error('API请求失败:', error);
+            return { success: false, message: '网络错误' };
+        }
+    }
+
+    // ==================== 认证相关 ====================
+    async function checkLoginStatus() {
+        const result = await apiFetch('/auth/checkLogin');  // 注意是 /auth/checkLogin
+        if (result.isLogin) {
+            currentUserRoleLevel = result.roleLevel || 2;
+            isAdmin = (currentUserRoleLevel === 0 || currentUserRoleLevel === 1);
+            document.getElementById('toggleModeBtn').textContent = isAdmin ? '👤 切换游客模式' : '👑 切换管理员模式';
+            document.getElementById('loginBtn').style.display = 'none';
+            document.getElementById('toggleModeBtn').style.display = 'inline-block';
+        } else {
+            isAdmin = false;
+            currentUserRoleLevel = 2;
+            document.getElementById('toggleModeBtn').style.display = 'none';
+            document.getElementById('loginBtn').style.display = 'inline-block';
+        }
+        updateUIByRole();
+        loadAllData();
+    }
+
+    async function doLogin() {
+        const username = document.getElementById('loginUsername').value;
+        const password = document.getElementById('loginPassword').value;
+        const result = await apiFetch('/auth/login', { method: 'POST', body: { username, password } });  // 注意是 /auth/login
+        if (result.success) {
+            currentUserRoleLevel = result.user.roleLevel;
+            isAdmin = (currentUserRoleLevel === 0 || currentUserRoleLevel === 1);
+            showToast('登录成功');
+            closeLoginModal();
+            checkLoginStatus();
+        } else {
+            showToast(result.message || '登录失败');
+        }
+    }
+
+    function logout() {
+        apiFetch('/auth/logout', { method: 'GET' });  // 注意是 /auth/logout
+        isAdmin = false;
+        currentUserRoleLevel = 2;
+        showToast('已退出登录');
+        checkLoginStatus();
+    }
+
+    function toggleMode() {
+        if (isAdmin) { logout(); } else { showLoginModal(); }
+    }
+
+    function showLoginModal() {
+        document.getElementById('loginUsername').value = '';
+        document.getElementById('loginPassword').value = '';
+        document.getElementById('loginModal').style.display = 'flex';
+    }
+
+    function closeLoginModal() { document.getElementById('loginModal').style.display = 'none'; }
+    function closeEditModal() { document.getElementById('editModal').style.display = 'none'; currentEditCallback = null; }
+    function saveModal() { if (currentEditCallback) currentEditCallback(); closeEditModal(); }
+
+    function updateUIByRole() {
+        document.querySelectorAll('.admin-actions').forEach(el => { el.style.display = isAdmin ? 'flex' : 'none'; });
+    }
+
+    // ==================== 数据加载 ====================
+    async function loadAllData() {
+        await loadCompanyInfo();
+        await loadRules();
+        await loadRewards();
+        await loadFund();
+        await loadInspections();
+    }
+
+    async function loadCompanyInfo() {
+        const result = await apiFetch('/company/info');
+        if (result) {
+            companyDesc = result.companyDesc || '';
+            vision = result.vision || '';
+            mission = result.mission || '';
+            values = result.values || '';
+            document.getElementById('companyDesc').innerHTML = `
+                <div>${companyDesc}</div>
+                <div class="vision-box">
+                    <div class="vision-item"><span class="vision-tag">🌟 愿景</span> ${vision}</div>
+                    <div class="vision-item"><span class="vision-tag">🎯 使命</span> ${mission}</div>
+                    <div class="vision-item"><span class="vision-tag">💎 价值观</span> ${values}</div>
+                </div>
+            `;
+        }
+    }
+
+    async function loadRules() {
+        const result = await apiFetch('/rules');
+        if (result) {
+            rulesData = result.rules || [];
+            rulesNote = result.rulesNote || '';
+            rulesVersion = result.rulesVersion || '2026年5月版';
+            document.getElementById('rulesVersion').innerHTML = rulesVersion;
+            document.getElementById('rulesList').innerHTML = rulesData.map(item => `
+                <div class="list-item">
+                    <div><span class="badge-icon">${item.tag || '制度'}</span> ${item.title}</div>
+                    <div>${item.version || ''}</div>
+                </div>
+            `).join('');
+            document.getElementById('rulesNote').innerHTML = rulesNote;
+        }
+    }
+
+    async function loadRewards() {
+        const result = await apiFetch('/rewards');
+        if (result) {
+            rewardItems = result.rewards || [];
+            rewardTitle = result.rewardTitle || '';
+            rewardPeriod = result.rewardPeriod || '';
+            rewardRemark = result.rewardRemark || '';
+            rewardFooterLeft = result.rewardFooterLeft || '';
+            rewardFooterRight = result.rewardFooterRight || '';
+            document.getElementById('rewardTitle').innerHTML = rewardTitle;
+            document.getElementById('rewardPeriod').innerHTML = rewardPeriod;
+            document.getElementById('rewardRemark').innerHTML = rewardRemark;
+            document.getElementById('rewardFooterLeft').innerHTML = rewardFooterLeft;
+            document.getElementById('rewardFooterRight').innerHTML = rewardFooterRight;
+            document.getElementById('rewardGrid').innerHTML = rewardItems.map(item => `
+                <div class="reward-card-item">
+                    <strong>${item.title}</strong>
+                    <div class="reward-detail">${item.content}</div>
+                </div>
+            `).join('');
+        }
+    }
+
+    async function loadFund() {
+        const result = await apiFetch('/fund');
+        if (result) {
+            fundItems = result.fundItems || [];
+            fundNote = result.fundNote || '';
+            fundTotalBalance = result.totalBalance || 0;
+            document.getElementById('fundList').innerHTML = fundItems.map(item => `
+                <div class="list-item">
+                    <span>🏪 ${item.storeName} · ${item.description}</span>
+                    <span class="amount">${item.amount > 0 ? '+' : ''}¥${Math.abs(item.amount)}</span>
+                </div>
+            `).join('');
+            document.getElementById('fundNote').innerHTML = fundNote.replace('¥1,350', `¥${fundTotalBalance}`);
+        }
+    }
+
+    async function loadInspections() {
+        const result = await apiFetch('/inspections');
+        if (result) {
+            inspectPeriods = result.periods || [];
+            currentInspectPeriod = result.currentPeriod || '';
+            inspections = result.inspections || [];
+            inspectNote = result.inspectNote || '';
+            const select = document.getElementById('inspectPeriod');
+            select.innerHTML = inspectPeriods.map(p => `<option value="${p}" ${p === currentInspectPeriod ? 'selected' : ''}>${p} 巡检结果</option>`).join('');
+            select.onchange = async () => {
+                currentInspectPeriod = select.value;
+                const res = await apiFetch(`/inspections/period/${currentInspectPeriod}`);
+                if (res.success) { inspections = res.data || []; renderInspections(); }
+            };
+            renderInspections();
+            document.getElementById('inspectNote').innerHTML = inspectNote;
+        }
+    }
+
+    function renderInspections() {
+        document.getElementById('inspectTableBody').innerHTML = inspections.map(item => `
+            <tr>
+                <td><strong>${item.storeName}</strong></td>
+                <td><div class="image-preview">${item.imageData ? `<img src="${item.imageData}" class="image-thumb" onclick="showImagePreview('${item.imageData}')">` : '<span class="no-image">暂无图片</span>'}</div></td>
+                <td>${item.deadline || '-'}</td>
+                <td>${item.reviewDate || '-'}</td>
+                <td><span class="${item.result === '已整改' || item.result === '优秀门店' ? 'review-done' : ''}">${item.result || '-'}</span></td>
+            </tr>
+        `).join('');
+    }
+
+    // ==================== 占位函数（功能开发中） ====================
+    function addRuleItem() { showToast('功能开发中'); }
+    function openAddRewardItem() { showToast('功能开发中'); }
+    function addFundItem() { showToast('功能开发中'); }
+    function addInspectRecord() { showToast('功能开发中'); }
+    function openImageUpload(id) { showToast('功能开发中'); }
+    function closeImageUploadModal() {}
+    function confirmUploadImage() {}
+    function showImagePreview(src) { document.getElementById('previewImage').src = src; document.getElementById('imagePreviewModal').style.display = 'flex'; }
+    function closeImagePreview() { document.getElementById('imagePreviewModal').style.display = 'none'; }
+    function openEditModal() {}
+    function closeModal() {}
+    function saveModalEdit() {}
+
+    window.onload = () => { checkLoginStatus(); };
+    window.toggleMode = toggleMode; window.showLoginModal = showLoginModal; window.closeLoginModal = closeLoginModal;
+    window.doLogin = doLogin; window.closeEditModal = closeEditModal; window.saveModal = saveModal;
+    window.showImagePreview = showImagePreview; window.closeImagePreview = closeImagePreview;
+    window.addRuleItem = addRuleItem; window.openAddRewardItem = openAddRewardItem; window.addFundItem = addFundItem;
+    window.addInspectRecord = addInspectRecord; window.openImageUpload = openImageUpload;
+    window.closeImageUploadModal = closeImageUploadModal; window.confirmUploadImage = confirmUploadImage;
+</script>
+</body>
+</html>
