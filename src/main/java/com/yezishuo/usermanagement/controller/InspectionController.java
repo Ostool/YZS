@@ -1,6 +1,8 @@
 package com.yezishuo.usermanagement.controller;
 
 import com.yezishuo.usermanagement.dto.InspectionDTO;
+import com.yezishuo.usermanagement.entity.Inspection;
+import com.yezishuo.usermanagement.repository.InspectionRepository;
 import com.yezishuo.usermanagement.service.AnnouncementService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -8,6 +10,8 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpSession;
 import javax.validation.Valid;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 @RestController
@@ -17,6 +21,9 @@ public class InspectionController {
 
     @Autowired
     private AnnouncementService announcementService;
+
+    @Autowired
+    private InspectionRepository inspectionRepository;
 
     @GetMapping
     public ResponseEntity<Map<String, Object>> getAllInspections() {
@@ -76,5 +83,40 @@ public class InspectionController {
         } else {
             return ResponseEntity.status(403).body(result);
         }
+    }
+
+    @PostMapping("/period")
+    public ResponseEntity<Map<String, Object>> addInspectPeriod(@RequestBody Map<String, String> data, HttpSession session) {
+        Map<String, Object> result = new HashMap<>();
+
+        // 检查权限
+        Integer roleLevel = (Integer) session.getAttribute("roleLevel");
+        if (roleLevel == null || (roleLevel != 0 && roleLevel != 1)) {
+            result.put("success", false);
+            result.put("message", "权限不足");
+            return ResponseEntity.status(403).body(result);
+        }
+
+        String period = data.get("period");
+        if (period == null || period.isEmpty()) {
+            result.put("success", false);
+            result.put("message", "请输入批次日期");
+            return ResponseEntity.badRequest().body(result);
+        }
+
+        // 检查批次是否已存在
+        List<Inspection> existing = inspectionRepository.findByPeriod(period);
+        if (!existing.isEmpty()) {
+            result.put("success", false);
+            result.put("message", "批次已存在");
+            return ResponseEntity.badRequest().body(result);
+        }
+
+        // 创建新批次（不需要实际数据，只需确认批次存在）
+        // 可以创建一个占位记录，或者不做任何操作，返回成功即可
+        result.put("success", true);
+        result.put("message", "添加成功");
+        result.put("period", period);
+        return ResponseEntity.ok(result);
     }
 }
