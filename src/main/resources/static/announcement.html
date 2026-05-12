@@ -5,6 +5,26 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
     <title>叶子说眼镜 · 内部公告平台</title>
     <style>
+        .delete-image-btn {
+            position: absolute;
+            top: -8px;
+            right: -8px;
+            background: #f56565;
+            color: white;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            font-size: 12px;
+            text-align: center;
+            line-height: 18px;
+            cursor: pointer;
+            transition: all 0.2s;
+            z-index: 15;
+        }
+        .delete-image-btn:hover {
+            background: #e53e3e;
+            transform: scale(1.1);
+        }
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
             background: #f5f7fb;
@@ -251,7 +271,7 @@
         </div>
         <div class="inspire-note" id="inspectNote"></div>
     </div>
-    <div class="footer-note" style="text-align:center; margin-top:24px; font-size:12px; color:#7c8aa0;">🍃 叶子说眼镜 · 所有公告最终解释权归行政部</div>
+    <div class="footer-note" style="text-align:center; margin-top:24px; font-size:12px; color:#7c8aa0;">🍃 叶子说眼镜 · 所有公告最终解释权归叶子说眼镜总部</div>
 </div>
 
 <!-- 登录模态框（带记住密码） -->
@@ -653,21 +673,47 @@
     }
 
     function renderInspections() {
-        document.getElementById('inspectTableBody').innerHTML = inspections.map(item => `
-            <tr data-id="${item.id}">
+        document.getElementById('inspectTableBody').innerHTML = inspections.map(item => {
+            // 判断图片是Base64还是路径
+            let isBase64 = item.imageData && item.imageData.startsWith('data:image');
+            let imageSrc = item.imageData || '';
+
+            return `
+            <tr data-id="${item.id}" onclick="viewOrEditInspectRecord(${item.id})">
                 <td><strong>${item.storeName}</strong></td>
                 <td>
-                    <div class="image-preview">
-                        ${item.imageData ? `<img src="${item.imageData}" class="image-thumb" onclick="showImagePreview('${item.imageData}')">` : '<span class="no-image">暂无图片</span>'}
+                    <div class="image-preview" onclick="event.stopPropagation()">
+                        ${item.imageData ?
+                `<div style="position: relative; display: inline-block;">
+                                <img src="${imageSrc}" class="image-thumb" onclick="showImagePreview('${imageSrc}')">
+                                ${isAdmin ? `<span class="delete-image-btn" onclick="deleteInspectionImage(${item.id})" title="删除图片">×</span>` : ''}
+                            </div>` :
+                '<span class="no-image">暂无图片</span>'
+            }
                         ${isAdmin ? `<span class="camera-icon" onclick="openImageUpload(${item.id})">📷</span>` : ''}
                     </div>
                 </td>
                 <td>${item.deadline || '-'}</td>
                 <td>${item.reviewDate || '-'}</td>
                 <td><span class="${item.result === '已整改' || item.result === '优秀门店' ? 'review-done' : ''}">${item.result || '-'}</span></td>
-                ${isAdmin ? `<td><span class="edit-icon" onclick="editInspectRecord(${item.id})">✏️</span><span class="delete-icon" onclick="deleteInspectRecord(${item.id})">🗑️</span></td>` : ''}
-            </tr>
-        `).join('');
+                ${isAdmin ? `<td><span class="edit-icon" onclick="event.stopPropagation(); editInspectRecord(${item.id})">✏️</span><span class="delete-icon" onclick="event.stopPropagation(); deleteInspectRecord(${item.id})">🗑️</span></td>` : ''}
+            <tr>
+        `;
+        }).join('');
+    }
+
+    // 删除巡检图片
+    async function deleteInspectionImage(id) {
+        if (!confirm('确定要删除这张图片吗？此操作不可恢复！')) {
+            return;
+        }
+        const result = await apiFetch(`/inspections/${id}/inspection-image`, { method: 'DELETE' });
+        if (result.success) {
+            showToast('图片删除成功');
+            loadInspections();  // 重新加载数据
+        } else {
+            showToast(result.message || '删除失败');
+        }
     }
 
     // ==================== 编辑功能 ====================
@@ -911,21 +957,25 @@
         document.getElementById('uploadPreviewContainer').innerHTML = '';
         tempImageBase64 = null;
         document.getElementById('imageUploadModal').style.display = 'flex';
+
         const fileInput = document.getElementById('uploadFileInput');
         fileInput.onchange = async (e) => {
             const file = e.target.files[0];
             if (file && file.type.match('image.*')) {
+                showToast('正在压缩图片...');
                 const compressed = await compressImage(file, 300);
                 tempImageBase64 = compressed;
                 document.getElementById('uploadPreviewContainer').innerHTML = `<img src="${compressed}" style="max-width:200px; border-radius:8px;">`;
-            } else showToast('请选择图片文件');
+            } else {
+                showToast('请选择图片文件');
+            }
         };
     }
 
     function closeImageUploadModal() { document.getElementById('imageUploadModal').style.display = 'none'; currentUploadInspectionId = null; tempImageBase64 = null; }
     async function confirmUploadImage() {
         if (currentUploadInspectionId && tempImageBase64) {
-            const result = await apiFetch(`/inspections/${currentUploadInspectionId}/image`, { method: 'PUT', body: { imageData: tempImageBase64 } });
+            const result = await apiFetch(`/inspections/${currentUploadInspectionId}/inspection-image`, { method: 'PUT', body: { imageData: tempImageBase64 } });
             if (result.success) { showToast('图片上传成功'); loadInspections(); }
             else showToast(result.message || '上传失败');
         } else showToast('请先选择图片');

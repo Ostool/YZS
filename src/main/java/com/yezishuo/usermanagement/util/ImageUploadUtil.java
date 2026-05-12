@@ -19,6 +19,9 @@ public class ImageUploadUtil {
     // 图片存储根目录
     private static final String UPLOAD_ROOT_DIR = System.getProperty("user.dir") + "/uploads/pictures/";
 
+    // 巡检图片存储根目录
+    private static final String INSPECTION_UPLOAD_DIR = System.getProperty("user.dir") + "/uploads/promotionpictures/";
+
     /**
      * 获取当天的子文件夹路径（格式：yyyyMMdd）
      */
@@ -169,5 +172,63 @@ public class ImageUploadUtil {
         }
         // 返回相对路径，前端会自动拼接 API_BASE
         return relativePath;
+    }
+
+    /**
+     * 获取巡检图片当天文件夹路径
+     */
+    private String getInspectionTodayFolderPath() {
+        String dateFolder = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"));
+        return INSPECTION_UPLOAD_DIR + dateFolder + "/";
+    }
+
+    /**
+     * 保存巡检图片（门店名+年月日时分秒）
+     * @param base64Image Base64编码的图片
+     * @param storeName 门店名称
+     * @return 保存的相对路径
+     */
+    public String saveInspectionImage(String base64Image, String storeName) {
+        try {
+            String folderPath = getInspectionTodayFolderPath();
+            ensureDirExists(folderPath);
+
+            // 生成文件名：门店名 + 年月日时分秒
+            String timestamp = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss"));
+            String safeName = storeName.replaceAll("[\\\\/:*?\"<>|]", ""); // 移除非法字符
+            String fileName = safeName + timestamp + ".jpg";
+            String fullPath = folderPath + fileName;
+
+            // 解码并保存
+            String base64Data = base64Image;
+            if (base64Image.contains(",")) {
+                base64Data = base64Image.split(",")[1];
+            }
+
+            byte[] imageBytes = Base64.getDecoder().decode(base64Data);
+            Path path = Paths.get(fullPath);
+            Files.write(path, imageBytes);
+
+            // 返回相对路径
+            String dateFolder = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"));
+            return "/uploads/promotionpictures/" + dateFolder + "/" + fileName;
+
+        } catch (IOException e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
+    /**
+     * 提取图片的相对路径（从存储的URL中）
+     */
+    public String extractImagePath(String imageData) {
+        if (imageData != null && imageData.contains("/uploads/")) {
+            int startIndex = imageData.indexOf("/uploads/");
+            if (startIndex != -1) {
+                return imageData.substring(startIndex);
+            }
+        }
+        return null;
     }
 }
