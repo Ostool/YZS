@@ -191,13 +191,18 @@ public class UserController {
         }
 
         String base64Image = request.get("image");
+        String customerName = request.get("customerName");
+        if (customerName == null || customerName.isEmpty()) {
+            customerName = "image";
+        }
+
         if (base64Image == null || base64Image.isEmpty()) {
             result.put("success", false);
             result.put("message", "图片数据为空");
             return ResponseEntity.badRequest().body(result);
         }
 
-        String savedPath = imageUploadUtil.saveBase64Image(base64Image);
+        String savedPath = imageUploadUtil.saveBase64Image(base64Image, customerName);
         if (savedPath != null) {
             result.put("success", true);
             result.put("path", savedPath);

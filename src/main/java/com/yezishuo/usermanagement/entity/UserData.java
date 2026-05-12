@@ -139,4 +139,7 @@ public class UserData {
 
     @Column(name = "prescription_images")
     private String prescriptionImages;  // 存储图片路径，多个用逗号分隔
+
+    @Column(name = "is_deleted")
+    private Integer isDeleted;  // 0=未删除, 1=已删除
 }

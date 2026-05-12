@@ -178,8 +178,20 @@
         <h2>配镜处方管理系统</h2>
         <div id="loginError" class="error-msg"></div>
         <form id="loginForm">
-            <div class="input-group"><label>用户名</label><input type="text" id="username" required autocomplete="off"></div>
-            <div class="input-group"><label>密码</label><input type="password" id="password" required></div>
+            <div class="input-group">
+                <label>用户名</label>
+                <input type="text" id="username" required autocomplete="off">
+            </div>
+            <div class="input-group">
+                <label>密码</label>
+                <input type="password" id="password" required>
+            </div>
+            <div class="input-group" style="display: flex; align-items: center; justify-content: space-between;">
+                <label style="display: flex; align-items: center; cursor: pointer; margin-bottom: 0;">
+                    <input type="checkbox" id="rememberPwd" style="width: auto; margin-right: 8px;">
+                    <span>记住密码</span>
+                </label>
+            </div>
             <button type="submit" class="login-btn">登 录</button>
         </form>
     </div>
@@ -1037,7 +1049,83 @@
     async function checkLoginStatus() {
         try{ let res=await fetch(`${API_BASE}/checkLogin`,{method:'GET',credentials:'include'}); let r=await res.json(); if(r.isLogin){ document.getElementById('currentUser').innerText=r.username; currentRoleLevel=r.roleLevel||2; updateUIBasedOnRole(); document.getElementById('loginContainer').style.display='none'; document.getElementById('mainContainer').style.display='block'; await fetchData('','','',''); showToast('登录成功','success'); }else{ document.getElementById('loginContainer').style.display='flex'; document.getElementById('mainContainer').style.display='none'; } }catch(e){ document.getElementById('loginContainer').style.display='flex'; document.getElementById('mainContainer').style.display='none'; }
     }
-    document.getElementById('loginForm')?.addEventListener('submit',async(e)=>{ e.preventDefault(); let un=document.getElementById('username').value,pw=document.getElementById('password').value,err=document.getElementById('loginError'); err.style.display='none'; try{ let res=await fetch(`${API_BASE}/login`,{method:'POST',headers:{'Content-Type':'application/json'},credentials:'include',body:JSON.stringify({username:un,password:pw})}); let r=await res.json(); if(r.success){ currentRoleLevel=r.user.roleLevel; document.getElementById('currentUser').innerText=r.user.username; updateUIBasedOnRole(); document.getElementById('loginContainer').style.display='none'; document.getElementById('mainContainer').style.display='block'; await fetchData('','','',''); showToast('登录成功','success'); }else{ err.innerText=r.message; err.style.display='block'; } }catch(e){ err.innerText='网络错误'; err.style.display='block'; } });
+    // 保存登录信息到 localStorage
+    function saveLoginInfo(username, password, remember) {
+        if (remember) {
+            localStorage.setItem('savedUsername', username);
+            localStorage.setItem('savedPassword', password);
+            localStorage.setItem('rememberPwd', 'true');
+        } else {
+            localStorage.removeItem('savedUsername');
+            localStorage.removeItem('savedPassword');
+            localStorage.setItem('rememberPwd', 'false');
+        }
+    }
+
+    // 加载保存的登录信息
+    function loadSavedLoginInfo() {
+        const savedUsername = localStorage.getItem('savedUsername');
+        const savedPassword = localStorage.getItem('savedPassword');
+        const rememberPwd = localStorage.getItem('rememberPwd');
+
+        if (savedUsername && rememberPwd === 'true') {
+            document.getElementById('username').value = savedUsername;
+            if (savedPassword) {
+                document.getElementById('password').value = savedPassword;
+            }
+            document.getElementById('rememberPwd').checked = true;
+        } else {
+            document.getElementById('rememberPwd').checked = false;
+        }
+    }
+
+    // 清除保存的登录信息
+    function clearSavedLoginInfo() {
+        localStorage.removeItem('savedUsername');
+        localStorage.removeItem('savedPassword');
+        localStorage.setItem('rememberPwd', 'false');
+        document.getElementById('rememberPwd').checked = false;
+    }
+    document.getElementById('loginForm')?.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        let username = document.getElementById('username').value;
+        let password = document.getElementById('password').value;
+        let rememberPwd = document.getElementById('rememberPwd').checked;
+        let errorDiv = document.getElementById('loginError');
+        errorDiv.style.display = 'none';
+
+        try {
+            let res = await fetch(`${API_BASE}/login`, {
+                method:'POST',
+                headers:{'Content-Type':'application/json'},
+                credentials:'include',
+                body:JSON.stringify({username:username, password:password})
+            });
+            let r = await res.json();
+            if (r.success) {
+                // 登录成功，保存登录信息
+                saveLoginInfo(username, password, rememberPwd);
+
+                currentRoleLevel = r.user.roleLevel;
+                document.getElementById('currentUser').innerText = r.user.username;
+                updateUIBasedOnRole();
+                document.getElementById('loginContainer').style.display = 'none';
+                document.getElementById('mainContainer').style.display = 'block';
+                await fetchData('','','','');
+                showToast('登录成功', 'success');
+            } else {
+                errorDiv.innerText = r.message;
+                errorDiv.style.display = 'block';
+                // 登录失败时清除保存的密码（可选）
+                if (rememberPwd) {
+                    localStorage.removeItem('savedPassword');
+                }
+            }
+        } catch(e) {
+            errorDiv.innerText = '网络错误';
+            errorDiv.style.display = 'block';
+        }
+    });
     async function loadAllData() { currentSearchKeyword=''; currentDateRange=''; currentStartDate=''; currentEndDate=''; document.getElementById('searchInput').value=''; document.getElementById('startDate').value=''; document.getElementById('endDate').value=''; await fetchData('','','',''); document.querySelectorAll('.btn-date').forEach(btn=>btn.classList.remove('active')); }
     async function searchData() { currentSearchKeyword=document.getElementById('searchInput')?.value||''; currentPage=1; await fetchData(currentSearchKeyword,currentDateRange,currentStartDate,currentEndDate); }
     function handleSearchKeyPress(e){ if(e.key==='Enter') searchData(); }
@@ -1064,7 +1152,18 @@
                 images=item.prescriptionImages.split(',');
             }
             // 在 renderTable 函数中
-            let prescriptionHtml = `<div class="prescription-icon" onclick="openImageManager(${item.id}, ${JSON.stringify(images).replace(/"/g, '&quot;')})">📷</div>`;
+            let isGuest = (currentRoleLevel === 2);
+
+            let prescriptionHtml = '';
+            if (!isGuest) {
+                let images = [];
+                if (item.prescriptionImages && item.prescriptionImages !== '') {
+                    images = item.prescriptionImages.split(',');
+                }
+                prescriptionHtml = `<div class="prescription-icon" onclick="openImageManager(${item.id}, ${JSON.stringify(images).replace(/"/g, '&quot;')})">📷</div>`;
+            } else {
+                prescriptionHtml = '<span style="color:#ccc;">-</span>';
+            }
             let fields=[item.serialNo||'-',item.name||'-',item.gender||'-',item.age||'-',item.glassesPurpose||'-',dateStr,prescriptionHtml,item.leftSphere||'-',item.leftCylinder||'-',item.leftAxis||'-',item.rightSphere||'-',item.rightCylinder||'-',item.rightAxis||'-',item.frameModel||'-',item.lensType||'-',item.consultant||'-',item.shopName||'-'];
             if(!isGuest){ fields.push(item.phone||'-'); fields.push(item.totalAmount?'¥'+item.totalAmount:'-'); }
             fields.forEach(f=>{ let td=document.createElement('td'); td.innerHTML=f; row.appendChild(td); });
@@ -1079,7 +1178,12 @@
     async function logout() { await fetch(`${API_BASE}/logout`,{method:'GET',credentials:'include'}); showToast('已退出登录','success'); checkLoginStatus(); }
     window.onclick=function(e){ if(e.target===document.getElementById('editModal')) closeModal(); if(e.target===document.getElementById('pickerOverlay')) closePicker(); if(e.target===document.getElementById('userManageModal')) closeUserManageModal(); if(e.target===document.getElementById('confirmModal')) closeConfirmModal(); if(e.target===document.getElementById('imagePreviewModal')) closeImagePreview(); };
     document.getElementById('signToggleBtn')?.addEventListener('click',toggleSign);
-    window.onload=()=>{ checkLoginStatus(); setupPurposeListener(); bindPickerEvents(); };
+    window.onload = () => {
+        checkLoginStatus();
+        setupPurposeListener();
+        bindPickerEvents();
+        loadSavedLoginInfo();  // 添加这一行
+    };
     // 打开图片管理器
     // 打开图片管理器
     function openImageManager(recordId, imagePaths) {
@@ -1244,36 +1348,27 @@
             return;
         }
 
-        console.log('currentEditId:', currentEditId);
-
-        // 先获取原来的图片路径（用于对比删除）
+        // 先获取原来的图片路径和客户姓名
         let oldImagePaths = [];
+        let customerName = '';
         try {
             let res = await fetch(`${API_BASE}/getUser/${currentEditId}`, { method: 'GET', credentials: 'include' });
             let r = await res.json();
-            console.log('获取到的记录数据:', r);
-
             if (r.success && r.data) {
                 if (r.data.prescriptionImages && r.data.prescriptionImages !== '') {
                     oldImagePaths = r.data.prescriptionImages.split(',');
                 }
-            } else {
-                console.log('获取失败:', r.message);
+                customerName = r.data.name || 'customer';
             }
         } catch(e) {
             console.error('获取原图片失败', e);
         }
 
-        console.log('oldImagePaths:', oldImagePaths);
-        console.log('managerEditImagePaths:', managerEditImagePaths);
-
         // 构建最终的图片路径
         let finalImagePaths = [...managerEditImagePaths];
 
-        // 找出需要删除的图片（在旧列表中但不在新列表中的）
+        // 找出需要删除的图片
         let imagesToDelete = oldImagePaths.filter(oldPath => !finalImagePaths.includes(oldPath));
-
-        console.log('imagesToDelete:', imagesToDelete);
 
         // 如果有新上传的图片，需要先上传到服务器
         if (managerUploadedImages.length > 0) {
@@ -1285,7 +1380,10 @@
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         credentials: 'include',
-                        body: JSON.stringify({ image: imgBase64 })
+                        body: JSON.stringify({
+                            image: imgBase64,
+                            customerName: customerName
+                        })
                     }).then(res => res.json());
                 });
 
@@ -1310,8 +1408,6 @@
             imagesToDelete: imagesToDelete
         };
 
-        console.log('发送请求体:', JSON.stringify(requestBody));
-
         // 更新数据库
         try {
             let response = await fetch(`${API_BASE}/updateUserImages`, {
@@ -1329,7 +1425,6 @@
                 showToast(result.message || '保存失败', 'error');
             }
         } catch (error) {
-            console.error('保存失败:', error);
             showToast('保存失败', 'error');
         }
     }

@@ -45,32 +45,34 @@ public class ImageUploadUtil {
     }
 
     /**
-     * 保存 Base64 图片，按日期分文件夹存储
+     * 保存 Base64 图片，使用 姓名+年月日时分秒 命名
      * @param base64Image Base64编码的图片
-     * @return 保存的相对路径（例如：/uploads/pictures/20260509/20260509143025123.jpg）
+     * @param customerName 客户姓名
+     * @return 保存的相对路径
      */
-    public String saveBase64Image(String base64Image) {
+    public String saveBase64Image(String base64Image, String customerName) {
         try {
             // 获取当天文件夹路径
             String folderPath = getTodayFolderPath();
             ensureDirExists(folderPath);
 
-            // 生成文件名
-            String fileName = generateFileName() + ".jpg";
+            // 生成文件名：客户姓名 + 年月日时分秒
+            String timestamp = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss"));
+            String safeName = customerName.replaceAll("[\\\\/:*?\"<>|]", ""); // 移除非法字符
+            String fileName = safeName + timestamp + ".jpg";
             String fullPath = folderPath + fileName;
 
-            // 去掉 Base64 前缀（如果有）
+            // 解码并保存
             String base64Data = base64Image;
             if (base64Image.contains(",")) {
                 base64Data = base64Image.split(",")[1];
             }
 
-            // 解码并保存
             byte[] imageBytes = Base64.getDecoder().decode(base64Data);
             Path path = Paths.get(fullPath);
             Files.write(path, imageBytes);
 
-            // 返回相对路径（用于前端访问）
+            // 返回相对路径
             String dateFolder = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"));
             return "/uploads/pictures/" + dateFolder + "/" + fileName;
 
@@ -78,6 +80,11 @@ public class ImageUploadUtil {
             e.printStackTrace();
             return null;
         }
+    }
+
+    // 保留原有的无参方法（用于兼容）
+    public String saveBase64Image(String base64Image) {
+        return saveBase64Image(base64Image, "image");
     }
 
     /**

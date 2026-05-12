@@ -342,7 +342,6 @@ public class UserService {
         User currentUser = userRepository.findById(userId).orElse(null);
         String shopName = currentUser != null ? currentUser.getShopName() : null;
 
-        // 构建基础查询条件
         List<UserData> todayData = new ArrayList<>();
         List<UserData> monthData = new ArrayList<>();
         List<UserData> yearData = new ArrayList<>();
@@ -355,7 +354,7 @@ public class UserService {
         LocalDateTime yearStart = now.withDayOfYear(1).withHour(0).withMinute(0).withSecond(0);
         LocalDateTime yearEnd = now.withDayOfYear(now.toLocalDate().lengthOfYear()).withHour(23).withMinute(59).withSecond(59);
 
-        // 根据角色查询，并考虑搜索关键字
+        // 根据角色查询，并考虑搜索关键字（只统计未删除的数据）
         if (currentRoleLevel != null && currentRoleLevel == 1) {
             // 普通用户：只查自己店名
             if (keyword != null && !keyword.trim().isEmpty()) {
@@ -380,9 +379,18 @@ public class UserService {
             }
         }
 
-        BigDecimal todayTotal = todayData.stream().map(UserData::getTotalAmount).filter(Objects::nonNull).reduce(BigDecimal.ZERO, BigDecimal::add);
-        BigDecimal monthTotal = monthData.stream().map(UserData::getTotalAmount).filter(Objects::nonNull).reduce(BigDecimal.ZERO, BigDecimal::add);
-        BigDecimal yearTotal = yearData.stream().map(UserData::getTotalAmount).filter(Objects::nonNull).reduce(BigDecimal.ZERO, BigDecimal::add);
+        BigDecimal todayTotal = todayData.stream()
+                .map(UserData::getTotalAmount)
+                .filter(Objects::nonNull)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+        BigDecimal monthTotal = monthData.stream()
+                .map(UserData::getTotalAmount)
+                .filter(Objects::nonNull)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+        BigDecimal yearTotal = yearData.stream()
+                .map(UserData::getTotalAmount)
+                .filter(Objects::nonNull)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
 
         result.put("success", true);
         result.put("todayCount", todayData.size());
@@ -394,8 +402,7 @@ public class UserService {
 
         return result;
     }
-
-    // 删除数据（仅超级管理员可用）
+    // 删除数据（软删除）
     public Map<String, Object> deleteData(Integer dataId, HttpSession session) {
         Map<String, Object> result = new HashMap<>();
 
@@ -421,13 +428,17 @@ public class UserService {
             return result;
         }
 
-        // 删除关联的图片文件
+        // 物理删除关联的图片文件
         if (userData.getPrescriptionImages() != null && !userData.getPrescriptionImages().isEmpty()) {
             String[] imagePaths = userData.getPrescriptionImages().split(",");
             imageUploadUtil.deleteImages(Arrays.asList(imagePaths));
         }
 
-        userDataRepository.deleteById(dataId);
+        // 软删除：设置删除标识，清空图片路径
+        userData.setIsDeleted(1);
+        userData.setPrescriptionImages(null);  // 清空图片路径
+        userDataRepository.save(userData);
+
         result.put("success", true);
         result.put("message", "删除成功");
         return result;
