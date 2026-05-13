@@ -5,6 +5,18 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
     <title>叶子说眼镜 · 内部公告平台</title>
     <style>
+
+        .date-badge {
+            font-family: 'Monaco', 'Menlo', monospace;
+            font-size: 14px;
+            font-weight: 500;
+            background: linear-gradient(135deg, #002FA7 0%, #667eea 100%);
+            color: white;
+            padding: 6px 16px;
+            border-radius: 40px;
+            letter-spacing: 1px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
         .delete-image-btn {
             position: absolute;
             top: -8px;
@@ -129,6 +141,23 @@
         .section-card:hover .edit-icon, .list-item:hover .edit-icons,
         .list-item:hover .edit-icon { opacity: 1; }
         .delete-icon { right: 60px; background: rgba(220, 50, 50, 0.7); }
+        /* 管理员模式下，团建基金的编辑删除按钮始终可见，不需要悬停 */
+        .admin-mode .list-item .edit-icon,
+        .admin-mode .list-item .delete-icon {
+            opacity: 1 !important;
+            position: static;
+            display: inline-block;
+            margin-left: 5px;
+        }
+
+        /* 管理员模式下，巡检记录的编辑删除按钮始终可见 */
+        .admin-mode .inspect-table td .edit-icon,
+        .admin-mode .inspect-table td .delete-icon {
+            opacity: 1 !important;
+            position: static;
+            display: inline-block;
+            margin-left: 5px;
+        }
         .header-edit-icon { margin-left: 12px; background: rgba(0,0,0,0.1); border-radius: 20px; padding: 2px 8px; font-size: 11px; cursor: pointer; display: inline-block; }
 
         .section-card { background: white; border-radius: 28px; margin-bottom: 28px; box-shadow: var(--card-shadow); border: 1px solid var(--gray-border); overflow: hidden; position: relative; }
@@ -177,6 +206,78 @@
             .card-header { flex-direction: column; align-items: flex-start; gap: 8px; }
             .logo-area { flex-direction: column; }
             .admin-controls { width: 100%; justify-content: space-between; }
+        }
+
+        /* 团建基金列表 - 限制高度并添加滚动条 */
+        .fund-list-container {
+            max-height: 300px;
+            overflow-y: auto;
+            border-top: 1px solid #f0f2f6;
+        }
+
+        /* 巡检表格容器 - 限制高度并添加滚动条 */
+        .inspect-table-container {
+            max-height: 400px;
+            overflow-y: auto;
+            overflow-x: auto;
+        }
+
+        /* 实时时间样式 */
+        .real-time-clock {
+            font-family: 'Monaco', 'Menlo', monospace;
+            font-size: 14px;
+            font-weight: 500;
+            background: linear-gradient(135deg, #002FA7 0%, #667eea 100%);
+            color: white;
+            padding: 6px 16px;
+            border-radius: 40px;
+            letter-spacing: 1px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            display: inline-block;
+        }
+
+        .time-seconds {
+            font-size: 12px;
+            opacity: 0.9;
+        }
+
+        /* 滚动条美化 */
+        .fund-list-container::-webkit-scrollbar,
+        .inspect-table-container::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+
+        .fund-list-container::-webkit-scrollbar-track,
+        .inspect-table-container::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 10px;
+        }
+
+        .fund-list-container::-webkit-scrollbar-thumb,
+        .inspect-table-container::-webkit-scrollbar-thumb {
+            background: var(--klein-blue);
+            border-radius: 10px;
+        }
+
+        .fund-list-container::-webkit-scrollbar-thumb:hover,
+        .inspect-table-container::-webkit-scrollbar-thumb:hover {
+            background: var(--klein-hover);
+        }
+        /* 确保管理员模式下的编辑删除按钮可见 */
+        .inspect-table td .edit-icon,
+        .inspect-table td .delete-icon {
+            position: static;
+            display: inline-block;
+            margin-left: 5px;
+            opacity: 1;
+        }
+
+        .admin-actions .edit-icon,
+        .admin-actions .delete-icon {
+            position: static;
+            display: inline-block;
+            opacity: 1;
         }
     </style>
 </head>
@@ -245,10 +346,13 @@
                 <button class="edit-title-btn" onclick="editFundNote()">✏️ 编辑备注</button>
             </div>
         </div>
-        <div id="fundList"></div>
-        <div class="inspire-note" id="fundNote"></div>
+        <div class="fund-list-container">
+            <div id="fundList"></div>
+        </div>
+        <div class="inspire-note" id="fundNote" onclick="editFundNote()"></div>
     </div>
 
+    <!-- 4. 巡检结果 -->
     <!-- 4. 巡检结果 -->
     <div class="section-card">
         <div class="card-header">
@@ -259,17 +363,20 @@
                 <div class="admin-actions">
                     <button class="edit-title-btn" onclick="addInspectPeriod()">➕ 新增批次</button>
                     <button class="edit-title-btn" onclick="addInspectRecord()">➕ 新增记录</button>
-                    <button class="edit-title-btn" onclick="editInspectNote()">✏️ 编辑备注</button>
                 </div>
             </div>
         </div>
-        <div class="inspect-table-wrapper">
-            <table class="inspect-table">
-                <thead><tr><th>门店</th><th>检查图片</th><th>整改期限</th><th>复查时间</th><th>复查结果</th><th class="admin-actions">操作</th></tr></thead>
-                <tbody id="inspectTableBody"></tbody>
-            </table>
+        <div class="inspect-table-container">
+            <div class="inspect-table-wrapper">
+                <table class="inspect-table">
+                    <thead>
+                    <tr><th>门店</th><th>检查图片</th><th>整改期限</th><th>复查时间</th><th>复查结果</th><th class="admin-actions">操作</th></tr>
+                    </thead>
+                    <tbody id="inspectTableBody"></tbody>
+                </table>
+            </div>
         </div>
-        <div class="inspire-note" id="inspectNote"></div>
+        <div class="inspire-note" id="inspectNote" onclick="editInspectNote()"></div>
     </div>
     <div class="footer-note" style="text-align:center; margin-top:24px; font-size:12px; color:#7c8aa0;">🍃 叶子说眼镜 · 所有公告最终解释权归叶子说眼镜总部</div>
 </div>
@@ -345,6 +452,32 @@
     let companyDesc = '', vision = '', mission = '', values = '';
 
     let inspectionsByPeriod = {};  // 按批次存储巡检数据
+
+
+    // 实时时间显示（右上角）
+    function updateRealTimeClock() {
+        const now = new Date();
+        const year = now.getFullYear();
+        const month = String(now.getMonth() + 1).padStart(2, '0');
+        const day = String(now.getDate()).padStart(2, '0');
+        const hours = String(now.getHours()).padStart(2, '0');
+        const minutes = String(now.getMinutes()).padStart(2, '0');
+        const seconds = String(now.getSeconds()).padStart(2, '0');
+
+        const dateTimeStr = `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+        const liveDateElement = document.getElementById('liveDate');
+        if (liveDateElement) {
+            liveDateElement.innerHTML = dateTimeStr;
+        }
+    }
+
+    // 启动定时器，每秒更新
+    setInterval(updateRealTimeClock, 1000);
+
+    // 页面加载时立即执行一次
+    updateRealTimeClock();
+
+
 
     function showToast(msg) {
         const toast = document.getElementById('toast');
@@ -438,6 +571,27 @@
         }
         updateUIByRole();
         loadAllData();
+    }
+
+    function renderFund() {
+        const container = document.getElementById('fundList');
+        container.innerHTML = fundItems.map(item => `
+        <div class="list-item" data-id="${item.id}" onclick="viewOrEditFundItem(${item.id})">
+            <span>🏪 ${item.storeName} · ${item.description}</span>
+            <div style="display:flex; gap:12px; align-items:center;">
+                <span class="amount">${item.amount > 0 ? '+' : ''}¥${Math.abs(item.amount)}</span>
+                ${isAdmin ? `<span class="edit-icon" onclick="event.stopPropagation(); editFundItem(${item.id})">✏️</span><span class="delete-icon" onclick="event.stopPropagation(); deleteFundItem(${item.id})">🗑️</span>` : ''}
+            </div>
+        </div>
+    `).join('');
+
+        // 动态计算总余额
+        let total = 0;
+        for (let i = 0; i < fundItems.length; i++) {
+            total += parseFloat(fundItems[i].amount) || 0;
+        }
+        let updatedNote = fundNote.replace(/¥[\d,]+(\.\d{2})?/, `¥${total.toFixed(2)}`);
+        document.getElementById('fundNote').innerHTML = updatedNote + (isAdmin ? `<span class="edit-icon" onclick="editFundNote()">✏️</span>` : '');
     }
 
     async function doLogin() {
@@ -538,8 +692,15 @@
     function closeLoginModal() { document.getElementById('loginModal').style.display = 'none'; }
     function closeEditModal() { document.getElementById('editModal').style.display = 'none'; currentEditCallback = null; }
     function saveModal() { if (currentEditCallback) currentEditCallback(); closeEditModal(); }
-    function updateUIByRole() { document.querySelectorAll('.admin-actions').forEach(el => { el.style.display = isAdmin ? 'flex' : 'none'; }); }
-
+    function updateUIByRole() {
+        document.querySelectorAll('.admin-actions').forEach(el => { el.style.display = isAdmin ? 'flex' : 'none'; });
+        // 添加或移除 admin-mode 类
+        if (isAdmin) {
+            document.body.classList.add('admin-mode');
+        } else {
+            document.body.classList.remove('admin-mode');
+        }
+    }
     // ==================== 通用编辑模态框 ====================
     function openEditModal(title, fields, callback) {
         const modal = document.getElementById('editModal');
@@ -620,18 +781,20 @@
             `).join('');
         }
     }
-
     async function loadFund() {
         const result = await apiFetch('/fund');
         if (result) {
             fundItems = result.fundItems || [];
             fundNote = result.fundNote || '';
+
             // 动态计算总余额
             fundTotalBalance = 0;
             for (let i = 0; i < fundItems.length; i++) {
                 fundTotalBalance += parseFloat(fundItems[i].amount) || 0;
             }
-            document.getElementById('fundList').innerHTML = fundItems.map(item => `
+
+            const container = document.getElementById('fundList');
+            container.innerHTML = fundItems.map(item => `
             <div class="list-item" data-id="${item.id}" onclick="viewOrEditFundItem(${item.id})">
                 <span>🏪 ${item.storeName} · ${item.description}</span>
                 <div style="display:flex; gap:12px; align-items:center;">
@@ -640,11 +803,95 @@
                 </div>
             </div>
         `).join('');
+
             // 更新备注中的余额显示
             let updatedNote = fundNote.replace(/¥[\d,]+(\.\d{2})?/, `¥${fundTotalBalance.toFixed(2)}`);
-            document.getElementById('fundNote').innerHTML = updatedNote;
+            document.getElementById('fundNote').innerHTML = updatedNote + (isAdmin ? `<span class="edit-icon" onclick="editFundNote()">✏️</span>` : '');
         }
     }
+    function showDetail(title, content) {
+        // 创建临时模态框显示详情
+        const modal = document.getElementById('editModal');
+        const modalTitle = document.getElementById('modalTitle');
+        const modalBody = document.getElementById('modalBody');
+        modalTitle.textContent = title;
+        modalBody.innerHTML = `<div style="padding: 10px 0; line-height: 1.8;">${content}</div>`;
+        currentEditCallback = null;
+        modal.style.display = 'flex';
+    }
+
+    // 查看或编辑团建明细（游客查看详情，管理员编辑）
+    function viewOrEditFundItem(id) {
+        const item = fundItems.find(f => f.id === id);
+        if (!item) return;
+        if (isAdmin) {
+            editFundItem(id);
+        } else {
+            showDetail(`${item.storeName} · 团建明细`, `事由：${item.description}<br>金额：${item.amount > 0 ? '+' : ''}¥${Math.abs(item.amount)}`);
+        }
+    }
+
+    // 查看或编辑巡检记录（游客查看详情，管理员编辑）
+    function viewOrEditInspectRecord(id) {
+        const item = inspections.find(i => i.id === id);
+        if (!item) return;
+        if (isAdmin) {
+            editInspectRecord(id);
+        } else {
+            showDetail(`${item.storeName} · 巡检结果`, `整改期限：${item.deadline || '-'}<br>复查时间：${item.reviewDate || '-'}<br>复查结果：${item.result || '-'}`);
+        }
+    }
+
+    // 编辑单个团建明细
+    function editFundItem(id) {
+        const item = fundItems.find(f => f.id === id);
+        if (!item) return;
+        openEditModal('编辑团建明细', [
+            { name: 'storeName', label: '门店', value: item.storeName },
+            { name: 'description', label: '事由', value: item.description },
+            { name: 'amount', label: '金额', value: item.amount, type: 'number' }
+        ], async () => {
+            const data = {
+                storeName: document.getElementById('edit_storeName').value,
+                description: document.getElementById('edit_description').value,
+                amount: parseFloat(document.getElementById('edit_amount').value)
+            };
+            const result = await apiFetch(`/fund/${id}`, { method: 'PUT', body: data });
+            if (result.success) {
+                showToast('更新成功');
+                loadFund();
+            } else {
+                showToast(result.message || '更新失败');
+            }
+        });
+    }
+
+    // 编辑单个巡检记录
+    function editInspectRecord(id) {
+        const item = inspections.find(i => i.id === id);
+        if (!item) return;
+        openEditModal('编辑巡检记录', [
+            { name: 'storeName', label: '门店', value: item.storeName },
+            { name: 'deadline', label: '整改期限', value: item.deadline || '', type: 'date' },
+            { name: 'reviewDate', label: '复查时间', value: item.reviewDate || '', type: 'date' },
+            { name: 'result', label: '复查结果', value: item.result || '' }
+        ], async () => {
+            const data = {
+                storeName: document.getElementById('edit_storeName').value,
+                deadline: document.getElementById('edit_deadline').value,
+                reviewDate: document.getElementById('edit_reviewDate').value,
+                result: document.getElementById('edit_result').value
+            };
+            const result = await apiFetch(`/inspections/${id}`, { method: 'PUT', body: data });
+            if (result.success) {
+                showToast('更新成功');
+                loadInspections();
+            } else {
+                showToast(result.message || '更新失败');
+            }
+        });
+    }
+
 
     async function loadInspections() {
         const result = await apiFetch('/inspections');
@@ -857,8 +1104,17 @@
         });
     }
 
-    async function deleteFundItem(id) { if (confirm('确定删除这条明细吗？')) { const result = await apiFetch(`/fund/${id}`, { method: 'DELETE' }); if (result.success) { showToast('删除成功'); loadFund(); } } }
-
+    async function deleteFundItem(id) {
+        if (confirm('确定删除这条明细吗？')) {
+            const result = await apiFetch(`/fund/${id}`, { method: 'DELETE' });
+            if (result.success) {
+                showToast('删除成功');
+                loadFund();
+            } else {
+                showToast(result.message || '删除失败');
+            }
+        }
+    }
     function editFundNote() {
         openEditModal('编辑备注', [{ name: 'content', label: '备注内容', value: fundNote, type: 'textarea' }], async () => {
             const content = document.getElementById('edit_content').value;
@@ -940,8 +1196,18 @@
         });
     }
 
-    async function deleteInspectRecord(id) { if (confirm('确定删除这条记录吗？')) { const result = await apiFetch(`/inspections/${id}`, { method: 'DELETE' }); if (result.success) { showToast('删除成功'); loadInspections(); } } }
 
+    async function deleteInspectRecord(id) {
+        if (confirm('确定删除这条记录吗？')) {
+            const result = await apiFetch(`/inspections/${id}`, { method: 'DELETE' });
+            if (result.success) {
+                showToast('删除成功');
+                loadInspections();
+            } else {
+                showToast(result.message || '删除失败');
+            }
+        }
+    }
     function editInspectNote() {
         openEditModal('编辑巡检备注', [{ name: 'content', label: '备注内容', value: inspectNote, type: 'textarea' }], async () => {
             const content = document.getElementById('edit_content').value;
