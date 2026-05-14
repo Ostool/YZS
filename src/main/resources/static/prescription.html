@@ -5,6 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <title>配镜处方管理系统</title>
     <style>
+
+        .remark-row{display:flex;margin-top:0.5mm;padding-top:0.3mm;font-size:6.5pt;font-weight:bold;color:#000;border-top:0.2px solid #ddd;} +
+        .remark-label{color:#000;font-weight:bold;margin-right:2mm;}
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
             font-family: 'Segoe UI', 'Microsoft YaHei', Tahoma, Geneva, Verdana, sans-serif;
@@ -1133,47 +1136,305 @@
     function renderPagination() { let tp=Math.ceil(totalData.length/pageSize); let pd=document.getElementById('pagination'); if(tp<=1){ pd.innerHTML=''; return; } let h=''; h+=`<button onclick="goToPage(1)" ${currentPage===1?'disabled':''}>首页</button>`; h+=`<button onclick="goToPage(${currentPage-1})" ${currentPage===1?'disabled':''}>上一页</button>`; let sp=Math.max(1,currentPage-2),ep=Math.min(tp,currentPage+2); if(sp>1) h+='<span>...</span>'; for(let i=sp;i<=ep;i++) h+=`<button class="${currentPage===i?'active':''}" onclick="goToPage(${i})">${i}</button>`; if(ep<tp) h+='<span>...</span>'; h+=`<button onclick="goToPage(${currentPage+1})" ${currentPage===tp?'disabled':''}>下一页</button>`; h+=`<button onclick="goToPage(${tp})" ${currentPage===tp?'disabled':''}>末页</button>`; h+=`<span class="page-info">第 ${currentPage} / ${tp} 页</span>`; pd.innerHTML=h; }
     function goToPage(p){ let tp=Math.ceil(totalData.length/pageSize); if(p<1||p>tp) return; currentPage=p; renderTableWithPagination(); }
     function renderTable(data) {
-        let tc=document.getElementById('tableContent');
-        if(!data||data.length===0){ tc.innerHTML='<div class="empty-data">暂无数据</div>'; return; }
-        let isSuper=currentRoleLevel===0, isGuest=currentRoleLevel===2;
-        let t=document.createElement('table'); t.className='data-table';
-        let th=document.createElement('thead'); let tr=document.createElement('tr');
-        let headers=['序号','姓名','性别','年龄','配镜用途','配镜日期','处方','左眼球镜','左眼柱镜','左眼轴位','右眼球镜','右眼柱镜','右眼轴位','镜架型号','镜片种类','顾问','店名'];
-        if(!isGuest){ headers.push('电话'); headers.push('总金额'); }
+        let tc = document.getElementById('tableContent');
+        if (!data || data.length === 0) { tc.innerHTML = '<div class="empty-data">暂无数据</div>'; return; }
+        let isSuper = currentRoleLevel === 0, isGuest = currentRoleLevel === 2;
+        let t = document.createElement('table'); t.className = 'data-table';
+        let th = document.createElement('thead'); let tr = document.createElement('tr');
+        let headers = ['序号', '姓名', '性别', '年龄', '配镜用途', '配镜日期', '处方', '左眼球镜', '左眼柱镜', '左眼轴位', '右眼球镜', '右眼柱镜', '右眼轴位', '镜架型号', '镜片种类', '顾问', '店名'];
+        if (!isGuest) { headers.push('电话'); headers.push('总金额'); }
         headers.push('操作');
-        headers.forEach(h=>{ let thh=document.createElement('th'); thh.textContent=h; tr.appendChild(thh); });
+        headers.forEach(h => { let thh = document.createElement('th'); thh.textContent = h; tr.appendChild(thh); });
         th.appendChild(tr); t.appendChild(th);
-        let tb=document.createElement('tbody');
-        data.forEach(item=>{
-            let row=document.createElement('tr');
-            let dateStr=item.prescriptionDate?(item.prescriptionDate.includes('T')?item.prescriptionDate.replace('T',' '):item.prescriptionDate).substring(0,16):'-';
-            let images=[];
-            if(item.prescriptionImages&&item.prescriptionImages!==''){
-                images=item.prescriptionImages.split(',');
+        let tb = document.createElement('tbody');
+        data.forEach(item => {
+            let row = document.createElement('tr');
+            let dateStr = item.prescriptionDate ? (item.prescriptionDate.includes('T') ? item.prescriptionDate.replace('T', ' ') : item.prescriptionDate).substring(0, 16) : '-';
+            let images = [];
+            if (item.prescriptionImages && item.prescriptionImages !== '') {
+                images = item.prescriptionImages.split(',');
             }
-            // 在 renderTable 函数中
+            // 处方图片显示（游客不可见）
             let isGuest = (currentRoleLevel === 2);
-
             let prescriptionHtml = '';
             if (!isGuest) {
-                let images = [];
-                if (item.prescriptionImages && item.prescriptionImages !== '') {
-                    images = item.prescriptionImages.split(',');
-                }
                 prescriptionHtml = `<div class="prescription-icon" onclick="openImageManager(${item.id}, ${JSON.stringify(images).replace(/"/g, '&quot;')})">📷</div>`;
             } else {
                 prescriptionHtml = '<span style="color:#ccc;">-</span>';
             }
-            let fields=[item.serialNo||'-',item.name||'-',item.gender||'-',item.age||'-',item.glassesPurpose||'-',dateStr,prescriptionHtml,item.leftSphere||'-',item.leftCylinder||'-',item.leftAxis||'-',item.rightSphere||'-',item.rightCylinder||'-',item.rightAxis||'-',item.frameModel||'-',item.lensType||'-',item.consultant||'-',item.shopName||'-'];
-            if(!isGuest){ fields.push(item.phone||'-'); fields.push(item.totalAmount?'¥'+item.totalAmount:'-'); }
-            fields.forEach(f=>{ let td=document.createElement('td'); td.innerHTML=f; row.appendChild(td); });
-            let actionTd=document.createElement('td');
-            if(!isGuest){ let eb=document.createElement('button'); eb.textContent='编辑'; eb.className='edit-btn'; eb.onclick=(function(id){return function(){editRecord(id);}})(item.id); actionTd.appendChild(eb); }
-            if(isSuper){ let db=document.createElement('button'); db.textContent='删除'; db.className='delete-btn'; db.onclick=(function(id){return function(){showDeleteConfirm(id,'data','确定删除这条记录吗？不可恢复！');}})(item.id); actionTd.appendChild(db); }
+            let fields = [item.serialNo || '-', item.name || '-', item.gender || '-', item.age || '-', item.glassesPurpose || '-', dateStr, prescriptionHtml, item.leftSphere || '-', item.leftCylinder || '-', item.leftAxis || '-', item.rightSphere || '-', item.rightCylinder || '-', item.rightAxis || '-', item.frameModel || '-', item.lensType || '-', item.consultant || '-', item.shopName || '-'];
+            if (!isGuest) { fields.push(item.phone || '-'); fields.push(item.totalAmount ? '¥' + item.totalAmount : '-'); }
+            fields.forEach(f => { let td = document.createElement('td'); td.innerHTML = f; row.appendChild(td); });
+
+            // 操作列
+            let actionTd = document.createElement('td');
+            if (!isGuest) {
+                // 编辑按钮
+                let eb = document.createElement('button');
+                eb.textContent = '编辑';
+                eb.className = 'edit-btn';
+                eb.onclick = (function(id) { return function() { editRecord(id); }; })(item.id);
+                actionTd.appendChild(eb);
+
+                // 打印按钮
+                let pb = document.createElement('button');
+                pb.textContent = '打印';
+                pb.className = 'edit-btn';
+                pb.style.backgroundColor = '#48bb78';
+                pb.style.marginLeft = '5px';
+                pb.onclick = (function(id, name) { return function() { showPrintDialog(id, name); }; })(item.id, item.name);
+                actionTd.appendChild(pb);
+            }
+            if (isSuper) {
+                let db = document.createElement('button');
+                db.textContent = '删除';
+                db.className = 'delete-btn';
+                db.onclick = (function(id) { return function() { showDeleteConfirm(id, 'data', '确定删除这条记录吗？不可恢复！'); }; })(item.id);
+                actionTd.appendChild(db);
+            }
             row.appendChild(actionTd);
             tb.appendChild(row);
         });
-        t.appendChild(tb); tc.innerHTML=''; tc.appendChild(t);
+        t.appendChild(tb);
+        tc.innerHTML = '';
+        tc.appendChild(t);
+    }
+
+    // 显示打印选项对话框
+    function showPrintDialog(recordId, customerName) {
+        // 创建模态框
+        const modal = document.createElement('div');
+        modal.style.cssText = `
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0,0,0,0.5);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 10000;
+    `;
+
+        modal.innerHTML = `
+        <div style="background: white; border-radius: 16px; padding: 24px; width: 300px; text-align: center;">
+            <h3 style="margin-bottom: 20px; color: #002FA7;">选择打印类型</h3>
+            <div style="display: flex; gap: 15px; justify-content: center;">
+                <button id="printSaleBtn" style="background: #002FA7; color: white; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer;">销售单</button>
+                <button id="printProcessBtn" style="background: #48bb78; color: white; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer;">加工单</button>
+                <button id="cancelPrintBtn" style="background: #ccc; color: #333; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer;">取消</button>
+            </div>
+        </div>
+    `;
+
+        document.body.appendChild(modal);
+
+        document.getElementById('printSaleBtn').onclick = () => {
+            modal.remove();
+            showToast('销售单功能开发中...', 'info');
+        };
+
+        document.getElementById('printProcessBtn').onclick = () => {
+            modal.remove();
+            printProcessOrder(recordId, customerName);
+        };
+
+        document.getElementById('cancelPrintBtn').onclick = () => {
+            modal.remove();
+        };
+    }
+
+    // 打印加工单
+    async function printProcessOrder(recordId, customerName) {
+        showToast('正在生成加工单...', 'info');
+
+        try {
+            // 获取处方数据
+            const response = await fetch(`${API_BASE}/getUser/${recordId}`, {
+                method: 'GET',
+                credentials: 'include'
+            });
+            const result = await response.json();
+
+            if (result.success) {
+                const data = result.data;
+                // 生成标签HTML
+                const labelHtml = generateProcessLabel(data);
+                // 调用打印
+                await printLabel(labelHtml, customerName);
+            } else {
+                showToast('获取处方数据失败', 'error');
+            }
+        } catch (error) {
+            console.error('打印失败:', error);
+            showToast('打印失败，请重试', 'error');
+        }
+    }
+
+    // 生成加工单标签HTML（80mm x 60mm 统一黑色清晰版）
+    function generateProcessLabel(data) {
+        // 格式化度数显示
+        const formatDiopter = (val) => {
+            if (val === null || val === undefined || val === '') return '—';
+            let num = parseFloat(val);
+            if (isNaN(num)) return val;
+            return (num >= 0 ? '+' : '') + num.toFixed(2);
+        };
+
+        // 安全获取值
+        const safeStr = (val) => (val && val !== '') ? val : '—';
+        const safeNum = (val) => (val !== null && val !== undefined && val !== '') ? val : '—';
+
+        // 左右眼瞳距瞳高
+        const leftPd = data.leftPupilDistance ? data.leftPupilDistance + 'mm' : '—';
+        const leftPh = data.leftPupilHeight ? data.leftPupilHeight + 'mm' : '—';
+        const rightPd = data.rightPupilDistance ? data.rightPupilDistance + 'mm' : '—';
+        const rightPh = data.rightPupilHeight ? data.rightPupilHeight + 'mm' : '—';
+
+        // 截断长文本
+        const truncate = (str, len) => {
+            if (!str || str === '') return '—';
+            if (str.length > len) return str.substring(0, len - 1) + '…';
+            return str;
+        };
+
+        return '<!DOCTYPE html>' +
+            '<html>' +
+            '<head>' +
+            '<meta charset="UTF-8">' +
+            '<title>加工单-' + safeStr(data.name) + '</title>' +
+            '<style>' +
+            '*{margin:0;padding:0;box-sizing:border-box;}' +
+            'body{display:flex;justify-content:center;align-items:center;min-height:100vh;background:#e0e0e0;margin:0;padding:0;}' +
+            '.label{width:80mm;height:60mm;background:white;font-family:"Microsoft YaHei","SimHei",Arial,sans-serif;position:relative;padding:1.5mm 2.5mm 1.5mm 2.5mm;}' +
+            // 头部行
+            '.header{display:flex;justify-content:space-between;align-items:center;margin-bottom:0.3mm;}' +
+            '.name{font-size:7.5pt;font-weight:bold;color:#000;}' +
+            '.logo{font-size:7.5pt;font-weight:bold;color:#000;background:#eef3ff;padding:0.2mm 1.5mm;border-radius:2mm;}' +
+            // 配镜用途
+            '.purpose{font-size:7.5pt;font-weight:bold;color:#000;margin-bottom:0.5mm;}' +
+            // 左右眼 - 抬头文字改为黑色背景改为浅灰
+            '.eyes-row{display:flex;gap:2mm;margin-bottom:0;}' +
+            '.eye-box{flex:1;background:#f8f9fa;border-radius:1.5mm;padding:0.3mm 1mm;}' +
+            '.eye-title{font-size:7.5pt;font-weight:bold;color:#000;background:#e8e8e8;text-align:center;padding:0.2mm 0;border-radius:1mm;margin-bottom:0.3mm;}' +
+            '.eye-line{display:flex;justify-content:space-between;font-size:7.5pt;font-weight:bold;padding:0.2mm 0;}' +
+            '.eye-line .l{color:#000;font-weight:bold;}' +
+            '.eye-line .v{font-weight:bold;color:#000;}' +
+            // 分隔线
+            '.divider{margin:0.2mm 0;border-top:0.2px solid #ddd;}' +
+            // 镜架镜片行
+            '.frame-row{display:flex;justify-content:space-between;margin-top:0.3mm;padding-top:0.3mm;border-top:0.2px solid #ddd;}' +
+            '.frame-text{font-size:7.5pt;font-weight:bold;color:#000;}' +
+            '.frame-label{color:#000;font-weight:bold;}' +
+            '</style>' +
+            '</head>' +
+            '<body>' +
+            '<div class="label">' +
+            // 第1行：姓名 + Logo
+            '<div class="header">' +
+            '<span class="name">' + truncate(safeStr(data.name), 14) + '</span>' +
+            '<span class="logo">🍃叶子说眼镜</span>' +
+            '</div>' +
+            // 第2行：配镜用途（📋图标变为黑色）
+            '<div class="purpose"><span style="color:#000;">📋</span> 配镜用途：' + safeStr(data.glassesPurpose) + '</div>' +
+            // 第3行：左右眼数据
+            '<div class="eyes-row">' +
+            '<div class="eye-box">' +
+            '<div class="eye-title" style="font-weight:bold;">左眼</div>' +
+            '<div class="eye-line"><span class="l">球镜</span><span class="v">' + formatDiopter(data.leftSphere) + '</span></div>' +
+            '<div class="eye-line"><span class="l">柱镜</span><span class="v">' + formatDiopter(data.leftCylinder) + '</span></div>' +
+            '<div class="eye-line"><span class="l">轴位</span><span class="v">' + safeNum(data.leftAxis) + '°</span></div>' +
+            '<div class="divider"></div>' +
+            '<div class="eye-line"><span class="l">瞳距</span><span class="v">' + leftPd + '</span></div>' +
+            '<div class="eye-line"><span class="l">瞳高</span><span class="v">' + leftPh + '</span></div>' +
+            '</div>' +
+            '<div class="eye-box">' +
+            '<div class="eye-title" style="font-weight:bold;">右眼</div>' +
+            '<div class="eye-line"><span class="l">球镜</span><span class="v">' + formatDiopter(data.rightSphere) + '</span></div>' +
+            '<div class="eye-line"><span class="l">柱镜</span><span class="v">' + formatDiopter(data.rightCylinder) + '</span></div>' +
+            '<div class="eye-line"><span class="l">轴位</span><span class="v">' + safeNum(data.rightAxis) + '°</span></div>' +
+            '<div class="divider"></div>' +
+            '<div class="eye-line"><span class="l">瞳距</span><span class="v">' + rightPd + '</span></div>' +
+            '<div class="eye-line"><span class="l">瞳高</span><span class="v">' + rightPh + '</span></div>' +
+            '</div>' +
+            '</div>' +
+            // 第4行：镜架 + 镜片（图标变为黑色）
+            '<div class="frame-row">' +
+            '<div class="frame-text"><span class="frame-label" style="color:#000;">🕶️</span> 镜架 ' + truncate(safeStr(data.frameModel), 16) + '</div>' +
+            '<div class="frame-text"><span class="frame-label" style="color:#000;">🔍</span> 镜片 ' + truncate(safeStr(data.lensType), 14) + '</div>' +
+            '</div>' +
+            '</div>' +
+            // 第5行：备注（新增）
+            '<div class="remark-row">' +
+            '<span class="remark-label">📝 备注</span> ' + truncate(safeStr(data.remark), 30) +
+            '</div>' +
+            '</div>' +
+            '</body>' +
+            '</html>';
+    }
+
+    // 打印标签
+    // 打印标签
+    async function printLabel(htmlContent, customerName) {
+        return new Promise((resolve, reject) => {
+            // 创建隐藏的iframe用于打印
+            const iframe = document.createElement('iframe');
+            iframe.style.position = 'absolute';
+            iframe.style.width = '0';
+            iframe.style.height = '0';
+            iframe.style.border = 'none';
+            document.body.appendChild(iframe);
+
+            const iframeDoc = iframe.contentWindow.document;
+            iframeDoc.open();
+            iframeDoc.write(htmlContent);
+            iframeDoc.close();
+
+            iframe.onload = () => {
+                setTimeout(() => {
+                    try {
+                        // 设置打印纸张大小为80mm x 60mm
+                        const style = iframeDoc.createElement('style');
+                        style.textContent = `
+                        @page {
+                            size: 80mm 60mm;
+                            margin: 0;
+                        }
+                        body {
+                            margin: 0;
+                            padding: 0;
+                            background: white;
+                            width: 80mm;
+                            height: 60mm;
+                            overflow: hidden;
+                        }
+                        .label {
+                            width: 80mm;
+                            height: 60mm;
+                            margin: 0;
+                            padding: 2.5mm 3mm;
+                            box-sizing: border-box;
+                            overflow: hidden;
+                        }
+                    `;
+                        iframeDoc.head.appendChild(style);
+
+                        // 执行打印
+                        iframe.contentWindow.focus();
+                        iframe.contentWindow.print();
+
+                        setTimeout(() => {
+                            document.body.removeChild(iframe);
+                            resolve();
+                        }, 1000);
+                    } catch (error) {
+                        document.body.removeChild(iframe);
+                        reject(error);
+                    }
+                }, 500);
+            };
+        });
     }
     async function logout() { await fetch(`${API_BASE}/logout`,{method:'GET',credentials:'include'}); showToast('已退出登录','success'); checkLoginStatus(); }
     window.onclick=function(e){ if(e.target===document.getElementById('editModal')) closeModal(); if(e.target===document.getElementById('pickerOverlay')) closePicker(); if(e.target===document.getElementById('userManageModal')) closeUserManageModal(); if(e.target===document.getElementById('confirmModal')) closeConfirmModal(); if(e.target===document.getElementById('imagePreviewModal')) closeImagePreview(); };
