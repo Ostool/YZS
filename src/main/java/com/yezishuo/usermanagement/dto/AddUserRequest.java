@@ -55,4 +55,7 @@ public class AddUserRequest {
 
     private List<String> existingImages;  // 保留的已有图片路径
     private List<String> newImages;       // 新上传的Base64图片
+
+    private String frameBrand;
+    private String lensBrand;
 }

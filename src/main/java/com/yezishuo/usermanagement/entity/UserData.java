@@ -123,6 +123,14 @@ public class UserData {
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
+    @Column(name = "frame_brand")
+    private String frameBrand;
+
+    @Column(name = "lens_brand")
+    private String lensBrand;
+
+// 添加对应的 getter/setter (Lombok 会自动生成)
+
     @PrePersist
     protected void onCreate() {
         createdAt = LocalDateTime.now();

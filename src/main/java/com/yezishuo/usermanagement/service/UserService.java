@@ -546,6 +546,8 @@ public class UserService {
             userData.setPhone(request.getPhone());
             userData.setOccupation(request.getOccupation() != null ? request.getOccupation() : "无");
             userData.setGlassesPurpose(request.getGlassesPurpose());
+            userData.setFrameBrand(request.getFrameBrand());
+            userData.setLensBrand(request.getLensBrand());
 
             // 处理配镜日期
             if (request.getPrescriptionDate() != null && !request.getPrescriptionDate().isEmpty()) {

@@ -6,6 +6,100 @@
     <title>叶子说眼镜 · 内部公告平台</title>
     <style>
 
+        /* 文章详情弹窗样式 */
+        .article-modal {
+            max-width: 800px;
+            max-height: 85vh;
+            overflow-y: auto;
+        }
+        .article-title {
+            font-size: 24px;
+            font-weight: bold;
+            color: var(--klein-blue);
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid var(--klein-blue);
+        }
+        .article-meta {
+            color: #999;
+            font-size: 12px;
+            margin-bottom: 25px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #eee;
+        }
+        .article-content {
+            line-height: 1.8;
+            font-size: 14px;
+            color: #333;
+        }
+        .article-content h1 { font-size: 22px; margin: 20px 0 10px; color: #222; }
+        .article-content h2 { font-size: 20px; margin: 18px 0 10px; color: #333; }
+        .article-content h3 { font-size: 18px; margin: 15px 0 8px; color: #444; }
+        .article-content p { margin: 10px 0; }
+        .article-content ul, .article-content ol { margin: 10px 0 10px 30px; }
+        .article-content li { margin: 5px 0; }
+        .article-content blockquote {
+            margin: 15px 0;
+            padding: 10px 20px;
+            background: #f5f5f5;
+            border-left: 4px solid var(--klein-blue);
+        }
+        .article-content table {
+            border-collapse: collapse;
+            width: 100%;
+            margin: 15px 0;
+        }
+        .article-content th, .article-content td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        .article-content th { background: #f2f2f2; }
+
+        /* 富文本编辑器工具栏样式 */
+        .editor-toolbar {
+            background: #f5f5f5;
+            border: 1px solid #ddd;
+            border-bottom: none;
+            border-radius: 8px 8px 0 0;
+            padding: 8px 12px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 5px;
+        }
+        .editor-toolbar button {
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            padding: 4px 10px;
+            cursor: pointer;
+            font-size: 12px;
+            transition: all 0.2s;
+        }
+        .editor-toolbar button:hover {
+            background: var(--klein-blue);
+            color: white;
+            border-color: var(--klein-blue);
+        }
+        .editor-toolbar select {
+            padding: 4px 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 12px;
+        }
+        .editor-content {
+            border: 1px solid #ddd;
+            border-radius: 0 0 8px 8px;
+            padding: 15px;
+            min-height: 300px;
+            overflow-y: auto;
+            background: white;
+        }
+        .editor-content:focus {
+            outline: none;
+            border-color: var(--klein-blue);
+        }
+
         .date-badge {
             font-family: 'Monaco', 'Menlo', monospace;
             font-size: 14px;
@@ -436,6 +530,109 @@
 <div id="toast" class="toast"></div>
 
 <script>
+
+    // 当前编辑的文章ID
+    let currentEditingArticleId = null;
+
+    // 查看文章详情
+    // 查看文章详情
+    function viewArticle(id) {
+        const article = rulesData.find(r => r.id === id);
+        if (!article) return;
+
+        // 安全地渲染 HTML 内容
+        const modalBody = document.getElementById('articleModalBody');
+        modalBody.innerHTML = `
+        <div class="article-title">${escapeHtml(article.title)}</div>
+        <div class="article-meta">
+            <span>📁 ${escapeHtml(article.tag || '制度')}</span>
+            <span style="margin-left:15px;">📅 ${escapeHtml(article.version || '')}</span>
+        </div>
+        <div class="article-content">${article.content || '<p>暂无详细内容</p>'}</div>
+    `;
+        document.getElementById('articleModal').style.display = 'flex';
+    }
+
+    function closeArticleModal() {
+        document.getElementById('articleModal').style.display = 'none';
+    }
+
+    function escapeHtml(str) {
+        if (!str) return '';
+        return str.replace(/[&<>]/g, function(m) {
+            if (m === '&') return '&amp;';
+            if (m === '<') return '&lt;';
+            if (m === '>') return '&gt;';
+            return m;
+        });
+    }
+
+    // 富文本编辑器功能
+    function formatDocument(command, value) {
+        document.execCommand(command, false, value);
+        document.getElementById('editorContent').focus();
+    }
+
+    function clearFormatting() {
+        document.execCommand('removeFormat', false, null);
+        document.getElementById('editorContent').focus();
+    }
+
+    // 编辑文章（管理员模式）
+    function editArticle(id) {
+        if (!isAdmin) {
+            showToast('请先登录管理员账号', 'error');
+            return;
+        }
+        const article = rulesData.find(r => r.id === id);
+        if (!article) return;
+
+        currentEditingArticleId = id;
+        document.getElementById('editorModalTitle').textContent = '编辑文章';
+        document.getElementById('editorTitle').value = article.title || '';
+        document.getElementById('editorTag').value = article.tag || '';
+        document.getElementById('editorVersion').value = article.version || '';
+        document.getElementById('editorContent').innerHTML = article.content || '';
+        document.getElementById('editorModal').style.display = 'flex';
+    }
+
+    // 保存文章
+    async function saveArticle() {
+        const title = document.getElementById('editorTitle').value.trim();
+        const tag = document.getElementById('editorTag').value.trim();
+        const version = document.getElementById('editorVersion').value.trim();
+        const content = document.getElementById('editorContent').innerHTML;
+
+        if (!title) {
+            showToast('请输入文章标题', 'error');
+            return;
+        }
+
+        const data = {
+            title: title,
+            tag: tag,
+            version: version,
+            content: content,
+            sortOrder: 0
+        };
+
+        const result = await apiFetch(`/rules/${currentEditingArticleId}`, { method: 'PUT', body: data });
+        if (result.success) {
+            showToast('保存成功', 'success');
+            closeEditorModal();
+            loadRules();
+        } else {
+            showToast(result.message || '保存失败', 'error');
+        }
+    }
+
+    function closeEditorModal() {
+        document.getElementById('editorModal').style.display = 'none';
+        currentEditingArticleId = null;
+    }
+
+
+
     const API_BASE = '/api';
     let isAdmin = false;
     let currentUserRoleLevel = 2;
@@ -750,14 +947,14 @@
             rulesData = result.rules || []; rulesNote = result.rulesNote || ''; rulesVersion = result.rulesVersion || '2026年5月版';
             document.getElementById('rulesVersion').innerHTML = rulesVersion;
             document.getElementById('rulesList').innerHTML = rulesData.map(item => `
-                <div class="list-item" data-id="${item.id}">
-                    <div><span class="badge-icon">${item.tag || '制度'}</span> ${item.title}</div>
-                    <div style="display:flex; gap:12px; align-items:center;">
-                        <span>${item.version || ''}</span>
-                        ${isAdmin ? `<span class="edit-icon" onclick="editRule(${item.id})">✏️</span><span class="delete-icon" onclick="deleteRule(${item.id})">🗑️</span>` : ''}
-                    </div>
+            <div class="list-item" data-id="${item.id}" onclick="viewArticle(${item.id})">
+                <div><span class="badge-icon">${item.tag || '制度'}</span> ${item.title}</div>
+                <div style="display:flex; gap:12px; align-items:center;">
+                    <span>${item.version || ''}</span>
+                    ${isAdmin ? `<span class="edit-icon" onclick="event.stopPropagation(); editArticle(${item.id})">✏️</span><span class="delete-icon" onclick="event.stopPropagation(); deleteRule(${item.id})">🗑️</span>` : ''}
                 </div>
-            `).join('');
+            </div>
+        `).join('');
             document.getElementById('rulesNoteText').innerHTML = rulesNote;
         }
     }
@@ -1017,24 +1214,6 @@
         });
     }
 
-    function editRule(id) {
-        const rule = rulesData.find(r => r.id === id);
-        if (!rule) return;
-        openEditModal('编辑制度', [
-            { name: 'tag', label: '标签', value: rule.tag || '' }, { name: 'title', label: '标题', value: rule.title },
-            { name: 'version', label: '版本号', value: rule.version || '' }, { name: 'content', label: '内容', value: rule.content || '', type: 'textarea' }
-        ], async () => {
-            const data = {
-                tag: document.getElementById('edit_tag').value,
-                title: document.getElementById('edit_title').value,
-                version: document.getElementById('edit_version').value,
-                content: document.getElementById('edit_content').value,
-                sortOrder: rule.sortOrder
-            };
-            const result = await apiFetch(`/rules/${id}`, { method: 'PUT', body: data });
-            if (result.success) { showToast('更新成功'); loadRules(); }
-        });
-    }
 
     async function deleteRule(id) { if (confirm('确定删除这条制度吗？')) { const result = await apiFetch(`/rules/${id}`, { method: 'DELETE' }); if (result.success) { showToast('删除成功'); loadRules(); } } }
 
@@ -1266,5 +1445,70 @@
     window.openImageUpload = openImageUpload; window.closeImageUploadModal = closeImageUploadModal; window.confirmUploadImage = confirmUploadImage;
     window.showImagePreview = showImagePreview; window.closeImagePreview = closeImagePreview;
 </script>
+<!-- 文章详情模态框 -->
+<div id="articleModal" class="modal">
+    <div class="modal-content article-modal">
+        <div class="modal-header">
+            <h3 id="articleModalTitle">文章详情</h3>
+            <span class="modal-close" onclick="closeArticleModal()">&times;</span>
+        </div>
+        <div class="modal-body" id="articleModalBody"></div>
+        <div class="modal-footer">
+            <button class="btn btn-secondary" onclick="closeArticleModal()">关闭</button>
+        </div>
+    </div>
+</div>
+
+<!-- 富文本编辑器模态框 -->
+<div id="editorModal" class="modal">
+    <div class="modal-content" style="max-width: 900px;">
+        <div class="modal-header">
+            <h3 id="editorModalTitle">编辑文章</h3>
+            <span class="modal-close" onclick="closeEditorModal()">&times;</span>
+        </div>
+        <div class="modal-body">
+            <div class="form-group">
+                <label>文章标题</label>
+                <input type="text" id="editorTitle" style="width:100%; padding:10px; border:1px solid #ddd; border-radius:8px;">
+            </div>
+            <div class="form-group">
+                <label>标签/分类</label>
+                <input type="text" id="editorTag" placeholder="如：考勤、仪容仪表" style="width:100%; padding:10px; border:1px solid #ddd; border-radius:8px;">
+            </div>
+            <div class="form-group">
+                <label>版本号</label>
+                <input type="text" id="editorVersion" placeholder="生效日期或版本号" style="width:100%; padding:10px; border:1px solid #ddd; border-radius:8px;">
+            </div>
+            <div class="form-group">
+                <label>正文内容</label>
+                <div class="editor-toolbar">
+                    <select id="formatBlock" onchange="formatDocument('formatBlock', this.value); this.value='';">
+                        <option value="">段落格式</option>
+                        <option value="h1">标题1</option>
+                        <option value="h2">标题2</option>
+                        <option value="h3">标题3</option>
+                        <option value="p">正文</option>
+                    </select>
+                    <button type="button" onclick="formatDocument('bold')"><b>B</b></button>
+                    <button type="button" onclick="formatDocument('italic')"><i>I</i></button>
+                    <button type="button" onclick="formatDocument('underline')"><u>U</u></button>
+                    <button type="button" onclick="formatDocument('insertOrderedList')">1.</button>
+                    <button type="button" onclick="formatDocument('insertUnorderedList')">•</button>
+                    <button type="button" onclick="formatDocument('indent')">→ 缩进</button>
+                    <button type="button" onclick="formatDocument('outdent')">← 取消缩进</button>
+                    <button type="button" onclick="formatDocument('justifyLeft')">左对齐</button>
+                    <button type="button" onclick="formatDocument('justifyCenter')">居中</button>
+                    <button type="button" onclick="formatDocument('justifyRight')">右对齐</button>
+                    <button type="button" onclick="clearFormatting()">清除格式</button>
+                </div>
+                <div id="editorContent" class="editor-content" contenteditable="true"></div>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-secondary" onclick="closeEditorModal()">取消</button>
+            <button class="btn btn-primary" onclick="saveArticle()">保存</button>
+        </div>
+    </div>
+</div>
 </body>
 </html>

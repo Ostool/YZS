@@ -317,11 +317,23 @@
                     <h4>💰 配镜商品信息</h4>
                     <div class="product-row">
                         <div class="product-item"><h5>镜架信息</h5>
+                            <div class="form-group" style="position:relative;">
+                                <label>镜架品牌 <span style="color:red;">*</span></label>
+                                <input type="text" id="editFrameBrand" placeholder="点击搜索选择或手动输入，如：叶子说199" readonly style="cursor:pointer; background:#f8f9fa;">
+                                <div class="error-message" id="frameBrandError">请选择镜架品牌</div>
+                                <div style="display:none; position:absolute; background:white; border:1px solid #ddd; border-radius:5px; max-height:200px; overflow-y:auto; z-index:1000; width:100%;" id="frameBrandPicker" class="brand-picker"></div>
+                            </div>
                             <div class="form-group"><label>镜架型号</label><input type="text" id="editFrameModel"></div>
                             <div class="form-group"><label>镜架原价</label><input type="number" step="0.01" id="editFrameOriginalPrice"></div>
                             <div class="form-group"><label>镜架实收价格</label><input type="number" step="0.01" id="editFrameActualPrice" placeholder="实收金额"></div>
                         </div>
                         <div class="product-item"><h5>镜片信息</h5>
+                            <div class="form-group" style="position:relative;">
+                                <label>镜片品牌 <span style="color:red;">*</span></label>
+                                <input type="text" id="editLensBrand" placeholder="点击搜索选择或手动输入，如：明月镜片" readonly style="cursor:pointer; background:#f8f9fa;">
+                                <div class="error-message" id="lensBrandError">请选择镜片品牌</div>
+                                <div style="display:none; position:absolute; background:white; border:1px solid #ddd; border-radius:5px; max-height:200px; overflow-y:auto; z-index:1000; width:100%;" id="lensBrandPicker" class="brand-picker"></div>
+                            </div>
                             <div class="form-group"><label>镜片种类</label><input type="text" id="editLensType"></div>
                             <div class="form-group"><label>镜片原价</label><input type="number" step="0.01" id="editLensOriginalPrice"></div>
                             <div class="form-group"><label>镜片实收价格</label><input type="number" step="0.01" id="editLensActualPrice" placeholder="实收金额"></div>
@@ -421,6 +433,141 @@
     let currentPreviewIndex = 0;
     let currentEditImagePaths = []; // 编辑时已有的图片路径
           // 当前编辑的记录ID
+
+    // 镜架品牌列表
+    const frameBrands = [
+        '叶子说199', '暴龙', '维多利亚', '瑞贝斯', '名盾', 'NBA', '陌森', '亓那', '保圣', '蔡司光学架',
+        '小春菊', '浪特梦', '维斯芙奈尔', '丹妮艾遮阳镜', '叶子说T系列', '叶子说Z系列', '叶子说舒钛系列',
+        '叶子说U系列', '土豆', '魅影', '番茄', '叶子说一体式软鼻托', '男款老花镜', '女款老花镜', '逸夫',
+        '摩今', '叶子说飒迈系列', '其他'
+    ];
+
+    // 镜片品牌列表
+    const lensBrands = [
+        '叶子说', '蔡司', '依视路', '豪雅', '豪雅100', '尼康', '暴龙', '万新', '明月镜片', '康耐特',
+        '视特耐', '明视宁', '其他'
+    ];
+
+
+    // 初始化品牌选择器（完整版）
+    function initBrandPicker(inputId, pickerId, brands) {
+        const input = document.getElementById(inputId);
+        const picker = document.getElementById(pickerId);
+
+        if (!input || !picker) {
+            console.log('未找到元素:', inputId, pickerId);
+            return;
+        }
+        console.log('找到元素，开始绑定事件...');
+        // 生成唯一的搜索框ID
+        const searchId = 'pickerSearch_' + pickerId;
+
+        // 创建3x3表格
+        function renderPicker(filterText = '') {
+            const filtered = filterText ? brands.filter(b => b.includes(filterText)) : [...brands];
+            // 叶子说199置顶
+            filtered.sort((a, b) => {
+                if (a === '叶子说199') return -1;
+                if (b === '叶子说199') return 1;
+                return 0;
+            });
+
+            let html = '<div style="padding:8px;"><input type="text" id="' + searchId + '" placeholder="搜索..." style="width:100%; padding:6px; border:1px solid #ddd; border-radius:4px; margin-bottom:8px;"></div>';
+            html += '<table style="width:100%; border-collapse:collapse;">';
+            for (let i = 0; i < filtered.length; i++) {
+                if (i % 3 === 0) html += '<tr>';
+                const escapedValue = filtered[i].replace(/'/g, "\\'");
+                html += `<td style="padding:8px; border:1px solid #eee; text-align:center; cursor:pointer;" onclick="selectBrand('${inputId}', '${escapedValue}')">${filtered[i]}</td>`;
+                if ((i + 1) % 3 === 0) html += '</tr>';
+            }
+            if (filtered.length % 3 !== 0) html += '</tr>';
+            html += '</tr>';
+            picker.innerHTML = html;
+
+            // 绑定搜索事件
+            const searchInput = document.getElementById(searchId);
+            if (searchInput) {
+                // 移除旧的事件监听器，避免重复绑定
+                const newSearchInput = searchInput.cloneNode(true);
+                searchInput.parentNode.replaceChild(newSearchInput, searchInput);
+                newSearchInput.addEventListener('input', (e) => {
+                    renderPicker(e.target.value);
+                });
+            }
+        }
+
+        // 移除旧的事件监听器
+        const newInput = input.cloneNode(true);
+        input.parentNode.replaceChild(newInput, input);
+
+        // 显示选择器
+        newInput.addEventListener('click', (e) => {
+            e.stopPropagation();
+            // 隐藏其他选择器
+            document.querySelectorAll('.brand-picker').forEach(p => {
+                if (p !== picker) p.style.display = 'none';
+            });
+            picker.style.display = 'block';
+            renderPicker('');
+        });
+
+        // 点击其他地方隐藏
+        document.addEventListener('click', () => {
+            picker.style.display = 'none';
+        });
+
+        picker.addEventListener('click', (e) => {
+            e.stopPropagation();
+        });
+    }
+
+    function selectBrand(inputId, value) {
+        const input = document.getElementById(inputId);
+        if (input) {
+            input.value = value;
+            // 触发input事件以便保存
+            const event = new Event('input', { bubbles: true });
+            input.dispatchEvent(event);
+            // 清除错误样式
+            const errorId = inputId === 'editFrameBrand' ? 'frameBrandError' : 'lensBrandError';
+            const errorEl = document.getElementById(errorId);
+            if (errorEl) errorEl.style.display = 'none';
+            input.classList.remove('error-input');
+        }
+        // 隐藏所有选择器
+        document.querySelectorAll('.brand-picker').forEach(picker => {
+            picker.style.display = 'none';
+        });
+    }
+
+
+    // 初始化品牌选择器
+    function initBrandPickers(retryCount = 0) {
+        console.log('开始初始化品牌选择器，尝试次数:', retryCount);
+        var frameInput = document.getElementById('editFrameBrand');
+        var lensInput = document.getElementById('editLensBrand');
+        var framePicker = document.getElementById('frameBrandPicker');
+        var lensPicker = document.getElementById('lensBrandPicker');
+
+        console.log('镜架品牌输入框:', frameInput);
+        console.log('镜片品牌输入框:', lensInput);
+        console.log('镜架品牌选择器:', framePicker);
+        console.log('镜片品牌选择器:', lensPicker);
+
+        if (frameInput && lensInput && framePicker && lensPicker) {
+            initBrandPicker('editFrameBrand', 'frameBrandPicker', frameBrands);
+            initBrandPicker('editLensBrand', 'lensBrandPicker', lensBrands);
+            console.log('品牌选择器初始化完成');
+        } else if (retryCount < 5) {
+            // 如果元素还没加载完成，500ms后重试，最多重试5次
+            console.log('元素未找到，500ms后重试...');
+            setTimeout(function() {
+                initBrandPickers(retryCount + 1);
+            }, 500);
+        } else {
+            console.log('品牌选择器初始化失败，元素未找到');
+        }
+    }
 
     function getImageUrl(path) {
         if (!path) return '';
@@ -866,6 +1013,8 @@
         document.getElementById('editRightPupilDistance').value = data.rightPupilDistance || '';
         document.getElementById('editRightPupilHeight').value = data.rightPupilHeight || '';
         document.getElementById('editFrameModel').value = data.frameModel || '';
+        document.getElementById('editFrameBrand').value = data.frameBrand || '';
+        document.getElementById('editLensBrand').value = data.lensBrand || '';
         document.getElementById('editFrameOriginalPrice').value = data.frameOriginalPrice || '';
         document.getElementById('editFrameActualPrice').value = data.frameActualPrice || '';
         document.getElementById('editLensType').value = data.lensType || '';
@@ -925,6 +1074,8 @@
             consultant: document.getElementById('editConsultant')?.value,
             needFollowup: document.getElementById('editNeedFollowup')?.value,
             remark: document.getElementById('editRemark')?.value,
+            frameBrand: document.getElementById('editFrameBrand')?.value,
+            lensBrand: document.getElementById('editLensBrand')?.value,
             existingImages: currentEditImagePaths,  // 保留的已有图片路径
             newImages: uploadedImages              // 新上传的Base64图片
         };
@@ -937,11 +1088,31 @@
         let a = document.getElementById('editAge')?.value; if (!a || a<1 || a>120) { showError('editAge','ageError'); ok=false; } else clearError('editAge','ageError');
         if (!document.getElementById('editShopName')?.value) { showError('editShopName','shopNameError'); ok=false; } else clearError('editShopName','shopNameError');
         if (!document.getElementById('editGlassesPurpose')?.value) { showError('editGlassesPurpose','purposeError'); ok=false; } else clearError('editGlassesPurpose','purposeError');
+
+        // 新增：镜架品牌必选验证
+        if (!document.getElementById('editFrameBrand')?.value) {
+            showError('editFrameBrand', 'frameBrandError');
+            ok=false;
+        } else {
+            clearError('editFrameBrand', 'frameBrandError');
+        }
+
+        // 新增：镜片品牌必选验证
+        if (!document.getElementById('editLensBrand')?.value) {
+            showError('editLensBrand', 'lensBrandError');
+            ok=false;
+        } else {
+            clearError('editLensBrand', 'lensBrandError');
+        }
+
         return ok;
     }
     function showError(iid,eid) { let ie=document.getElementById(iid); if(ie) ie.classList.add('error-input'); let ee=document.getElementById(eid); if(ee) ee.style.display='block'; }
     function clearError(iid,eid) { let ie=document.getElementById(iid); if(ie) ie.classList.remove('error-input'); let ee=document.getElementById(eid); if(ee) ee.style.display='none'; }
-    function clearErrors() { ['nameError','genderError','ageError','shopNameError','purposeError'].forEach(id=>{let e=document.getElementById(id);if(e)e.style.display='none';}); ['editName','editGender','editAge','editShopName','editGlassesPurpose'].forEach(id=>{let e=document.getElementById(id);if(e)e.classList.remove('error-input');}); }
+    function clearErrors() {
+        ['nameError','genderError','ageError','shopNameError','purposeError','frameBrandError','lensBrandError'].forEach(id=>{let e=document.getElementById(id);if(e)e.style.display='none';});
+        ['editName','editGender','editAge','editShopName','editGlassesPurpose','editFrameBrand','editLensBrand'].forEach(id=>{let e=document.getElementById(id);if(e)e.classList.remove('error-input');});
+    }
     function closeModal() { document.getElementById('editModal').style.display = 'none'; clearErrors(); }
     function closeUserManageModal() { document.getElementById('userManageModal').style.display = 'none'; }
     function showToast(msg,type) { let t=document.getElementById('toast'); t.textContent=msg; t.className='toast '+type; t.style.display='block'; setTimeout(()=>t.style.display='none',3000); }
@@ -978,10 +1149,24 @@
     async function editRecord(id) {
         if (currentRoleLevel === 2) { showToast('游客账号无权限修改数据','error'); return; }
         try {
-            let res = await fetch(`${API_BASE}/getUser/${id}`, { method:'GET', credentials:'include'});            let r = await res.json();
-            if (r.success) { document.getElementById('modalTitle').textContent = '编辑配镜处方'; fillFormData(r.data); document.getElementById('editModal').style.display = 'block'; }
-            else showToast(r.message,'error');
-        } catch(e) { showToast('获取数据失败','error'); }
+            let res = await fetch(`${API_BASE}/getUser/${id}`, { method:'GET', credentials:'include'});
+            let r = await res.json();
+            if (r.success) {
+                document.getElementById('modalTitle').textContent = '编辑配镜处方';
+                fillFormData(r.data);
+                document.getElementById('editModal').style.display = 'block';
+
+                // 编辑时也初始化品牌选择器
+                setTimeout(function() {
+                    initBrandPickers();
+                    console.log('编辑页面品牌选择器已初始化');
+                }, 300);
+            } else {
+                showToast(r.message,'error');
+            }
+        } catch(e) {
+            showToast('获取数据失败','error');
+        }
     }
 
     function showAddModal() {
@@ -1003,6 +1188,12 @@
         if (ps) ps.dispatchEvent(new Event('change'));
         setupPriceCalculations();
         document.getElementById('editModal').style.display = 'block';
+
+        // 确保DOM完全渲染后再初始化品牌选择器
+        setTimeout(function() {
+            initBrandPickers();
+            console.log('新增页面品牌选择器已初始化');
+        }, 300);
     }
 
     function bindPickerEvents() {
@@ -1162,7 +1353,7 @@
             } else {
                 prescriptionHtml = '<span style="color:#ccc;">-</span>';
             }
-            let fields = [item.serialNo || '-', item.name || '-', item.gender || '-', item.age || '-', item.glassesPurpose || '-', dateStr, prescriptionHtml, item.leftSphere || '-', item.leftCylinder || '-', item.leftAxis || '-', item.rightSphere || '-', item.rightCylinder || '-', item.rightAxis || '-', item.frameModel || '-', item.lensType || '-', item.consultant || '-', item.shopName || '-'];
+            let fields = [item.serialNo || '-', item.name || '-', item.gender || '-', item.age || '-', item.glassesPurpose || '-', dateStr, prescriptionHtml, item.leftSphere || '-', item.leftCylinder || '-', item.leftAxis || '-', item.rightSphere || '-', item.rightCylinder || '-', item.rightAxis || '-', (item.frameBrand ? item.frameBrand + ' · ' : '') + (item.frameModel || '-'), (item.lensBrand ? item.lensBrand + ' · ' : '') + (item.lensType || '-'), item.consultant || '-', item.shopName || '-'];
             if (!isGuest) { fields.push(item.phone || '-'); fields.push(item.totalAmount ? '¥' + item.totalAmount : '-'); }
             fields.forEach(f => { let td = document.createElement('td'); td.innerHTML = f; row.appendChild(td); });
 
