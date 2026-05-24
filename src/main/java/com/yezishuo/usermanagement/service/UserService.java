@@ -50,11 +50,43 @@ public class UserService {
         }
 
         if (passwordEncoder.matches(request.getPassword(), user.getPassword())) {
+            // ========== 原有 session 属性（处方系统使用）==========
             session.setAttribute("userId", user.getId());
             session.setAttribute("username", user.getUsername());
             session.setAttribute("role", user.getRole());
             session.setAttribute("roleLevel", user.getRoleLevel());
             session.setAttribute("realName", user.getRealName());
+            session.setAttribute("shopName", user.getShopName());  // 门店名称
+
+            // ========== 新增：调货系统需要的 session 属性 ==========
+            // 根据 roleLevel 设置调货系统的角色
+            // 0=超级管理员(SUPER), 1=普通用户(NORMAL), 2=游客(GUEST)
+            String transferRole = "GUEST";
+            Integer roleLevel = user.getRoleLevel();
+            if (roleLevel != null) {
+                if (roleLevel == 0) {
+                    transferRole = "SUPER";     // 超级管理员
+                } else if (roleLevel == 1) {
+                    transferRole = "NORMAL";    // 普通用户
+                } else if (roleLevel == 2) {
+                    transferRole = "GUEST";     // 游客
+                }
+            }
+            session.setAttribute("userRole", transferRole);
+
+            // 设置显示名称（优先使用门店名称 shopName，其次真实姓名 realName，最后用户名 username）
+            String displayName = user.getShopName();
+            if (displayName == null || displayName.isEmpty()) {
+                displayName = user.getRealName();
+            }
+            if (displayName == null || displayName.isEmpty()) {
+                displayName = user.getUsername();
+            }
+            session.setAttribute("userName", displayName);
+            session.setAttribute("storeName", displayName);
+
+            // 设置登录状态标志
+            session.setAttribute("isLoggedIn", true);
 
             result.put("success", true);
             result.put("message", "登录成功");
@@ -63,8 +95,10 @@ public class UserService {
             userInfo.put("id", user.getId());
             userInfo.put("username", user.getUsername());
             userInfo.put("realName", user.getRealName());
+            userInfo.put("shopName", user.getShopName());
             userInfo.put("role", user.getRole());
             userInfo.put("roleLevel", user.getRoleLevel());
+            userInfo.put("transferRole", transferRole);  // 调货系统角色
             result.put("user", userInfo);
         } else {
             result.put("success", false);

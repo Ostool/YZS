@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>叶子说眼镜 · 登录</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #002FA7 0%, #0050e6 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        .login-container { max-width: 420px; width: 100%; }
+        .brand { text-align: center; margin-bottom: 40px; }
+        .brand h1 { font-size: 36px; color: white; margin-bottom: 8px; }
+        .brand p { font-size: 14px; color: rgba(255,255,255,0.8); }
+        .login-card {
+            background: white;
+            border-radius: 32px;
+            padding: 40px 32px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+        }
+        .login-title { font-size: 24px; font-weight: 600; color: #002FA7; text-align: center; margin-bottom: 8px; }
+        .login-subtitle { font-size: 14px; color: #666; text-align: center; margin-bottom: 32px; }
+        .input-group { margin-bottom: 24px; }
+        .input-group label { display: block; font-size: 13px; font-weight: 500; color: #333; margin-bottom: 8px; }
+        .input-group input {
+            width: 100%;
+            padding: 14px 16px;
+            border: 1.5px solid #e2e8f0;
+            border-radius: 16px;
+            font-size: 15px;
+            font-family: inherit;
+            transition: all 0.2s;
+            outline: none;
+        }
+        .input-group input:focus { border-color: #002FA7; box-shadow: 0 0 0 3px rgba(0,47,167,0.1); }
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 24px;
+        }
+        .checkbox-group label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            font-size: 13px;
+            color: #666;
+        }
+        .login-btn {
+            width: 100%;
+            background: #002FA7;
+            border: none;
+            padding: 14px;
+            border-radius: 16px;
+            font-weight: 600;
+            font-size: 16px;
+            color: white;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .login-btn:hover { background: #00248a; transform: translateY(-2px); }
+        .error-msg {
+            background: #fee2e2;
+            color: #dc2626;
+            padding: 12px;
+            border-radius: 12px;
+            font-size: 13px;
+            margin-bottom: 20px;
+            text-align: center;
+            display: none;
+        }
+        .store-info { text-align: center; margin-top: 24px; font-size: 12px; color: #999; }
+        .back-link { display: block; text-align: center; margin-top: 20px; color: rgba(255,255,255,0.7); text-decoration: none; font-size: 13px; }
+        .back-link:hover { color: white; }
+    </style>
+</head>
+<body>
+<div class="login-container">
+    <div class="brand">
+        <h1>🍃 叶子说眼镜</h1>
+        <p>门店调货管理系统</p>
+    </div>
+    <div class="login-card">
+        <div class="login-title">门店登录</div>
+        <div class="login-subtitle">请使用门店账号登录</div>
+
+        <div class="error-msg" id="errorMsg"></div>
+
+        <div class="input-group">
+            <label><i class="fas fa-store"></i> 门店账号</label>
+            <input type="text" id="username" placeholder="请输入门店账号">
+        </div>
+        <div class="input-group">
+            <label><i class="fas fa-lock"></i> 密码</label>
+            <input type="password" id="password" placeholder="请输入密码">
+        </div>
+        <div class="checkbox-group">
+            <label>
+                <input type="checkbox" id="rememberCheckbox"> 记住密码
+            </label>
+        </div>
+        <button class="login-btn" id="loginBtn">
+            <i class="fas fa-sign-in-alt"></i> 登录系统
+        </button>
+        <div class="store-info">
+            <i class="fas fa-info-circle"></i> 每个门店拥有独立账号，请联系管理员获取
+        </div>
+    </div>
+    <a href="index.html" class="back-link">
+        <i class="fas fa-arrow-left"></i> 返回门户首页
+    </a>
+</div>
+
+<script>
+    const loginBtn = document.getElementById('loginBtn');
+    const usernameInput = document.getElementById('username');
+    const passwordInput = document.getElementById('password');
+    const rememberCheckbox = document.getElementById('rememberCheckbox');
+    const errorMsg = document.getElementById('errorMsg');
+
+    // 加载保存的账号密码
+    function loadSavedCredentials() {
+        const savedUsername = localStorage.getItem('saved_username');
+        const savedPassword = localStorage.getItem('saved_password');
+        if (savedUsername && savedPassword) {
+            usernameInput.value = savedUsername;
+            passwordInput.value = savedPassword;
+            rememberCheckbox.checked = true;
+        }
+    }
+
+    function showError(message) {
+        errorMsg.textContent = message;
+        errorMsg.style.display = 'block';
+        setTimeout(() => { errorMsg.style.display = 'none'; }, 3000);
+    }
+
+    function doLogin() {
+        const username = usernameInput.value.trim();
+        const password = passwordInput.value.trim();
+
+        if (!username || !password) {
+            showError('请填写完整的门店账号和密码');
+            return;
+        }
+
+        // 记住密码逻辑
+        if (rememberCheckbox.checked) {
+            localStorage.setItem('saved_username', username);
+            localStorage.setItem('saved_password', password);
+        } else {
+            localStorage.removeItem('saved_username');
+            localStorage.removeItem('saved_password');
+        }
+
+        loginBtn.disabled = true;
+        loginBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 登录中...';
+
+        fetch('/api/login', {
+            method: 'POST',
+            credentials: 'include',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ username: username, password: password })
+        })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    window.location.href = 'transfer.html';
+                } else {
+                    showError(data.message || '登录失败，请检查账号密码');
+                    loginBtn.disabled = false;
+                    loginBtn.innerHTML = '<i class="fas fa-sign-in-alt"></i> 登录系统';
+                }
+            })
+            .catch(error => {
+                console.error('登录请求失败:', error);
+                showError('网络错误，请稍后重试');
+                loginBtn.disabled = false;
+                loginBtn.innerHTML = '<i class="fas fa-sign-in-alt"></i> 登录系统';
+            });
+    }
+
+    loginBtn.addEventListener('click', doLogin);
+    usernameInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') doLogin(); });
+    passwordInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') doLogin(); });
+
+    loadSavedCredentials();
+</script>
+</body>
+</html>

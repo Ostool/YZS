@@ -11,8 +11,7 @@ import java.util.Optional;
 @Repository
 public interface UserRepository extends JpaRepository<User, Integer> {
     Optional<User> findByUsername(String username);
-
-    List<User> findByRoleLevelGreaterThan(Integer roleLevel);
+    List<User> findByRoleLevel(Integer roleLevel);
 
     @Query("SELECT u FROM User u WHERE u.id != :currentUserId ORDER BY u.createdAt DESC")
     List<User> findAllExceptCurrent(@Param("currentUserId") Integer currentUserId);

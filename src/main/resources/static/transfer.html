@@ -1,0 +1,1811 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>叶子说眼镜 · 门店调货系统</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        /* 分页样式 */
+        .pagination-container {
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+            gap: 12px;
+            padding: 16px 24px;
+            background: #f8fafd;
+            border-top: 1px solid var(--gray-border);
+            flex-wrap: wrap;
+        }
+        .pagination-btn {
+            background: white;
+            border: 1px solid var(--gray-border);
+            border-radius: 8px;
+            padding: 6px 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 0.8rem;
+            color: #1a2c3e;
+        }
+        .pagination-btn:hover:not(:disabled) {
+            background: var(--klein-blue);
+            color: white;
+            border-color: var(--klein-blue);
+        }
+        .pagination-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        .pagination-info {
+            font-size: 0.8rem;
+            color: #6c7f8f;
+        }
+        .page-numbers {
+            display: flex;
+            gap: 5px;
+        }
+        .page-number {
+            min-width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.8rem;
+            background: white;
+            border: 1px solid var(--gray-border);
+            transition: all 0.2s;
+        }
+        .page-number:hover {
+            background: var(--klein-blue);
+            color: white;
+            border-color: var(--klein-blue);
+        }
+        .page-number.active {
+            background: var(--klein-blue);
+            color: white;
+            border-color: var(--klein-blue);
+        }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: #F0F4FC;
+            font-family: 'Inter', sans-serif;
+            color: #1A2C3E;
+            padding: 32px 24px 48px 24px;
+        }
+
+        :root {
+            --klein-blue: #002FA7;
+            --klein-dark: #00248a;
+            --gray-border: #e2e8f0;
+            --card-white: #ffffff;
+        }
+
+        .system-container {
+            max-width: 1440px;
+            margin: 0 auto;
+        }
+
+        /* 通知详情模态框样式 */
+        .notification-detail-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+        }
+        .notification-detail-content {
+            background: white;
+            border-radius: 28px;
+            width: 90%;
+            max-width: 550px;
+            max-height: 80vh;
+            overflow-y: auto;
+            padding: 24px;
+        }
+        .detail-section {
+            background: #f8fafd;
+            border-radius: 16px;
+            padding: 16px;
+            margin-bottom: 20px;
+        }
+        .detail-item {
+            display: flex;
+            margin-bottom: 12px;
+        }
+        .detail-label {
+            width: 100px;
+            font-weight: 600;
+            color: #4a627a;
+        }
+        .detail-value {
+            flex: 1;
+            color: #1a2c3e;
+        }
+        .reason-box {
+            background: #fef3c7;
+            padding: 12px;
+            border-radius: 12px;
+            margin-top: 12px;
+            border-left: 3px solid #f59e0b;
+        }
+
+        .brand-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            margin-bottom: 32px;
+            border-bottom: 3px solid var(--klein-blue);
+            padding-bottom: 16px;
+        }
+        .brand-title {
+            cursor: pointer;
+            transition: opacity 0.2s;
+        }
+        .brand-title:hover {
+            opacity: 0.8;
+        }
+        .brand-title h1 {
+            font-size: 1.9rem;
+            font-weight: 700;
+            color: var(--klein-blue);
+            letter-spacing: -0.3px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .brand-title h1 i {
+            background: var(--klein-blue);
+            color: white;
+            padding: 8px;
+            border-radius: 20px;
+            font-size: 1.4rem;
+            width: 44px;
+            text-align: center;
+        }
+        .brand-title p {
+            font-size: 0.9rem;
+            color: #4a627a;
+            margin-top: 8px;
+            font-weight: 500;
+        }
+
+        .right-header {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        /* 铃铛通知样式 */
+        .notification-bell {
+            position: relative;
+            cursor: pointer;
+            background: white;
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            border: 1px solid var(--gray-border);
+            transition: all 0.2s;
+        }
+        .notification-bell:hover {
+            background: #f5f7fa;
+            transform: scale(1.05);
+        }
+        .notification-bell i {
+            font-size: 1.2rem;
+            color: #6c7f8f;
+        }
+        .notification-bell.has-notification i {
+            color: var(--klein-blue);
+        }
+        .notification-badge {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            background: #e03a3a;
+            color: white;
+            font-size: 0.65rem;
+            font-weight: 600;
+            padding: 2px 6px;
+            border-radius: 20px;
+            min-width: 18px;
+            text-align: center;
+        }
+
+        /* 通知面板 */
+        .notification-panel {
+            position: absolute;
+            top: 70px;
+            right: 120px;
+            width: 360px;
+            max-height: 460px;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 12px 28px rgba(0,0,0,0.15);
+            z-index: 1000;
+            display: none;
+            flex-direction: column;
+            overflow: hidden;
+            border: 1px solid var(--gray-border);
+        }
+        .notification-panel.show {
+            display: flex;
+        }
+        .notification-header {
+            padding: 16px 20px;
+            background: #f8fafd;
+            border-bottom: 1px solid var(--gray-border);
+            font-weight: 600;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .notification-list {
+            overflow-y: auto;
+            max-height: 360px;
+        }
+        .notification-item {
+            padding: 14px 20px;
+            border-bottom: 1px solid #f0f2f5;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .notification-item:hover {
+            background: #f8fafd;
+        }
+        .notification-item.unread {
+            background: #eef4ff;
+        }
+        .notification-title {
+            font-weight: 600;
+            font-size: 0.85rem;
+            margin-bottom: 4px;
+        }
+        .notification-detail {
+            font-size: 0.75rem;
+            color: #6c7f8f;
+            margin-bottom: 6px;
+        }
+        .notification-time {
+            font-size: 0.7rem;
+            color: #9aaebf;
+        }
+        .notification-empty {
+            padding: 40px;
+            text-align: center;
+            color: #9aaebf;
+        }
+        .audit-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 8px;
+        }
+        .audit-btn {
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.7rem;
+            border: none;
+            cursor: pointer;
+        }
+        .audit-btn.approve {
+            background: #10b981;
+            color: white;
+        }
+        .audit-btn.reject {
+            background: #ef4444;
+            color: white;
+        }
+
+        .user-info-card {
+            background: white;
+            padding: 8px 20px;
+            border-radius: 60px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.03);
+            border: 1px solid var(--gray-border);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            background: var(--klein-blue);
+            border-radius: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+        .user-details {
+            display: flex;
+            flex-direction: column;
+            line-height: 1.3;
+        }
+        .user-name {
+            font-weight: 700;
+            font-size: 0.9rem;
+            color: #1a2c3e;
+        }
+        .user-role {
+            font-size: 0.7rem;
+            color: #6c7f8f;
+        }
+        .logout-icon {
+            color: #9aaebf;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: color 0.2s;
+            margin-left: 8px;
+        }
+        .logout-icon:hover {
+            color: #e03a3a;
+        }
+
+        .card {
+            background: var(--card-white);
+            border-radius: 28px;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.02), 0 2px 6px rgba(0, 47, 167, 0.05);
+            border: 1px solid #edf2f7;
+            overflow: hidden;
+        }
+        .form-card {
+            margin-bottom: 36px;
+            padding: 24px 28px;
+        }
+        .section-title {
+            font-size: 1.35rem;
+            font-weight: 600;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: #0a2540;
+            border-left: 5px solid var(--klein-blue);
+            padding-left: 16px;
+        }
+        .section-title i {
+            color: var(--klein-blue);
+            font-size: 1.3rem;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 20px 24px;
+            margin-bottom: 28px;
+        }
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .input-group label {
+            font-weight: 600;
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: #2c3e50;
+        }
+        .input-group label i {
+            margin-right: 6px;
+            color: var(--klein-blue);
+        }
+        .input-group input, .input-group select, .input-group textarea {
+            padding: 12px 14px;
+            border: 1.5px solid #e2edf7;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-family: inherit;
+            background: #fefefe;
+            transition: 0.2s;
+            outline: none;
+        }
+        .input-group input:focus, .input-group select:focus, .input-group textarea:focus {
+            border-color: var(--klein-blue);
+            box-shadow: 0 0 0 3px rgba(0, 47, 167, 0.15);
+        }
+
+        .custom-select-wrapper {
+            position: relative;
+            width: 100%;
+            user-select: none;
+        }
+        .custom-select-trigger {
+            background: #fefefe;
+            border: 1.5px solid #e2edf7;
+            border-radius: 20px;
+            padding: 12px 14px;
+            font-size: 0.9rem;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: all 0.2s;
+            color: #5c6f87;
+        }
+        .custom-select-trigger span {
+            color: #1e2f3f;
+            overflow: hidden;
+            white-space: nowrap;
+            text-overflow: ellipsis;
+        }
+        .custom-select-trigger i {
+            color: #8da0b0;
+            transition: transform 0.2s;
+        }
+        .custom-select-trigger.open {
+            border-color: var(--klein-blue);
+            box-shadow: 0 0 0 3px rgba(0,47,167,0.1);
+        }
+        .custom-dropdown {
+            position: absolute;
+            top: calc(100% + 8px);
+            left: 0;
+            width: 100%;
+            background: white;
+            border-radius: 24px;
+            border: 1px solid #eef2f8;
+            box-shadow: 0 12px 28px rgba(0,0,0,0.12);
+            z-index: 100;
+            display: none;
+            overflow: hidden;
+            flex-direction: column;
+        }
+        .custom-dropdown.show {
+            display: flex;
+        }
+        .dropdown-search {
+            padding: 12px 14px;
+            border-bottom: 1px solid #edf2f7;
+        }
+        .dropdown-search input {
+            width: 100%;
+            padding: 10px 12px;
+            border-radius: 40px;
+            border: 1px solid #e2edf7;
+            outline: none;
+            font-size: 0.85rem;
+        }
+        .dropdown-options {
+            overflow-y: auto;
+            max-height: 210px;
+            padding: 8px 0;
+        }
+        .dropdown-option {
+            padding: 10px 18px;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: background 0.15s;
+            color: #1f2e3e;
+        }
+        .dropdown-option:hover {
+            background: #eef4ff;
+        }
+        .dropdown-option.selected {
+            background: var(--klein-blue);
+            color: white;
+            font-weight: 500;
+        }
+        .no-option {
+            padding: 12px 18px;
+            text-align: center;
+            color: #9aaebf;
+            font-size: 0.8rem;
+        }
+
+        .direction-group {
+            background: #f9fafc;
+            border-radius: 24px;
+            padding: 4px;
+            display: flex;
+            gap: 12px;
+            border: 1px solid #e9edf2;
+        }
+        .direction-option {
+            flex: 1;
+            text-align: center;
+            padding: 10px 0;
+            border-radius: 40px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 0.85rem;
+            transition: all 0.2s;
+            background: transparent;
+            color: #4a5b6e;
+        }
+        .direction-option i {
+            margin-right: 8px;
+        }
+        .direction-option.active {
+            background: var(--klein-blue);
+            color: white;
+            box-shadow: 0 2px 8px rgba(0,47,167,0.25);
+        }
+
+        .btn-primary {
+            background: var(--klein-blue);
+            border: none;
+            padding: 12px 26px;
+            border-radius: 40px;
+            font-weight: 700;
+            font-size: 0.9rem;
+            color: white;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        .btn-primary:hover {
+            background: var(--klein-dark);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 18px rgba(0,47,167,0.2);
+        }
+        .btn-secondary {
+            background: white;
+            border: 1.5px solid var(--klein-blue);
+            padding: 10px 20px;
+            border-radius: 40px;
+            font-weight: 600;
+            color: var(--klein-blue);
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        .action-buttons {
+            display: flex;
+            justify-content: flex-end;
+            gap: 14px;
+            margin-top: 8px;
+        }
+
+        .records-card {
+            margin-top: 10px;
+        }
+        .table-header-toolbar {
+            padding: 20px 24px 12px 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            border-bottom: 1px solid var(--gray-border);
+            gap: 16px;
+        }
+        .filter-area {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        .filter-area input, .filter-area select {
+            border: 1px solid #dce5ef;
+            border-radius: 40px;
+            padding: 8px 16px;
+            font-size: 0.8rem;
+        }
+        .export-group {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        .export-group select {
+            border: 1px solid #dce5ef;
+            border-radius: 40px;
+            padding: 8px 12px;
+            font-size: 0.8rem;
+        }
+        .table-wrapper {
+            overflow-x: auto;
+            padding: 0 0 12px 0;
+        }
+        .record-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.85rem;
+            min-width: 1000px;
+        }
+        .record-table th {
+            text-align: left;
+            padding: 16px 16px;
+            background-color: #f8fafd;
+            font-weight: 700;
+            color: #1f3a4b;
+            border-bottom: 2px solid #e4e9f0;
+        }
+        .record-table td {
+            padding: 14px 16px;
+            border-bottom: 1px solid #eff3f8;
+            vertical-align: middle;
+        }
+        .record-table tr:hover {
+            background: #fafcff;
+        }
+        .direction-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 5px 12px;
+            border-radius: 60px;
+            font-weight: 600;
+            font-size: 0.7rem;
+        }
+        .direction-badge.out {
+            background: #fff1f0;
+            color: #b42318;
+        }
+        .direction-badge.in {
+            background: #eef4ff;
+            color: var(--klein-blue);
+        }
+        .delete-btn {
+            background: none;
+            border: none;
+            color: #9aaebf;
+            cursor: pointer;
+            font-size: 1rem;
+        }
+        .delete-btn:hover {
+            color: #e03a3a;
+        }
+        .status-badge {
+            font-size: 0.7rem;
+            padding: 2px 8px;
+            border-radius: 20px;
+            background: #fef3c7;
+            color: #d97706;
+        }
+        .empty-row td {
+            text-align: center;
+            padding: 48px;
+            color: #8ba0b5;
+            font-style: italic;
+        }
+        .summary-strip {
+            background: #f7f9fe;
+            padding: 16px 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            border-top: 1px solid var(--gray-border);
+            font-weight: 500;
+        }
+        .summary-stats {
+            display: flex;
+            gap: 28px;
+        }
+        .summary-stats span {
+            font-size: 0.85rem;
+        }
+        .summary-stats strong {
+            color: var(--klein-blue);
+            font-size: 1.1rem;
+            margin-left: 6px;
+        }
+        .login-prompt {
+            text-align: center;
+            padding: 60px 20px;
+            background: white;
+            border-radius: 28px;
+        }
+        .login-prompt i {
+            font-size: 64px;
+            color: var(--klein-blue);
+            margin-bottom: 20px;
+        }
+        .login-prompt h3 {
+            font-size: 20px;
+            margin-bottom: 12px;
+            color: #1a2c3e;
+        }
+        .login-prompt p {
+            color: #6c7f8f;
+            margin-bottom: 24px;
+        }
+        @media (max-width: 720px) {
+            body { padding: 20px 16px; }
+            .form-card { padding: 18px; }
+            .summary-stats { gap: 15px; flex-wrap: wrap; }
+            .user-info-card { padding: 6px 12px; }
+            .user-avatar { width: 32px; height: 32px; font-size: 0.75rem; }
+            .notification-panel { right: 20px; width: 320px; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="system-container">
+    <div class="brand-header">
+        <div class="brand-title" id="goHomeBtn">
+            <h1><i class="fas fa-leaf"></i> 叶子说眼镜 · 调货系统</h1>
+            <p>门店调货协同 | 月末统计 | 清晰明细</p>
+        </div>
+        <div class="right-header">
+            <div class="notification-bell" id="notificationBell">
+                <i class="fas fa-bell"></i>
+                <span class="notification-badge" id="notificationBadge" style="display: none;">0</span>
+            </div>
+            <div class="user-info-card" id="userInfoCard" style="display: none;">
+                <div class="user-avatar" id="userAvatar">用</div>
+                <div class="user-details">
+                    <span class="user-name" id="userName">加载中...</span>
+                    <span class="user-role" id="userRole">门店账号</span>
+                </div>
+                <i class="fas fa-sign-out-alt logout-icon" id="logoutBtn" title="退出登录"></i>
+            </div>
+        </div>
+    </div>
+
+    <!-- 通知面板 -->
+    <div class="notification-panel" id="notificationPanel">
+        <div class="notification-header">
+            <span><i class="fas fa-bell"></i> 消息通知</span>
+            <span id="markAllRead" style="cursor:pointer; font-size:0.7rem; color:var(--klein-blue);">全部已读</span>
+        </div>
+        <div class="notification-list" id="notificationList">
+            <div class="notification-empty">暂无消息</div>
+        </div>
+    </div>
+
+    <div id="mainContent" style="display: none;">
+        <div class="card form-card">
+            <div class="section-title">
+                <i class="fas fa-exchange-alt"></i>
+                <span>新建调货单据</span>
+            </div>
+            <form id="transferForm">
+                <div class="form-grid">
+                    <div class="input-group">
+                        <label><i class="far fa-calendar-alt"></i> 取货时间 *</label>
+                        <input type="datetime-local" id="transferDate" required>
+                    </div>
+                    <div class="input-group">
+                        <label><i class="fas fa-directions"></i> 取货方向 *</label>
+                        <div class="direction-group" id="directionGroup">
+                            <div class="direction-option" data-dir="out"><i class="fas fa-sign-out-alt"></i> 调出</div>
+                            <div class="direction-option" data-dir="in"><i class="fas fa-sign-in-alt"></i> 调入</div>
+                        </div>
+                        <input type="hidden" id="directionInput" value="out">
+                    </div>
+                    <div class="input-group">
+                        <label><i class="fas fa-code-branch"></i> 方向明细 *</label>
+                        <div class="custom-select-wrapper">
+                            <div class="custom-select-trigger" id="detailSelectTrigger">
+                                <span id="selectedDetailText">点击选择或输入搜索</span>
+                                <i class="fas fa-chevron-down"></i>
+                            </div>
+                            <div class="custom-dropdown" id="detailDropdown">
+                                <div class="dropdown-search"><input type="text" id="detailSearchInput" placeholder="🔍 搜索..." autocomplete="off"></div>
+                                <div class="dropdown-options" id="detailOptionsContainer"></div>
+                            </div>
+                        </div>
+                        <input type="hidden" id="directionDetailValue" value="">
+                    </div>
+                    <div class="input-group">
+                        <label><i class="fas fa-user-check"></i> 取货人 *</label>
+                        <input type="text" id="pickupPerson" placeholder="例: 李店长" required>
+                    </div>
+                    <div class="input-group">
+                        <label><i class="fas fa-glasses"></i> 货品 *</label>
+                        <input type="text" id="productName" placeholder="眼镜型号 / SKU" required>
+                    </div>
+                    <div class="input-group">
+                        <label><i class="fas fa-hashtag"></i> 数量 *</label>
+                        <input type="number" id="quantity" min="1" value="1" step="1" required>
+                    </div>
+                    <div class="input-group">
+                        <label><i class="fas fa-pen-alt"></i> 备注</label>
+                        <input type="text" id="remark" placeholder="订单号 / 调货原因">
+                    </div>
+                    <div class="input-group">
+                        <label><i class="fas fa-file-signature"></i> 填写人 *</label>
+                        <input type="text" id="fillerPerson" placeholder="当前单据填写人" required>
+                    </div>
+                </div>
+                <div class="action-buttons">
+                    <button type="button" id="resetFormBtn" class="btn-secondary"><i class="fas fa-undo-alt"></i> 清空</button>
+                    <button type="submit" class="btn-primary"><i class="fas fa-save"></i> 记录调货明细</button>
+                </div>
+            </form>
+        </div>
+
+        <div class="card records-card">
+            <div class="table-header-toolbar">
+                <div class="filter-area">
+                    <i class="fas fa-filter" style="color: var(--klein-blue);"></i>
+                    <input type="text" id="searchInput" placeholder="🔍 搜索货品/取货人/填写人" style="width: 220px;">
+                    <select id="directionFilter">
+                        <option value="all">全部方向</option>
+                        <option value="out">调出</option>
+                        <option value="in">调入</option>
+                    </select>
+                </div>
+                <div class="export-group">
+                    <select id="exportType">
+                        <option value="all">全部数据</option>
+                        <option value="month">按月导出</option>
+                        <option value="year">按年导出</option>
+                    </select>
+                    <select id="exportYear" style="display:none;">
+                        <option value="2024">2024年</option>
+                        <option value="2025">2025年</option>
+                        <option value="2026">2026年</option>
+                    </select>
+                    <select id="exportMonth" style="display:none;">
+                        <option value="1">1月</option><option value="2">2月</option><option value="3">3月</option>
+                        <option value="4">4月</option><option value="5">5月</option><option value="6">6月</option>
+                        <option value="7">7月</option><option value="8">8月</option><option value="9">9月</option>
+                        <option value="10">10月</option><option value="11">11月</option><option value="12">12月</option>
+                    </select>
+                    <button id="exportStatsBtn" class="btn-secondary" style="padding:6px 16px;"><i class="fas fa-download"></i> 导出CSV</button>
+                </div>
+            </div>
+            <div class="table-wrapper">
+                <table class="record-table">
+                    <thead><tr><th>取货时间</th><th>方向</th><th>方向明细</th><th>取货人</th><th>货品</th><th>数量</th><th>备注</th><th>填写人</th><th>状态</th><th>操作</th></tr></thead>
+                    <tbody id="tableBody"><tr class="empty-row"><td colspan="10">📭 暂无调货记录</td></tr></tbody>
+                </table>
+            </div>
+            <!-- 分页组件 -->
+            <div class="pagination-container" id="paginationContainer">
+                <button class="pagination-btn" id="firstPageBtn" disabled>首页</button>
+                <button class="pagination-btn" id="prevPageBtn" disabled>上一页</button>
+                <div class="page-numbers" id="pageNumbers"></div>
+                <button class="pagination-btn" id="nextPageBtn" disabled>下一页</button>
+                <button class="pagination-btn" id="lastPageBtn" disabled>末页</button>
+                <span class="pagination-info" id="paginationInfo">第 1 / 1 页，共 0 条</span>
+            </div>
+            <div class="summary-strip">
+                <div class="summary-stats">
+                    <span><i class="fas fa-arrow-up"></i> 累计调出: <strong id="totalOutQty">0</strong></span>
+                    <span><i class="fas fa-arrow-down"></i> 累计调入: <strong id="totalInQty">0</strong></span>
+                    <span><i class="fas fa-balance-scale"></i> 净调出: <strong id="netOutflow">0</strong></span>
+                </div>
+                <div><i class="fas fa-chart-line"></i> 月末依据明细核对收款</div>
+            </div>
+        </div>
+    </div>
+
+    <div id="loginPrompt" class="login-prompt">
+        <i class="fas fa-store"></i>
+        <h3>请先登录</h3>
+        <p>您尚未登录，请先登录处方管理系统</p>
+        <button id="goToLoginBtn" class="btn-primary"><i class="fas fa-sign-in-alt"></i> 前往登录</button>
+    </div>
+</div>
+
+<script>
+    // ==================== 方向明细数据 ====================
+    const directionDetailListRaw = [
+        "1店从2店取货", "1店从3店取货", "1店从4店取货", "1店从5店取货", "1店从6店取货", "1店从进贤门店取货", "1店从东山店取货", "1店从中华路店取货", "1店从谷饶店取货", "1店从峡山店取货", "1店从两英店取货", "1店从大坝店取货", "1店从总部取货",
+        "2店从1店取货", "2店从3店取货", "2店从4店取货", "2店从5店取货", "2店从6店取货", "2店从进贤门店取货", "2店从东山店取货", "2店从中华路店取货", "2店从谷饶店取货", "2店从峡山店取货", "2店从两英店取货", "2店从大坝店取货", "2店从总部取货",
+        "3店从1店取货", "3店从2店取货", "3店从4店取货", "3店从5店取货", "3店从6店取货", "3店从进贤门店取货", "3店从东山店取货", "3店从中华路店取货", "3店从谷饶店取货", "3店从峡山店取货", "3店从两英店取货", "3店从大坝店取货", "3店从总部取货",
+        "4店从1店取货", "4店从2店取货", "4店从3店取货", "4店从5店取货", "4店从6店取货", "4店从进贤门店取货", "4店从东山店取货", "4店从中华路店取货", "4店从谷饶店取货", "4店从峡山店取货", "4店从两英店取货", "4店从大坝店取货", "4店从总部取货",
+        "5店从1店取货", "5店从2店取货", "5店从3店取货", "5店从4店取货", "5店从6店取货", "5店从进贤门店取货", "5店从东山店取货", "5店从中华路店取货", "5店从谷饶店取货", "5店从峡山店取货", "5店从两英店取货", "5店从大坝店取货", "5店从总部取货",
+        "6店从1店取货", "6店从2店取货", "6店从3店取货", "6店从4店取货", "6店从5店取货", "6店从进贤门店取货", "6店从东山店取货", "6店从中华路店取货", "6店从谷饶店取货", "6店从峡山店取货", "6店从两英店取货", "6店从大坝店取货", "6店从总部取货",
+        "进贤门店从1店取货", "进贤门店从2店取货", "进贤门店从3店取货", "进贤门店从4店取货", "进贤门店从5店取货", "进贤门店从6店取货", "进贤门店从东山店取货", "进贤门店从中华路店取货", "进贤门店从谷饶店取货", "进贤门店从峡山店取货", "进贤门店从两英店取货", "进贤门店从大坝店取货", "进贤门店从总部取货",
+        "东山店从1店取货", "东山店从2店取货", "东山店从3店取货", "东山店从4店取货", "东山店从5店取货", "东山店从6店取货", "东山店从进贤门店取货", "东山店从中华路店取货", "东山店从谷饶店取货", "东山店从峡山店取货", "东山店从两英店取货", "东山店从大坝店取货", "东山店从总部取货",
+        "中华路店从1店取货", "中华路店从2店取货", "中华路店从3店取货", "中华路店从4店取货", "中华路店从5店取货", "中华路店从6店取货", "中华路店从进贤门店取货", "中华路店从东山店取货", "中华路店从谷饶店取货", "中华路店从峡山店取货", "中华路店从两英店取货", "中华路店从大坝店取货", "中华路店从总部取货",
+        "谷饶店从1店取货", "谷饶店从2店取货", "谷饶店从3店取货", "谷饶店从4店取货", "谷饶店从5店取货", "谷饶店从6店取货", "谷饶店从进贤门店取货", "谷饶店从东山店取货", "谷饶店从中华路店取货", "谷饶店从峡山店取货", "谷饶店从两英店取货", "谷饶店从大坝店取货", "谷饶店从总部取货",
+        "峡山店从1店取货", "峡山店从2店取货", "峡山店从3店取货", "峡山店从4店取货", "峡山店从5店取货", "峡山店从6店取货", "峡山店从进贤门店取货", "峡山店从东山店取货", "峡山店从中华路店取货", "峡山店从谷饶店取货", "峡山店从两英店取货", "峡山店从大坝店取货", "峡山店从总部取货",
+        "两英店从1店取货", "两英店从2店取货", "两英店从3店取货", "两英店从4店取货", "两英店从5店取货", "两英店从6店取货", "两英店从进贤门店取货", "两英店从东山店取货", "两英店从中华路店取货", "两英店从谷饶店取货", "两英店从峡山店取货", "两英店从大坝店取货", "两英店从总部取货",
+        "大坝店从1店取货", "大坝店从2店取货", "大坝店从3店取货", "大坝店从4店取货", "大坝店从5店取货", "大坝店从6店取货", "大坝店从进贤门店取货", "大坝店从东山店取货", "大坝店从中华路店取货", "大坝店从谷饶店取货", "大坝店从峡山店取货", "大坝店从两英店取货", "大坝店从总部取货",
+        "总部从1店取货", "总部从2店取货", "总部从3店取货", "总部从4店取货", "总部从5店取货", "总部从6店取货", "总部从进贤门店取货", "总部从东山店取货", "总部从中华路店取货", "总部从谷饶店取货", "总部从峡山店取货", "总部从两英店取货", "总部从大坝店取货"
+    ];
+
+    // ==================== 全局变量 ====================
+    let transfers = [];
+    let currentUserRole = '';
+    let currentUserName = '';
+    let currentSelectedDetail = "";
+    let notifications = [];
+    let notificationCheckInterval = null;
+    // 分页相关变量
+    let currentPage = 1;
+    let pageSize = 10;
+    let filteredData = [];  // 存储过滤后的数据
+
+    // ==================== 辅助函数 ====================
+    function formatDateTime(dateTimeStr) { return dateTimeStr ? dateTimeStr.replace('T', ' ') : '—'; }
+    function escapeHtml(str) { if(!str) return ''; return str.replace(/[&<>]/g, m => m==='&'?'&amp;':(m==='<'?'&lt;':'&gt;')); }
+
+    // ==================== 通知系统 ====================
+    function loadNotifications() {
+        fetch('/api/transfer/notifications', { credentials: 'include' })
+            .then(res => res.json())
+            .then(data => {
+                notifications = data || [];
+                updateNotificationUI();
+            })
+            .catch(err => console.error('加载通知失败:', err));
+    }
+
+    function updateNotificationUI() {
+        const unreadCount = notifications.filter(n => !n.read).length;
+        const badge = document.getElementById('notificationBadge');
+        if (unreadCount > 0) {
+            badge.style.display = 'block';
+            badge.innerText = unreadCount > 99 ? '99+' : unreadCount;
+            document.getElementById('notificationBell').classList.add('has-notification');
+        } else {
+            badge.style.display = 'none';
+            document.getElementById('notificationBell').classList.remove('has-notification');
+        }
+
+        const listContainer = document.getElementById('notificationList');
+        if (!notifications.length) {
+            listContainer.innerHTML = '<div class="notification-empty">暂无消息</div>';
+            return;
+        }
+        listContainer.innerHTML = notifications.map(n => `
+            <div class="notification-item ${n.read ? '' : 'unread'}" data-id="${n.id}" data-type="${n.type}" data-audit-id="${n.auditId || ''}" data-record-id="${n.recordId || ''}">
+                <div class="notification-title">${escapeHtml(n.title)}</div>
+                <div class="notification-detail">${escapeHtml(n.content)}</div>
+                <div class="notification-time">${n.createTime || ''}</div>
+                ${n.type === 'delete_request' && currentUserRole === 'SUPER' ? `
+                    <div class="audit-actions">
+                        <button class="audit-btn approve" data-audit-id="${n.auditId}" data-action="approve">✓ 通过</button>
+                        <button class="audit-btn reject" data-audit-id="${n.auditId}" data-action="reject">✗ 拒绝</button>
+                    </div>
+                ` : ''}
+            </div>
+        `).join('');
+
+        // 绑定通知点击事件
+        document.querySelectorAll('.notification-item').forEach(el => {
+            el.addEventListener('click', (e) => {
+                if (e.target.classList.contains('audit-btn')) return;
+                const id = el.dataset.id;
+                markNotificationRead(id);
+            });
+        });
+        // 绑定审核按钮事件
+        document.querySelectorAll('.audit-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const auditId = btn.dataset.auditId;
+                const action = btn.dataset.action;
+                handleAudit(auditId, action);
+            });
+        });
+    }
+
+    function markNotificationRead(id) {
+        fetch(`/api/transfer/notifications/${id}/read`, { method: 'PUT', credentials: 'include' })
+            .then(() => loadNotifications());
+    }
+
+    function markAllRead() {
+        fetch('/api/transfer/notifications/read-all', { method: 'PUT', credentials: 'include' })
+            .then(() => loadNotifications());
+    }
+
+    function handleAudit(auditId, action) {
+        const status = action === 'approve' ? 'approved' : 'rejected';
+        fetch('/api/transfer/audit', {
+            method: 'POST',
+            credentials: 'include',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ auditId, auditStatus: status, auditRemark: action === 'approve' ? '审核通过' : '审核拒绝' })
+        })
+            .then(res => res.json())
+            .then(data => {
+                alert(data.message || (action === 'approve' ? '已通过删除申请' : '已拒绝删除申请'));
+                loadNotifications();
+                fetchRecords();
+            })
+            .catch(err => console.error('审核失败:', err));
+    }
+
+    // ==================== 导出功能 ====================
+    function setupExportControls() {
+        const exportType = document.getElementById('exportType');
+        const exportYear = document.getElementById('exportYear');
+        const exportMonth = document.getElementById('exportMonth');
+
+        exportType.addEventListener('change', () => {
+            const type = exportType.value;
+            exportYear.style.display = type === 'all' ? 'none' : 'inline-block';
+            exportMonth.style.display = type === 'month' ? 'inline-block' : 'none';
+        });
+    }
+
+    // 查看通知详情
+    function viewNotificationDetail(notification) {
+        // 先标记为已读
+        fetch(`/api/transfer/notifications/${notification.id}/read`, { method: 'PUT', credentials: 'include' })
+            .then(() => {
+                if (notification.type === 'delete_request') {
+                    // 获取删除申请的详细信息
+                    fetch(`/api/transfer/audit-detail/${notification.auditId}`, { credentials: 'include' })
+                        .then(res => res.json())
+                        .then(data => {
+                            showDeleteRequestDetail(notification, data);
+                        })
+                        .catch(err => console.error('获取详情失败:', err));
+                } else if (notification.type === 'audit_result') {
+                    fetch(`/api/transfer/audit-result-detail/${notification.auditId}`, { credentials: 'include' })
+                        .then(res => res.json())
+                        .then(data => {
+                            showAuditResultDetail(notification, data);
+                        })
+                        .catch(err => console.error('获取详情失败:', err));
+                }
+                loadNotifications(); // 刷新通知列表
+            });
+    }
+
+    // 显示删除申请详情（供超级管理员审核）
+    function showDeleteRequestDetail(notification, data) {
+        const record = data.record;
+        const audit = data.audit;
+
+        const modalHtml = `
+        <div id="notificationDetailModal" class="notification-detail-modal">
+            <div class="notification-detail-content">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+                    <h3><i class="fas fa-trash-alt" style="color:#e03a3a;"></i> 删除申请详情</h3>
+                    <i class="fas fa-times" style="cursor:pointer; font-size:20px;" onclick="closeNotificationDetail()"></i>
+                </div>
+
+                <div class="detail-section">
+                    <h4 style="margin-bottom:12px;">📋 调货记录详情</h4>
+                    <div class="detail-item"><span class="detail-label">取货时间：</span><span class="detail-value">${formatDateTime(record.transferTime)}</span></div>
+                    <div class="detail-item"><span class="detail-label">取货方向：</span><span class="detail-value">${record.direction === 'out' ? '调出' : '调入'}</span></div>
+                    <div class="detail-item"><span class="detail-label">方向明细：</span><span class="detail-value">${escapeHtml(record.directionDetail)}</span></div>
+                    <div class="detail-item"><span class="detail-label">货品名称：</span><span class="detail-value">${escapeHtml(record.productName)}</span></div>
+                    <div class="detail-item"><span class="detail-label">数量：</span><span class="detail-value">${record.quantity}</span></div>
+                    <div class="detail-item"><span class="detail-label">取货人：</span><span class="detail-value">${escapeHtml(record.pickupPerson)}</span></div>
+                    <div class="detail-item"><span class="detail-label">填写人：</span><span class="detail-value">${escapeHtml(record.filler)}</span></div>
+                    <div class="detail-item"><span class="detail-label">备注：</span><span class="detail-value">${escapeHtml(record.remark) || '—'}</span></div>
+                </div>
+
+                <div class="detail-section">
+                    <h4 style="margin-bottom:12px;">👤 申请人信息</h4>
+                    <div class="detail-item"><span class="detail-label">申请人：</span><span class="detail-value">${escapeHtml(audit.requestUser)}</span></div>
+                    <div class="detail-item"><span class="detail-label">申请时间：</span><span class="detail-value">${formatDateTime(audit.requestTime)}</span></div>
+                    <div class="reason-box">
+                        <strong><i class="fas fa-comment-dots"></i> 删除原因：</strong><br>
+                        ${escapeHtml(audit.deleteReason) || '未填写'}
+                    </div>
+                </div>
+
+                <div style="display:flex; gap:12px; justify-content:flex-end;">
+                    <button class="btn-secondary" onclick="closeNotificationDetail()">取消</button>
+                    <button class="audit-btn reject" onclick="handleAuditFromDetail('${audit.id}', 'reject')">✗ 拒绝删除</button>
+                    <button class="audit-btn approve" onclick="handleAuditFromDetail('${audit.id}', 'approve')">✓ 通过删除</button>
+                </div>
+            </div>
+        </div>
+    `;
+
+        closeNotificationDetail();
+        document.body.insertAdjacentHTML('beforeend', modalHtml);
+    }
+
+    // 显示审核结果详情
+    function showAuditResultDetail(notification, data) {
+        const record = data.record;
+        const audit = data.audit;
+
+        const statusText = audit.auditStatus === 'approved' ? '已通过' : '已拒绝';
+        const statusColor = audit.auditStatus === 'approved' ? '#10b981' : '#e03a3a';
+
+        const modalHtml = `
+        <div id="notificationDetailModal" class="notification-detail-modal">
+            <div class="notification-detail-content">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+                    <h3><i class="fas fa-check-circle" style="color:${statusColor};"></i> 审核结果详情</h3>
+                    <i class="fas fa-times" style="cursor:pointer; font-size:20px;" onclick="closeNotificationDetail()"></i>
+                </div>
+
+                <div class="detail-section">
+                    <h4 style="margin-bottom:12px;">📋 调货记录详情</h4>
+                    <div class="detail-item"><span class="detail-label">货品名称：</span><span class="detail-value">${escapeHtml(record.productName)}</span></div>
+                    <div class="detail-item"><span class="detail-label">数量：</span><span class="detail-value">${record.quantity}</span></div>
+                    <div class="detail-item"><span class="detail-label">取货人：</span><span class="detail-value">${escapeHtml(record.pickupPerson)}</span></div>
+                    <div class="detail-item"><span class="detail-label">取货时间：</span><span class="detail-value">${formatDateTime(record.transferTime)}</span></div>
+                </div>
+
+                <div class="detail-section">
+                    <h4 style="margin-bottom:12px;">🔍 审核信息</h4>
+                    <div class="detail-item"><span class="detail-label">审核结果：</span><span class="detail-value" style="color:${statusColor}; font-weight:600;">${statusText}</span></div>
+                    <div class="detail-item"><span class="detail-label">审核人：</span><span class="detail-value">${escapeHtml(audit.auditUser)}</span></div>
+                    <div class="detail-item"><span class="detail-label">审核时间：</span><span class="detail-value">${formatDateTime(audit.auditTime)}</span></div>
+                    ${audit.auditRemark ? `<div class="detail-item"><span class="detail-label">审核备注：</span><span class="detail-value">${escapeHtml(audit.auditRemark)}</span></div>` : ''}
+                    <div class="reason-box">
+                        <strong><i class="fas fa-comment-dots"></i> 您提交的删除原因：</strong><br>
+                        ${escapeHtml(audit.deleteReason) || '未填写'}
+                    </div>
+                </div>
+
+                <div style="display:flex; justify-content:flex-end;">
+                    <button class="btn-secondary" onclick="closeNotificationDetail()">关闭</button>
+                </div>
+            </div>
+        </div>
+    `;
+
+        closeNotificationDetail();
+        document.body.insertAdjacentHTML('beforeend', modalHtml);
+    }
+
+    function closeNotificationDetail() {
+        const existingModal = document.getElementById('notificationDetailModal');
+        if (existingModal) existingModal.remove();
+    }
+
+    function handleAuditFromDetail(auditId, action) {
+        const status = action === 'approve' ? 'approved' : 'rejected';
+        const remark = action === 'approve' ? '审核通过' : '审核拒绝';
+
+        fetch('/api/transfer/audit', {
+            method: 'POST',
+            credentials: 'include',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ auditId, auditStatus: status, auditRemark: remark })
+        })
+            .then(res => res.json())
+            .then(data => {
+                alert(data.message || (action === 'approve' ? '已通过删除申请' : '已拒绝删除申请'));
+                closeNotificationDetail();
+                loadNotifications();
+                fetchRecords();
+            })
+            .catch(err => console.error('审核失败:', err));
+    }
+
+    // 修改通知点击事件
+    function updateNotificationUI() {
+        const unreadCount = notifications.filter(n => !n.read).length;
+        const badge = document.getElementById('notificationBadge');
+        if (unreadCount > 0) {
+            badge.style.display = 'block';
+            badge.innerText = unreadCount > 99 ? '99+' : unreadCount;
+            document.getElementById('notificationBell').classList.add('has-notification');
+        } else {
+            badge.style.display = 'none';
+            document.getElementById('notificationBell').classList.remove('has-notification');
+        }
+
+        const listContainer = document.getElementById('notificationList');
+        if (!notifications.length) {
+            listContainer.innerHTML = '<div class="notification-empty">暂无消息</div>';
+            return;
+        }
+        listContainer.innerHTML = notifications.map(n => `
+        <div class="notification-item ${n.read ? '' : 'unread'}" data-id="${n.id}" data-type="${n.type}" data-audit-id="${n.auditId || ''}" data-record-id="${n.recordId || ''}" onclick="viewNotificationDetailById('${n.id}', '${n.type}', '${n.auditId || ''}')">
+            <div class="notification-title">${escapeHtml(n.title)}</div>
+            <div class="notification-detail">${escapeHtml(n.content)}</div>
+            <div class="notification-time">${n.createTime || ''}</div>
+        </div>
+    `).join('');
+    }
+
+    function viewNotificationDetailById(id, type, auditId) {
+        // 先从本地获取通知数据
+        const notification = notifications.find(n => n.id === id);
+        if (notification) {
+            viewNotificationDetail(notification);
+        }
+    }
+
+    function exportToCSV() {
+        if(transfers.length === 0){ alert('暂无数据可导出'); return; }
+
+        const exportType = document.getElementById('exportType').value;
+        const year = document.getElementById('exportYear').value;
+        const month = document.getElementById('exportMonth').value;
+
+        let filteredData = [...transfers];
+        let exportFileName = '叶子说眼镜_调货明细';
+
+        if (exportType === 'month' && year && month) {
+            filteredData = transfers.filter(t => {
+                const date = new Date(t.transferTime);
+                return date.getFullYear() == year && (date.getMonth() + 1) == month;
+            });
+            exportFileName += `_${year}年${month}月`;
+        } else if (exportType === 'year' && year) {
+            filteredData = transfers.filter(t => {
+                const date = new Date(t.transferTime);
+                return date.getFullYear() == year;
+            });
+            exportFileName += `_${year}年`;
+        } else {
+            exportFileName += `_全部`;
+        }
+
+        if(filteredData.length === 0){ alert('所选范围内无数据可导出'); return; }
+
+        const headers = ['取货时间', '取货方向', '方向明细', '取货人', '货品', '数量', '备注', '填写人'];
+        const rows = filteredData.map(t => [
+            formatDateTime(t.transferTime),
+            t.direction === 'out' ? '调出' : '调入',
+            t.directionDetail || '',
+            t.pickupPerson,
+            t.productName,
+            t.quantity,
+            t.remark || '',
+            t.filler || ''
+        ]);
+        const csvContent = [headers, ...rows].map(row => row.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(',')).join('\n');
+        const blob = new Blob(["\uFEFF" + csvContent], { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.setAttribute('download', `${exportFileName}.csv`);
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(link.href);
+    }
+
+    // ==================== 下拉选择器 ====================
+    function buildDropdownOptions(searchTerm = "") {
+        const container = document.getElementById('detailOptionsContainer');
+        if(!container) return;
+        const filtered = directionDetailListRaw.filter(opt => opt.toLowerCase().includes(searchTerm.toLowerCase()));
+        if(filtered.length === 0){ container.innerHTML = '<div class="no-option">未找到匹配路线</div>'; return; }
+        container.innerHTML = filtered.map(opt => `<div class="dropdown-option" data-value="${escapeHtml(opt)}">${escapeHtml(opt)}</div>`).join('');
+        if(currentSelectedDetail){
+            document.querySelectorAll('.dropdown-option').forEach(el => { if(el.getAttribute('data-value') === currentSelectedDetail) el.classList.add('selected'); });
+        }
+        document.querySelectorAll('.dropdown-option').forEach(optDiv => {
+            optDiv.addEventListener('click', () => selectDirectionDetail(optDiv.getAttribute('data-value')));
+        });
+    }
+
+    function selectDirectionDetail(value) {
+        currentSelectedDetail = value;
+        document.getElementById('selectedDetailText').innerText = value;
+        document.getElementById('directionDetailValue').value = value;
+        document.getElementById('detailSelectTrigger').classList.remove('open');
+        document.getElementById('detailDropdown').classList.remove('show');
+        const searchInput = document.getElementById('detailSearchInput');
+        if(searchInput) searchInput.value = '';
+        buildDropdownOptions('');
+    }
+
+    function initCustomSelect() {
+        const trigger = document.getElementById('detailSelectTrigger'), dropdown = document.getElementById('detailDropdown'), searchInput = document.getElementById('detailSearchInput');
+        trigger.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const isShow = dropdown.classList.contains('show');
+            if(isShow){ dropdown.classList.remove('show'); trigger.classList.remove('open'); }
+            else { if(searchInput) searchInput.value = ''; buildDropdownOptions(''); dropdown.classList.add('show'); trigger.classList.add('open'); setTimeout(() => searchInput?.focus(), 50); }
+        });
+        if(searchInput) searchInput.addEventListener('input', (e) => buildDropdownOptions(e.target.value));
+        document.addEventListener('click', function(e) { if(!trigger.contains(e.target) && !dropdown.contains(e.target)){ dropdown.classList.remove('show'); trigger.classList.remove('open'); } });
+        buildDropdownOptions('');
+    }
+
+    // ==================== 表格渲染 ====================
+    function renderTable() {
+        const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+        const directionFilter = document.getElementById('directionFilter').value;
+
+        // 先过滤数据
+        filteredData = transfers.filter(item => {
+            const matchSearch = (item.productName || '').toLowerCase().includes(searchTerm) ||
+                (item.pickupPerson || '').toLowerCase().includes(searchTerm) ||
+                (item.remark || '').toLowerCase().includes(searchTerm) ||
+                (item.filler || '').toLowerCase().includes(searchTerm);
+            const matchDir = directionFilter === 'all' || item.direction === directionFilter;
+            return matchSearch && matchDir;
+        });
+
+        // 计算分页
+        const totalCount = filteredData.length;
+        const totalPages = Math.ceil(totalCount / pageSize);
+
+        // 确保当前页在有效范围内
+        if (currentPage > totalPages && totalPages > 0) {
+            currentPage = totalPages;
+        }
+        if (currentPage < 1) {
+            currentPage = 1;
+        }
+
+        // 获取当前页数据
+        const startIdx = (currentPage - 1) * pageSize;
+        const endIdx = startIdx + pageSize;
+        const pageData = filteredData.slice(startIdx, endIdx);
+
+        const tbody = document.getElementById('tableBody');
+        if (pageData.length === 0) {
+            tbody.innerHTML = '<tr class="empty-row"><td colspan="10">📭 没有找到相关调货记录，请新增调货明细</td></tr>';
+        } else {
+            tbody.innerHTML = pageData.map(rec => `
+            <tr>
+                <td>${formatDateTime(rec.transferTime)}</td>
+                <td>${rec.direction === 'out' ? '<span class="direction-badge out"><i class="fas fa-sign-out-alt"></i> 调出</span>' : '<span class="direction-badge in"><i class="fas fa-sign-in-alt"></i> 调入</span>'}</td>
+                <td><span style="background:#f1f5f9; padding:4px 10px; border-radius:40px; font-size:0.75rem;">${escapeHtml(rec.directionDetail) || '—'}</span></td>
+                <td>${escapeHtml(rec.pickupPerson)}</td>
+                <td>${escapeHtml(rec.productName)}</td>
+                <td style="font-weight:600;">${rec.quantity}</td>
+                <td>${escapeHtml(rec.remark) || '—'}</td>
+                <td>${escapeHtml(rec.filler) || '—'}</td>
+                <td>${rec.deleteStatus === 'pending' ? '<span class="status-badge">待审核删除</span>' : (rec.status === 'deleted' ? '<span style="color:#999;">已删除</span>' : '—')}</td>
+                <td>${rec.status !== 'deleted' && rec.deleteStatus !== 'pending' ? `<button class="delete-btn" data-id="${rec.id}"><i class="fas fa-trash-alt"></i></button>` : '—'}</td>
+            </tr>
+        `).join('');
+        }
+
+        // 重新绑定删除按钮事件
+        document.querySelectorAll('.delete-btn').forEach(btn => {
+            btn.addEventListener('click', () => deleteRecord(btn.getAttribute('data-id')));
+        });
+
+        // 更新分页控件
+        updatePagination(totalCount, totalPages);
+        updateSummary();
+    }
+
+    function updatePagination(totalCount, totalPages) {
+        const firstBtn = document.getElementById('firstPageBtn');
+        const prevBtn = document.getElementById('prevPageBtn');
+        const nextBtn = document.getElementById('nextPageBtn');
+        const lastBtn = document.getElementById('lastPageBtn');
+        const pageNumbersDiv = document.getElementById('pageNumbers');
+        const paginationInfo = document.getElementById('paginationInfo');
+
+        // 更新按钮状态 - 修复：当 totalPages === 0 时禁用所有翻页按钮
+        const hasNoData = totalPages === 0;
+        firstBtn.disabled = hasNoData || currentPage <= 1;
+        prevBtn.disabled = hasNoData || currentPage <= 1;
+        nextBtn.disabled = hasNoData || currentPage >= totalPages;
+        lastBtn.disabled = hasNoData || currentPage >= totalPages;
+
+        // 更新信息文字
+        paginationInfo.innerText = `第 ${hasNoData ? 0 : currentPage} / ${totalPages || 1} 页，共 ${totalCount} 条`;
+
+        // 生成页码按钮
+        pageNumbersDiv.innerHTML = '';
+        if (totalPages === 0) {
+            pageNumbersDiv.innerHTML = '<span style="color:#999;">暂无数据</span>';
+            return;
+        }
+
+        // 计算显示的页码范围
+        let startPage = Math.max(1, currentPage - 2);
+        let endPage = Math.min(totalPages, currentPage + 2);
+
+        // 如果当前页靠近开头，显示更多后面的页码
+        if (currentPage <= 3) {
+            endPage = Math.min(totalPages, 5);
+        }
+        // 如果当前页靠近结尾，显示更多前面的页码
+        if (currentPage >= totalPages - 2) {
+            startPage = Math.max(1, totalPages - 4);
+        }
+
+        // 添加首页
+        if (startPage > 1) {
+            addPageNumber(1);
+            if (startPage > 2) {
+                pageNumbersDiv.innerHTML += '<span style="padding:0 5px;">...</span>';
+            }
+        }
+
+        // 添加页码
+        for (let i = startPage; i <= endPage; i++) {
+            addPageNumber(i);
+        }
+
+        // 添加末页
+        if (endPage < totalPages) {
+            if (endPage < totalPages - 1) {
+                pageNumbersDiv.innerHTML += '<span style="padding:0 5px;">...</span>';
+            }
+            addPageNumber(totalPages);
+        }
+
+        function addPageNumber(page) {
+            const pageSpan = document.createElement('div');
+            pageSpan.className = 'page-number' + (page === currentPage ? ' active' : '');
+            pageSpan.innerText = page;
+            pageSpan.onclick = () => goToPage(page);
+            pageNumbersDiv.appendChild(pageSpan);
+        }
+    }
+
+    function goToPage(page) {
+        currentPage = page;
+        renderTable();
+    }
+
+    function firstPage() {
+        if (currentPage > 1) {
+            currentPage = 1;
+            renderTable();
+        }
+    }
+
+    function prevPage() {
+        if (currentPage > 1) {
+            currentPage--;
+            renderTable();
+        }
+    }
+
+    function nextPage() {
+        // 计算总页数时，如果 filteredData 为空，totalPages 应为 0
+        const totalPages = filteredData.length > 0 ? Math.ceil(filteredData.length / pageSize) : 0;
+        if (currentPage < totalPages) {
+            currentPage++;
+            renderTable();
+        }
+    }
+
+    function lastPage() {
+        const totalPages = filteredData.length > 0 ? Math.ceil(filteredData.length / pageSize) : 0;
+        if (currentPage < totalPages && totalPages > 0) {
+            currentPage = totalPages;
+            renderTable();
+        }
+    }
+
+    function updateSummary() {
+        let totalOut = 0, totalIn = 0;
+        transfers.forEach(t => { if(t.direction === 'out') totalOut += t.quantity; else totalIn += t.quantity; });
+        document.getElementById('totalOutQty').innerText = totalOut;
+        document.getElementById('totalInQty').innerText = totalIn;
+        document.getElementById('netOutflow').innerText = totalOut - totalIn;
+    }
+
+    // 修改 deleteRecord 函数 - 增加删除原因弹窗
+    function deleteRecord(id) {
+        // 弹出模态框让用户填写删除原因
+        showDeleteReasonModal(id);
+    }
+
+    function showDeleteReasonModal(recordId) {
+        const record = transfers.find(r => r.id === recordId);
+        if (!record) return;
+
+        closeDeleteModal();
+
+        const modalHtml = `
+        <div id="deleteReasonModal" style="position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); display:flex; align-items:center; justify-content:center; z-index:2000;">
+            <div id="deleteModalContent" style="background:white; border-radius:28px; width:90%; max-width:500px; max-height:90vh; overflow-y:auto; padding:24px;">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+                    <h3 style="color:#e03a3a;"><i class="fas fa-exclamation-triangle"></i> 删除确认</h3>
+                    <i class="fas fa-times" style="cursor:pointer; font-size:20px; padding:8px;" onclick="closeDeleteModal()"></i>
+                </div>
+                <div style="background:#f8fafd; border-radius:16px; padding:16px; margin-bottom:20px;">
+                    <p><strong>📦 货品：</strong> ${escapeHtml(record.productName)}</p>
+                    <p><strong>🔢 数量：</strong> ${record.quantity}</p>
+                    <p><strong>👤 取货人：</strong> ${escapeHtml(record.pickupPerson)}</p>
+                    <p><strong>📅 取货时间：</strong> ${formatDateTime(record.transferTime)}</p>
+                    <p><strong>📝 填写人：</strong> ${escapeHtml(record.filler)}</p>
+                </div>
+                <div style="margin-bottom:20px;">
+                    <label style="font-weight:600; display:block; margin-bottom:8px;">删除原因 <span style="color:#e03a3a;">*</span></label>
+                    <textarea id="deleteReason" rows="3" style="width:100%; padding:12px; border:1.5px solid #e2edf7; border-radius:16px; font-family:inherit; resize:vertical;" placeholder="请填写删除原因（必填）"></textarea>
+                </div>
+                <div style="display:flex; gap:12px; justify-content:flex-end;">
+                    <button class="btn-secondary" onclick="closeDeleteModal()">取消</button>
+                    <button class="btn-primary" style="background:#e03a3a;" onclick="confirmDelete('${recordId}')">确认删除</button>
+                </div>
+            </div>
+        </div>
+    `;
+
+        document.body.insertAdjacentHTML('beforeend', modalHtml);
+
+        // 点击背景关闭模态框
+        const modalBg = document.getElementById('deleteReasonModal');
+        if (modalBg) {
+            modalBg.addEventListener('click', function(e) {
+                if (e.target === modalBg) {
+                    closeDeleteModal();
+                }
+            });
+        }
+
+        setTimeout(() => {
+            const reasonInput = document.getElementById('deleteReason');
+            if (reasonInput) reasonInput.focus();
+        }, 100);
+    }
+
+    // 修改 confirmDelete 函数 - 确保关闭模态框
+    function confirmDelete(recordId) {
+        const reasonTextarea = document.getElementById('deleteReason');
+        if (!reasonTextarea) {
+            console.error('找不到删除原因输入框');
+            // 如果找不到，可能是模态框结构问题，尝试直接关闭
+            closeDeleteModal();
+            return;
+        }
+
+        const reason = reasonTextarea.value.trim();
+        if (!reason) {
+            alert('请填写删除原因');
+            // 不要关闭模态框，让用户继续填写
+            return;
+        }
+
+        const message = currentUserRole === 'SUPER'
+            ? '确认删除该记录？删除后将不可恢复。'
+            : '确认删除该记录？提交后将由超级管理员审核，审核通过后才会正式删除。';
+
+        if (confirm(message)) {
+            // 先关闭模态框
+            closeDeleteModal();
+
+            // 显示加载提示
+            const loadingMsg = document.createElement('div');
+            loadingMsg.id = 'deleteLoadingMsg';
+            loadingMsg.style.cssText = 'position:fixed; top:50%; left:50%; transform:translate(-50%,-50%); background:white; padding:20px 40px; border-radius:20px; box-shadow:0 4px 20px rgba(0,0,0,0.2); z-index:2001;';
+            loadingMsg.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 处理中...';
+            document.body.appendChild(loadingMsg);
+
+            // 发送删除请求
+            fetch(`/api/transfer/record/${recordId}?reason=${encodeURIComponent(reason)}`, {
+                method: 'DELETE',
+                credentials: 'include'
+            })
+                .then(response => response.json())
+                .then(data => {
+                    const loadingEl = document.getElementById('deleteLoadingMsg');
+                    if (loadingEl) loadingEl.remove();
+                    alert(data.message || (currentUserRole === 'SUPER' ? '删除成功' : '已提交删除申请，等待审核'));
+                    fetchRecords();
+                    if (currentUserRole === 'SUPER') loadNotifications();
+                })
+                .catch(error => {
+                    console.error('删除失败:', error);
+                    const loadingEl = document.getElementById('deleteLoadingMsg');
+                    if (loadingEl) loadingEl.remove();
+                    alert('删除失败：' + error.message);
+                });
+        } else {
+            // 用户取消删除，只关闭模态框
+            closeDeleteModal();
+        }
+    }
+
+    // 修改 closeDeleteModal 函数 - 确保完全移除
+    function closeDeleteModal() {
+        const existingModal = document.getElementById('deleteReasonModal');
+        if (existingModal) {
+            existingModal.remove();
+        }
+        // 同时移除可能残留的加载提示
+        const loadingEl = document.getElementById('deleteLoadingMsg');
+        if (loadingEl) loadingEl.remove();
+    }
+
+    function setActiveDirection(dir) {
+        document.querySelectorAll('.direction-option').forEach(opt => { if(opt.getAttribute('data-dir') === dir) opt.classList.add('active'); else opt.classList.remove('active'); });
+        document.getElementById('directionInput').value = dir;
+    }
+
+    function resetFormFields() {
+        // 重置时也设置为当前时间
+        const now = new Date();
+        const year = now.getFullYear();
+        const month = String(now.getMonth() + 1).padStart(2, '0');
+        const day = String(now.getDate()).padStart(2, '0');
+        const hours = String(now.getHours()).padStart(2, '0');
+        const minutes = String(now.getMinutes()).padStart(2, '0');
+        const defaultTime = `${year}-${month}-${day}T${hours}:${minutes}`;
+        document.getElementById('transferDate').value = defaultTime;
+
+        document.getElementById('pickupPerson').value = '';
+        document.getElementById('productName').value = '';
+        document.getElementById('quantity').value = '1';
+        document.getElementById('remark').value = '';
+        document.getElementById('fillerPerson').value = '';
+        setActiveDirection('out');
+        currentSelectedDetail = '';
+        document.getElementById('selectedDetailText').innerText = '点击选择或输入搜索';
+        document.getElementById('directionDetailValue').value = '';
+        buildDropdownOptions('');
+        document.getElementById('detailDropdown')?.classList.remove('show');
+        document.getElementById('detailSelectTrigger')?.classList.remove('open');
+    }
+
+    // ==================== 数据获取 ====================
+    function fetchRecords() {
+        fetch('/api/transfer/records', { credentials: 'include' })
+            .then(response => response.json())
+            .then(data => {
+                if (data.needLogin || data.userRole === 'GUEST') { showLoginPrompt(); return; }
+                transfers = (data.records || []).sort((a, b) => new Date(b.createTime) - new Date(a.createTime));
+                currentUserRole = data.userRole;
+                currentUserName = data.userName || '门店用户';
+                document.getElementById('userName').innerText = currentUserName;
+                document.getElementById('userAvatar').innerText = currentUserName.charAt(0);
+                document.getElementById('userRole').innerText = currentUserRole === 'SUPER' ? '超级管理员' : '门店账号';
+                document.getElementById('userInfoCard').style.display = 'flex';
+                document.getElementById('mainContent').style.display = 'block';
+                document.getElementById('loginPrompt').style.display = 'none';
+
+                // 重置到第一页
+                currentPage = 1;
+                renderTable();
+
+                if (currentUserRole === 'SUPER') loadNotifications();
+            })
+            .catch(error => { console.error('获取数据失败:', error); showLoginPrompt(); });
+    }
+
+    function showLoginPrompt() {
+        document.getElementById('userInfoCard').style.display = 'none';
+        document.getElementById('mainContent').style.display = 'none';
+        document.getElementById('loginPrompt').style.display = 'block';
+        if (notificationCheckInterval) clearInterval(notificationCheckInterval);
+    }
+
+    // ==================== 页面跳转 ====================
+    function goToHome() {
+        window.location.href = '/index.html';
+    }
+
+    // ==================== 分页按钮事件绑定 ====================
+    function bindPaginationEvents() {
+        const firstPageBtn = document.getElementById('firstPageBtn');
+        const prevPageBtn = document.getElementById('prevPageBtn');
+        const nextPageBtn = document.getElementById('nextPageBtn');
+        const lastPageBtn = document.getElementById('lastPageBtn');
+
+        if (firstPageBtn) firstPageBtn.addEventListener('click', firstPage);
+        if (prevPageBtn) prevPageBtn.addEventListener('click', prevPage);
+        if (nextPageBtn) nextPageBtn.addEventListener('click', nextPage);
+        if (lastPageBtn) lastPageBtn.addEventListener('click', lastPage);
+    }
+
+    function logout() {
+        if (confirm('确定要退出登录吗？')) {
+            fetch('/api/transfer/logout', {
+                method: 'POST',
+                credentials: 'include'
+            })
+                .then(() => {
+                    // 清除所有本地存储
+                    sessionStorage.clear();
+                    localStorage.clear();
+                    // 跳转到门户首页
+                    window.location.href = '/index.html';
+                })
+                .catch(() => {
+                    window.location.href = '/index.html';
+                });
+        }
+    }
+
+    function checkLoginStatus() {
+        fetch('/api/transfer/current-user', { credentials: 'include' })
+            .then(response => response.json())
+            .then(data => {
+                if (data.isLoggedIn && data.userRole !== 'GUEST') {
+                    fetchRecords();
+                    if (notificationCheckInterval) clearInterval(notificationCheckInterval);
+                    notificationCheckInterval = setInterval(() => {
+                        if (currentUserRole === 'SUPER') loadNotifications();
+                    }, 30000);
+                } else {
+                    showLoginPrompt();
+                }
+            })
+            .catch(() => showLoginPrompt());
+    }
+
+    function goToLogin() {
+        window.location.href = '/login.html';
+    }
+
+    function setDefaultTransferTime() {
+        const now = new Date();
+        const year = now.getFullYear();
+        const month = String(now.getMonth() + 1).padStart(2, '0');
+        const day = String(now.getDate()).padStart(2, '0');
+        const hours = String(now.getHours()).padStart(2, '0');
+        const minutes = String(now.getMinutes()).padStart(2, '0');
+        const defaultTime = `${year}-${month}-${day}T${hours}:${minutes}`;
+        document.getElementById('transferDate').value = defaultTime;
+    }
+
+    // ==================== 事件绑定 ====================
+    function toggleNotificationPanel() {
+        const panel = document.getElementById('notificationPanel');
+        panel.classList.toggle('show');
+        if (panel.classList.contains('show') && currentUserRole === 'SUPER') {
+            loadNotifications();
+        }
+    }
+
+    document.getElementById('goHomeBtn')?.addEventListener('click', goToHome);
+    document.getElementById('goToLoginBtn')?.addEventListener('click', goToLogin);
+    document.getElementById('logoutBtn')?.addEventListener('click', logout);
+    document.getElementById('exportStatsBtn')?.addEventListener('click', exportToCSV);
+    document.getElementById('resetFormBtn')?.addEventListener('click', resetFormFields);
+    // 修改搜索和筛选的事件监听
+    document.getElementById('searchInput')?.addEventListener('input', () => {
+        currentPage = 1;  // 重置到第一页
+        renderTable();
+    });
+    document.getElementById('directionFilter')?.addEventListener('change', () => {
+        currentPage = 1;  // 重置到第一页
+        renderTable();
+    });
+    document.getElementById('notificationBell')?.addEventListener('click', toggleNotificationPanel);
+    document.getElementById('markAllRead')?.addEventListener('click', markAllRead);
+
+    // 点击其他地方关闭通知面板
+    document.addEventListener('click', function(e) {
+        const panel = document.getElementById('notificationPanel');
+        const bell = document.getElementById('notificationBell');
+        if (panel && !panel.contains(e.target) && !bell.contains(e.target)) {
+            panel.classList.remove('show');
+        }
+    });
+
+    document.getElementById('transferForm')?.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const transferTime = document.getElementById('transferDate').value;
+        const direction = document.getElementById('directionInput').value;
+        const directionDetail = document.getElementById('directionDetailValue').value.trim();
+        const pickupPerson = document.getElementById('pickupPerson').value.trim();
+        const productName = document.getElementById('productName').value.trim();
+        const quantity = parseInt(document.getElementById('quantity').value, 10);
+        const remark = document.getElementById('remark').value.trim();
+        const filler = document.getElementById('fillerPerson').value.trim();
+        if(!transferTime) { alert('请选择取货时间'); return; }
+        if(!pickupPerson) { alert('请填写取货人'); return; }
+        if(!productName) { alert('请填写货品名称'); return; }
+        if(!directionDetail) { alert('请选择方向明细'); return; }
+        if(!filler) { alert('请填写填写人'); return; }
+        if(isNaN(quantity) || quantity < 1) { alert('数量必须为正整数'); return; }
+
+        fetch('/api/transfer/record', {
+            method: 'POST', credentials: 'include',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ transferTime, direction, directionDetail, pickupPerson, productName, quantity, remark, filler })
+        })
+            .then(response => response.json())
+            .then(data => {
+                alert('新增成功！');
+                resetFormFields();
+                fetchRecords();
+                if (currentUserRole === 'SUPER') loadNotifications();
+            })
+            .catch(error => { console.error('新增失败:', error); alert('新增失败'); });
+    });
+
+    document.querySelectorAll('.direction-option').forEach(opt => opt.addEventListener('click', () => setActiveDirection(opt.getAttribute('data-dir'))));
+
+    // ==================== 初始化 ====================
+    document.getElementById('transferDate').value = new Date().toISOString().slice(0, 16);
+    setDefaultTransferTime();
+    setActiveDirection('out');
+    initCustomSelect();
+    setupExportControls();
+    // 绑定分页按钮事件 - 这行需要添加！
+    bindPaginationEvents();
+
+    checkLoginStatus();
+</script>
+</body>
+</html>
