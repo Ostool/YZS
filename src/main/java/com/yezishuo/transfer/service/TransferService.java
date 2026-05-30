@@ -1,5 +1,6 @@
 package com.yezishuo.transfer.service;
 
+import com.yezishuo.transfer.dto.BatchTransferDTO;
 import com.yezishuo.transfer.dto.TransferRecordDTO;
 import com.yezishuo.transfer.dto.TransferAuditDTO;
 import com.yezishuo.transfer.entity.TransferRecord;
@@ -15,4 +16,5 @@ public interface TransferService {
     void auditDelete(TransferAuditDTO auditDTO);
     TransferRecord updateRecord(TransferRecordDTO dto, String operator);
     Map<String, Object> getStatistics();
+    List<TransferRecord> addBatchRecords(BatchTransferDTO batchDTO, String operator);
 }

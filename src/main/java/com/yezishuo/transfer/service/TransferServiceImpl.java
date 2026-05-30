@@ -1,5 +1,7 @@
 package com.yezishuo.transfer.service;
 
+import com.yezishuo.transfer.dto.BatchItemDTO;
+import com.yezishuo.transfer.dto.BatchTransferDTO;
 import com.yezishuo.transfer.dto.TransferRecordDTO;
 import com.yezishuo.transfer.dto.TransferAuditDTO;
 import com.yezishuo.transfer.entity.TransferRecord;
@@ -215,5 +217,58 @@ public class TransferServiceImpl implements TransferService {
         stats.put("netOutflow", totalOut - totalIn);
         stats.put("totalCount", records.size());
         return stats;
+    }
+
+    @Override
+    @Transactional
+    public List<TransferRecord> addBatchRecords(BatchTransferDTO batchDTO, String operator) {
+        log.info("开始批量新增调货记录，操作人: {}, 货品数量: {}", operator, batchDTO.getItems().size());
+
+        List<TransferRecord> savedRecords = new ArrayList<>();
+
+        // 逐条保存
+        for (BatchItemDTO item : batchDTO.getItems()) {
+            TransferRecord record = new TransferRecord();
+            record.setId(UUID.randomUUID().toString().replace("-", ""));
+            record.setTransferTime(batchDTO.getTransferTime());
+            record.setDirection(batchDTO.getDirection());
+            record.setDirectionDetail(batchDTO.getDirectionDetail());
+            record.setPickupPerson(batchDTO.getPickupPerson());
+            record.setProductName(item.getProductName());
+            record.setQuantity(item.getQuantity());
+            record.setRemark(batchDTO.getRemark());
+            record.setFiller(batchDTO.getFiller());
+            record.setStatus("active");
+            record.setCreateTime(LocalDateTime.now());
+            record.setCreateBy(operator);
+            savedRecords.add(recordRepository.save(record));
+        }
+
+        log.info("批量保存成功，共 {} 条记录", savedRecords.size());
+
+        // ========== 构建合并后的通知内容 ==========
+        Map<String, Object> details = new LinkedHashMap<>();
+
+        // 构建货品列表字符串
+        StringBuilder productList = new StringBuilder();
+        for (BatchItemDTO item : batchDTO.getItems()) {
+            productList.append("货品：").append(item.getProductName()).append("\n");
+            productList.append("数量：").append(item.getQuantity()).append("\n");
+        }
+        details.put("货品清单", productList.toString().trim());
+        details.put("方向", batchDTO.getDirectionDetail());
+        details.put("取货人", batchDTO.getPickupPerson());
+        details.put("填写人", batchDTO.getFiller());
+        if (batchDTO.getRemark() != null && !batchDTO.getRemark().isEmpty()) {
+            details.put("备注", batchDTO.getRemark());
+        }
+
+        // 打印日志确认通知内容
+        log.info("准备发送企微通知，详情: {}", details);
+
+        // 只发送一条通知
+        notifyService.sendBatchAddNotification(operator, details, batchDTO.getItems().size());
+
+        return savedRecords;
     }
 }

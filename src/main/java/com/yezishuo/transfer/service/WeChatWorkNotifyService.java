@@ -185,6 +185,10 @@ public class WeChatWorkNotifyService {
      * 发送文本消息到企微
      */
     private void sendTextMessage(String content) {
+        log.info("========== 开始发送企微消息 ==========");
+        log.info("webhookUrl: {}", webhookUrl);
+        log.info("消息内容长度: {}", content.length());
+        log.info("消息内容前100字符: {}", content.substring(0, Math.min(100, content.length())));
         try {
             // 防重复检查
             int hash = content.hashCode();
@@ -220,5 +224,66 @@ public class WeChatWorkNotifyService {
             log.error("发送企微消息失败", e);
             e.printStackTrace();
         }
+    }
+
+    /**
+     * 发送批量新增调货记录通知（合并为一条）
+     */
+    public void sendBatchAddNotification(String operator, Map<String, Object> details, int itemCount) {
+        try {
+            String content = buildBatchAddNotificationContent(operator, details, itemCount);
+            sendTextMessage(content);
+        } catch (Exception e) {
+            log.error("发送批量新增调货记录通知异常", e);
+        }
+    }
+
+    /**
+     * 构建批量新增调货记录通知内容
+     */
+    /**
+     * 构建批量新增调货记录通知内容
+     */
+    private String buildBatchAddNotificationContent(String operator, Map<String, Object> details, int itemCount) {
+        String time = LocalDateTime.now().format(TIME_FORMATTER);
+
+        StringBuilder sb = new StringBuilder();
+        sb.append("📦 叶子说眼镜 · 调货通知\n");
+        sb.append("       ").append(time).append("\n");
+        sb.append(SEPARATOR).append("\n");
+        sb.append("➕ 新增调货记录（共").append(itemCount).append("种货品）\n\n");
+
+        // 输出货品清单（安全处理空值）
+        Object productListObj = details.get("货品清单");
+        if (productListObj != null) {
+            sb.append(productListObj.toString()).append("\n");
+        }
+
+        // 输出其他信息（安全处理空值）
+        Object direction = details.get("方向");
+        if (direction != null) {
+            sb.append("方向：").append(direction).append("\n");
+        }
+
+        Object pickupPerson = details.get("取货人");
+        if (pickupPerson != null) {
+            sb.append("取货人：").append(pickupPerson).append("\n");
+        }
+
+        Object filler = details.get("填写人");
+        if (filler != null) {
+            sb.append("填写人：").append(filler).append("\n");
+        }
+
+        Object remark = details.get("备注");
+        if (remark != null && !remark.toString().isEmpty()) {
+            sb.append("备注：").append(remark).append("\n");
+        }
+
+        sb.append(SEPARATOR).append("\n");
+        sb.append("发起账号：").append(operator).append("\n");
+        sb.append("请及时处理 👆");
+
+        return sb.toString();
     }
 }

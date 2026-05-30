@@ -263,4 +263,20 @@ public class TransferController {
         result.put("record", record);
         return ResponseEntity.ok(result);
     }
+
+    @PostMapping("/batch-record")
+    public ResponseEntity<?> addBatchRecords(@RequestBody BatchTransferDTO batchDTO, HttpSession session) {
+        String role = getString(session, "userRole");
+        if ("GUEST".equals(role)) {
+            return ResponseEntity.status(403).body(errorMap("游客无权新增记录"));
+        }
+
+        String operator = getString(session, "userName");
+        List<TransferRecord> records = transferService.addBatchRecords(batchDTO, operator);
+
+        Map<String, Object> result = new HashMap<>();
+        result.put("message", "新增成功");
+        result.put("count", records.size());
+        return ResponseEntity.ok(result);
+    }
 }
