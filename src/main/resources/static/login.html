@@ -147,16 +147,23 @@
             color: #999;
         }
 
-        .back-link {
-            display: block;
-            text-align: center;
-            margin-top: 20px;
-            color: rgba(255,255,255,0.7);
+        .home-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            color: rgba(255,255,255,0.85);
             text-decoration: none;
-            font-size: 13px;
+            font-size: 14px;
+            font-weight: 500;
+            background: rgba(255,255,255,0.12);
+            padding: 8px 18px;
+            border-radius: 20px;
+            transition: all 0.2s;
+            margin-bottom: 20px;
         }
 
-        .back-link:hover {
+        .home-btn:hover {
+            background: rgba(255,255,255,0.25);
             color: white;
         }
     </style>
@@ -193,9 +200,9 @@
             <i class="fas fa-info-circle"></i> 每个门店拥有独立账号，请联系管理员获取
         </div>
     </div>
-    <a href="index.html" class="back-link">
-        <i class="fas fa-arrow-left"></i> 返回门户首页
-    </a>
+    <div style="text-align:center;">
+        <a href="index.html" class="home-btn">🏠 门户首页</a>
+    </div>
 </div>
 
 <script>

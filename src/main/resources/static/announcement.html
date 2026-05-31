@@ -160,6 +160,23 @@
             box-shadow: var(--card-shadow);
             border: 1px solid var(--gray-border);
         }
+        .home-nav-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            background: var(--klein-blue);
+            color: white;
+            text-decoration: none;
+            padding: 6px 16px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-bottom: 8px;
+            white-space: nowrap;
+        }
+        .home-nav-btn:hover { background: #00248a; transform: translateY(-1px); }
         .logo-area {
             display: flex;
             align-items: baseline;
@@ -378,6 +395,7 @@
 <body>
 <div class="app-container">
     <div class="brand-header">
+        <a href="/index.html" class="home-nav-btn">🏠 门户首页</a>
         <div class="logo-area">
             <div>
                 <div class="brand-name" onclick="goToHome()">🍃 叶子说眼镜</div>

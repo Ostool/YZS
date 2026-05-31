@@ -217,6 +217,24 @@
             border-bottom: 3px solid var(--klein-blue);
             padding-bottom: 16px;
         }
+        .home-nav-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            background: var(--klein-blue);
+            color: white;
+            text-decoration: none;
+            padding: 6px 16px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-right: 16px;
+            white-space: nowrap;
+        }
+        .home-nav-btn:hover { background: #00248a; transform: translateY(-1px); }
+        .brand-header-left { display: flex; align-items: center; flex-wrap: wrap; }
         .brand-title {
             cursor: pointer;
             transition: opacity 0.2s;
@@ -802,9 +820,12 @@
 
 <div class="system-container">
     <div class="brand-header">
-        <div class="brand-title" id="goHomeBtn">
-            <h1><i class="fas fa-leaf"></i> 叶子说眼镜 · 调货系统</h1>
-            <p>门店调货协同 | 月末统计 | 清晰明细 | 支持多货品批量录入</p>
+        <div class="brand-header-left">
+            <a href="/index.html" class="home-nav-btn">🏠 门户首页</a>
+            <div class="brand-title" id="goHomeBtn">
+                <h1><i class="fas fa-leaf"></i> 叶子说眼镜 · 调货系统</h1>
+                <p>门店调货协同 | 月末统计 | 清晰明细 | 支持多货品批量录入</p>
+            </div>
         </div>
         <div class="right-header">
             <div class="notification-bell" id="notificationBell">

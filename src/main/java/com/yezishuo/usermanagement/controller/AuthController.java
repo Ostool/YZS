@@ -1,7 +1,7 @@
 package com.yezishuo.usermanagement.controller;
 
 import com.yezishuo.usermanagement.dto.LoginRequest;
-import com.yezishuo.usermanagement.service.UserService;
+import com.yezishuo.usermanagement.service.AuthService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -13,20 +13,18 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/api/auth")
-@CrossOrigin(origins = "http://localhost:8080", allowCredentials = "true")
 public class AuthController {
 
     @Autowired
-    private UserService userService;
+    private AuthService authService;
 
     @PostMapping("/login")
     public ResponseEntity<Map<String, Object>> login(@Valid @RequestBody LoginRequest request, HttpSession session) {
-        Map<String, Object> result = userService.login(request, session);
+        Map<String, Object> result = authService.login(request, session);
         if ((boolean) result.get("success")) {
             return ResponseEntity.ok(result);
-        } else {
-            return ResponseEntity.badRequest().body(result);
         }
+        return ResponseEntity.badRequest().body(result);
     }
 
     @GetMapping("/logout")
@@ -41,7 +39,8 @@ public class AuthController {
     @GetMapping("/checkLogin")
     public ResponseEntity<Map<String, Object>> checkLogin(HttpSession session) {
         Map<String, Object> result = new HashMap<>();
-        if (session.getAttribute("userId") != null) {
+        Object userId = session.getAttribute("userId");
+        if (userId != null) {
             result.put("isLogin", true);
             result.put("username", session.getAttribute("username"));
             result.put("roleLevel", session.getAttribute("roleLevel"));

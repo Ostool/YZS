@@ -39,6 +39,24 @@
         .main-container { display: none; max-width: 1600px; margin: 0 auto; background: white; border-radius: 10px; box-shadow: 0 10px 40px rgba(0,0,0,0.1); overflow: hidden; }
         .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 20px 30px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; }
         .header h1 { font-size: 24px; }
+        .home-nav-btn {
+            background: rgba(255,255,255,0.2);
+            border: 1px solid rgba(255,255,255,0.3);
+            color: white;
+            padding: 6px 16px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 500;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            transition: all 0.2s;
+            margin-right: 10px;
+            flex-shrink: 0;
+        }
+        .home-nav-btn:hover { background: rgba(255,255,255,0.35); transform: translateY(-1px); }
         .user-info { display: flex; align-items: center; gap: 20px; flex-wrap: wrap; }
         .logout-btn { background: rgba(255,255,255,0.2); border: none; color: white; padding: 8px 20px; border-radius: 5px; cursor: pointer; transition: background 0.3s; }
         .logout-btn:hover { background: rgba(255,255,255,0.3); }
@@ -202,7 +220,10 @@
 
 <div id="mainContainer" class="main-container">
     <div class="header">
-        <h1 style="cursor: pointer;" onclick="window.location.href='/index.html'">👓 配镜处方管理系统</h1>
+        <div style="display:flex;align-items:center;flex:1;min-width:0;">
+            <a href="/index.html" class="home-nav-btn">🏠 门户首页</a>
+            <h1 style="cursor: pointer;" onclick="window.location.href='/index.html'">👓 配镜处方管理系统</h1>
+        </div>
         <div class="user-info">
             <span>欢迎，<span id="currentUser">用户</span></span>
             <span id="userRoleBadge" class="role-badge"></span>

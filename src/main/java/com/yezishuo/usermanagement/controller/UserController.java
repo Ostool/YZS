@@ -5,13 +5,15 @@ import com.yezishuo.usermanagement.dto.LoginRequest;
 import com.yezishuo.usermanagement.dto.UserCreateRequest;
 import com.yezishuo.usermanagement.entity.UserData;
 import com.yezishuo.usermanagement.repository.UserDataRepository;
-import com.yezishuo.usermanagement.repository.UserRepository;
-import com.yezishuo.usermanagement.service.UserService;
+import com.yezishuo.usermanagement.service.AuthService;
+import com.yezishuo.usermanagement.service.PrescriptionService;
+import com.yezishuo.usermanagement.service.UserManagementService;
 import com.yezishuo.usermanagement.util.ImageUploadUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
 import javax.servlet.http.HttpSession;
 import javax.validation.Valid;
 import java.io.IOException;
@@ -22,11 +24,16 @@ import java.util.*;
 
 @RestController
 @RequestMapping("/api")
-@CrossOrigin(origins = "http://localhost:8080", allowCredentials = "true")
 public class UserController {
 
     @Autowired
-    private UserService userService;
+    private AuthService authService;
+
+    @Autowired
+    private UserManagementService userManagementService;
+
+    @Autowired
+    private PrescriptionService prescriptionService;
 
     @Autowired
     private ImageUploadUtil imageUploadUtil;
@@ -34,114 +41,106 @@ public class UserController {
     @Autowired
     private UserDataRepository userDataRepository;
 
+    // 兼容旧登录端点（委托给AuthService）
     @PostMapping("/login")
     public ResponseEntity<Map<String, Object>> login(@Valid @RequestBody LoginRequest request, HttpSession session) {
-        Map<String, Object> result = userService.login(request, session);
+        Map<String, Object> result = authService.login(request, session);
         if ((boolean) result.get("success")) {
             return ResponseEntity.ok(result);
-        } else {
-            return ResponseEntity.badRequest().body(result);
         }
+        return ResponseEntity.badRequest().body(result);
     }
 
     @GetMapping("/currentUser")
     public ResponseEntity<Map<String, Object>> getCurrentUser(HttpSession session) {
-        Map<String, Object> result = userService.getCurrentUser(session);
+        Map<String, Object> result = authService.getCurrentUser(session);
         if ((boolean) result.get("success")) {
             return ResponseEntity.ok(result);
-        } else {
-            return ResponseEntity.status(401).body(result);
         }
+        return ResponseEntity.status(401).body(result);
     }
 
     @PostMapping("/createUser")
-    public ResponseEntity<Map<String, Object>> createUser(@Valid @RequestBody UserCreateRequest request, HttpSession session) {
-        Map<String, Object> result = userService.createUser(request, session);
+    public ResponseEntity<Map<String, Object>> createUser(@Valid @RequestBody UserCreateRequest request) {
+        Map<String, Object> result = userManagementService.createUser(request);
         if ((boolean) result.get("success")) {
             return ResponseEntity.ok(result);
-        } else {
-            return ResponseEntity.badRequest().body(result);
         }
+        return ResponseEntity.badRequest().body(result);
     }
 
     @GetMapping("/userList")
-    public ResponseEntity<Map<String, Object>> getUserList(HttpSession session) {
-        Map<String, Object> result = userService.getUserList(session);
+    public ResponseEntity<Map<String, Object>> getUserList() {
+        Map<String, Object> result = userManagementService.getUserList();
         if ((boolean) result.get("success")) {
             return ResponseEntity.ok(result);
-        } else {
-            return ResponseEntity.status(403).body(result);
         }
+        return ResponseEntity.status(403).body(result);
     }
 
     @DeleteMapping("/deleteUser/{userId}")
-    public ResponseEntity<Map<String, Object>> deleteUser(@PathVariable Integer userId, HttpSession session) {
-        Map<String, Object> result = userService.deleteUser(userId, session);
+    public ResponseEntity<Map<String, Object>> deleteUser(@PathVariable Integer userId) {
+        Map<String, Object> result = userManagementService.deleteUser(userId);
         if ((boolean) result.get("success")) {
             return ResponseEntity.ok(result);
-        } else {
-            return ResponseEntity.badRequest().body(result);
         }
+        return ResponseEntity.badRequest().body(result);
     }
 
     @PostMapping("/getData")
-    public ResponseEntity<Map<String, Object>> getData(@RequestBody Map<String, String> params, HttpSession session) {
+    public ResponseEntity<Map<String, Object>> getData(@RequestBody Map<String, String> params) {
         String keyword = params != null ? params.get("search") : null;
         String dateRange = params != null ? params.get("dateRange") : null;
         String startDate = params != null ? params.get("startDate") : null;
         String endDate = params != null ? params.get("endDate") : null;
-        Map<String, Object> result = userService.getData(keyword, session, dateRange, startDate, endDate);
+        Map<String, Object> result = prescriptionService.getData(keyword, dateRange, startDate, endDate);
         if ((boolean) result.get("success")) {
             return ResponseEntity.ok(result);
-        } else {
-            return ResponseEntity.status(401).body(result);
         }
+        return ResponseEntity.status(401).body(result);
     }
 
     @PostMapping("/statistics")
-    public ResponseEntity<Map<String, Object>> getStatistics(@RequestBody(required = false) Map<String, String> params, HttpSession session) {
+    public ResponseEntity<Map<String, Object>> getStatistics(@RequestBody(required = false) Map<String, String> params) {
         String keyword = params != null ? params.get("search") : null;
         String dateRange = params != null ? params.get("dateRange") : null;
         String startDate = params != null ? params.get("startDate") : null;
         String endDate = params != null ? params.get("endDate") : null;
-        Map<String, Object> result = userService.getStatistics(session, keyword, dateRange, startDate, endDate);
+        Map<String, Object> result = prescriptionService.getStatistics(keyword, dateRange, startDate, endDate);
         if ((boolean) result.get("success")) {
             return ResponseEntity.ok(result);
-        } else {
-            return ResponseEntity.status(401).body(result);
         }
+        return ResponseEntity.status(401).body(result);
     }
 
     @DeleteMapping("/deleteData/{dataId}")
-    public ResponseEntity<Map<String, Object>> deleteData(@PathVariable Integer dataId, HttpSession session) {
-        Map<String, Object> result = userService.deleteData(dataId, session);
+    public ResponseEntity<Map<String, Object>> deleteData(@PathVariable Integer dataId) {
+        Map<String, Object> result = prescriptionService.deleteData(dataId);
         if ((boolean) result.get("success")) {
             return ResponseEntity.ok(result);
-        } else {
-            return ResponseEntity.badRequest().body(result);
         }
+        return ResponseEntity.badRequest().body(result);
     }
 
     @PostMapping("/addUser")
-    public ResponseEntity<Map<String, Object>> addUser(@Valid @RequestBody AddUserRequest request, HttpSession session) {
-        Map<String, Object> result = userService.addUserData(request, session);
+    public ResponseEntity<Map<String, Object>> addUser(@Valid @RequestBody AddUserRequest request) {
+        Map<String, Object> result = prescriptionService.addUserData(request);
         if ((boolean) result.get("success")) {
             return ResponseEntity.ok(result);
-        } else {
-            return ResponseEntity.badRequest().body(result);
         }
+        return ResponseEntity.badRequest().body(result);
     }
 
     @GetMapping("/getUser/{id}")
-    public ResponseEntity<Map<String, Object>> getUser(@PathVariable Integer id, HttpSession session) {
-        Map<String, Object> result = userService.getUserData(id, session);
+    public ResponseEntity<Map<String, Object>> getUser(@PathVariable Integer id) {
+        Map<String, Object> result = prescriptionService.getUserData(id);
         if ((boolean) result.get("success")) {
             return ResponseEntity.ok(result);
-        } else {
-            return ResponseEntity.badRequest().body(result);
         }
+        return ResponseEntity.badRequest().body(result);
     }
 
+    // 兼容旧端点
     @GetMapping("/logout")
     public ResponseEntity<Map<String, Object>> logout(HttpSession session) {
         session.invalidate();
@@ -164,8 +163,6 @@ public class UserController {
         return ResponseEntity.ok(result);
     }
 
-    // 在启动类或配置类中添加静态资源映射
-// 或者直接在 Controller 中添加图片访问接口
     @GetMapping("/uploads/pictures/{filename}")
     public ResponseEntity<byte[]> getImage(@PathVariable String filename) {
         try {
@@ -178,7 +175,6 @@ public class UserController {
         }
     }
 
-    // 单独上传图片接口
     @PostMapping("/uploadImage")
     public ResponseEntity<Map<String, Object>> uploadImage(@RequestBody Map<String, String> request, HttpSession session) {
         Map<String, Object> result = new HashMap<>();
@@ -213,7 +209,6 @@ public class UserController {
         return ResponseEntity.ok(result);
     }
 
-    // 更新图片接口
     @PostMapping("/updateUserImages")
     public ResponseEntity<Map<String, Object>> updateUserImages(@RequestBody Map<String, Object> request, HttpSession session) {
         Map<String, Object> result = new HashMap<>();
@@ -234,7 +229,6 @@ public class UserController {
 
         String prescriptionImages = (String) request.get("prescriptionImages");
 
-        // 处理 imagesToDelete - 兼容多种格式
         List<String> imagesToDelete = new ArrayList<>();
         Object deleteObj = request.get("imagesToDelete");
         if (deleteObj instanceof List) {
@@ -261,20 +255,8 @@ public class UserController {
             return ResponseEntity.badRequest().body(result);
         }
 
-        // 打印调试信息
-        System.out.println("========== 更新图片 ==========");
-        System.out.println("recordId: " + recordId);
-        System.out.println("prescriptionImages: " + prescriptionImages);
-        System.out.println("imagesToDelete: " + imagesToDelete);
-        System.out.println("imagesToDelete size: " + imagesToDelete.size());
-        for (String path : imagesToDelete) {
-            System.out.println("  待删除: " + path);
-        }
-
-        // 物理删除不再使用的旧图片
         if (!imagesToDelete.isEmpty()) {
             imageUploadUtil.deleteImages(imagesToDelete);
-            System.out.println("已物理删除图片数量: " + imagesToDelete.size());
         }
 
         userData.setPrescriptionImages(prescriptionImages);
@@ -304,7 +286,6 @@ public class UserController {
             return ResponseEntity.status(403).body(result);
         }
 
-        // 处理 imagesToDelete - 兼容多种格式
         List<String> imagesToDelete = new ArrayList<>();
         Object deleteObj = request.get("images");
         if (deleteObj instanceof List) {
@@ -318,8 +299,6 @@ public class UserController {
             }
         }
 
-        System.out.println("deleteImages 收到: " + imagesToDelete);
-
         if (!imagesToDelete.isEmpty()) {
             imageUploadUtil.deleteImages(imagesToDelete);
             result.put("success", true);
@@ -331,5 +310,4 @@ public class UserController {
 
         return ResponseEntity.ok(result);
     }
-
 }

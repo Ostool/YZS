@@ -14,6 +14,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import com.yezishuo.transfer.exception.BusinessException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
@@ -89,12 +90,12 @@ public class TransferServiceImpl implements TransferService {
     @Transactional
     public void requestDelete(String recordId, String requestUser, Integer requestUserId, String reason) {
         TransferRecord record = recordRepository.findById(recordId)
-                .orElseThrow(() -> new RuntimeException("记录不存在"));
+                .orElseThrow(() -> new BusinessException("记录不存在"));
 
         // 检查是否已有待审核的删除请求
         TransferDeleteAudit existing = auditRepository.findByTransferRecordIdAndAuditStatus(recordId, "pending");
         if (existing != null) {
-            throw new RuntimeException("该记录已有待审核的删除请求");
+            throw new BusinessException("该记录已有待审核的删除请求");
         }
 
         TransferDeleteAudit audit = new TransferDeleteAudit();
@@ -138,7 +139,7 @@ public class TransferServiceImpl implements TransferService {
     @Transactional
     public void auditDelete(TransferAuditDTO auditDTO) {
         TransferDeleteAudit audit = auditRepository.findById(auditDTO.getAuditId())
-                .orElseThrow(() -> new RuntimeException("审核记录不存在"));
+                .orElseThrow(() -> new BusinessException("审核记录不存在"));
 
         audit.setAuditStatus(auditDTO.getAuditStatus());
         audit.setAuditUser(auditDTO.getAuditUser());
@@ -147,7 +148,7 @@ public class TransferServiceImpl implements TransferService {
         auditRepository.save(audit);
 
         TransferRecord record = recordRepository.findById(audit.getTransferRecordId())
-                .orElseThrow(() -> new RuntimeException("调货记录不存在"));
+                .orElseThrow(() -> new BusinessException("调货记录不存在"));
 
         boolean approved = "approved".equals(auditDTO.getAuditStatus());
 
@@ -174,7 +175,7 @@ public class TransferServiceImpl implements TransferService {
     @Transactional
     public TransferRecord updateRecord(TransferRecordDTO dto, String operator) {
         TransferRecord record = recordRepository.findById(dto.getId())
-                .orElseThrow(() -> new RuntimeException("记录不存在"));
+                .orElseThrow(() -> new BusinessException("记录不存在"));
 
         // 记录变更前的信息
         String oldProduct = record.getProductName();
