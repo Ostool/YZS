@@ -165,4 +165,17 @@ public class UserData {
 
     @Column(name = "has_good_review", columnDefinition = "TINYINT DEFAULT 0")
     private Integer hasGoodReview = 0;  // 0=无好评, 1=有好评
+
+    // 复查提醒字段
+    @Column(name = "followup_interval", length = 10)
+    private String followupInterval;  // 复查周期: "3"/"6"
+
+    @Column(name = "next_followup_date")
+    private LocalDateTime nextFollowupDate;  // 下次提醒日期
+
+    @Column(name = "followup_deadline")
+    private LocalDateTime followupDeadline;  // 截止日期 = 配镜日期+1年
+
+    @Column(name = "followup_status", length = 20)
+    private String followupStatus;  // PENDING/NOTIFIED/COMPLETED/STOPPED
 }

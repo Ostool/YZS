@@ -77,4 +77,18 @@ public interface UserDataRepository extends JpaRepository<UserData, Integer> {
 
     @Query("SELECT u.consultant, COUNT(u), COALESCE(SUM(CASE WHEN u.hasGoodReview = 1 THEN 1 ELSE 0 END), 0) FROM UserData u WHERE u.isDeleted = 0 AND u.redemptionChannel IS NOT NULL AND u.redemptionChannel != '' AND u.shopName = :shopName AND u.prescriptionDate BETWEEN :start AND :end GROUP BY u.consultant ORDER BY COUNT(u) DESC")
     List<Object[]> findServiceStarsByShop(@Param("shopName") String shopName, @Param("start") LocalDateTime start, @Param("end") LocalDateTime end);
+
+    // ========== 复查提醒 ==========
+
+    @Query("SELECT u FROM UserData u WHERE u.isDeleted = 0 AND u.followupStatus = 'PENDING' AND u.nextFollowupDate <= :today ORDER BY u.nextFollowupDate ASC")
+    List<UserData> findPendingFollowups(@Param("today") LocalDateTime today);
+
+    @Query("SELECT u FROM UserData u WHERE u.isDeleted = 0 AND u.followupStatus = 'PENDING' AND u.nextFollowupDate <= :today AND u.shopName = :shopName ORDER BY u.nextFollowupDate ASC")
+    List<UserData> findPendingFollowupsByShop(@Param("today") LocalDateTime today, @Param("shopName") String shopName);
+
+    @Query("SELECT u FROM UserData u WHERE u.isDeleted = 0 AND u.followupStatus = 'PENDING' AND u.followupDeadline IS NOT NULL AND u.followupDeadline BETWEEN :start AND :end ORDER BY u.prescriptionDate ASC")
+    List<UserData> findYearEndFollowups(@Param("start") LocalDateTime start, @Param("end") LocalDateTime end);
+
+    @Query("SELECT u FROM UserData u WHERE u.isDeleted = 0 AND u.followupStatus = 'PENDING' AND u.followupDeadline IS NOT NULL AND u.followupDeadline BETWEEN :start AND :end AND u.shopName = :shopName ORDER BY u.prescriptionDate ASC")
+    List<UserData> findYearEndFollowupsByShop(@Param("start") LocalDateTime start, @Param("end") LocalDateTime end, @Param("shopName") String shopName);
 }

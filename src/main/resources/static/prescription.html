@@ -77,6 +77,76 @@
             opacity: 0.7;
         }
 
+        /* 复查提醒 */
+        .followup-widget {
+            background: rgba(255,255,255,0.18);
+            border: 1px solid rgba(255,255,255,0.3);
+            color: white;
+            padding: 6px 14px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 500;
+            transition: all 0.2s;
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+        .followup-widget:hover { background: rgba(255,255,255,0.3); transform: translateY(-1px); }
+        .followup-widget.has-alert { background: rgba(245,101,101,0.5); border-color: rgba(245,101,101,0.7); animation: followup-pulse 2s infinite; }
+        @keyframes followup-pulse { 0%,100% { box-shadow: 0 0 0 0 rgba(245,101,101,0.5); } 50% { box-shadow: 0 0 0 8px rgba(245,101,101,0); } }
+        .followup-widget .fw-dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 6px; }
+        .followup-widget .fw-dot.red { background: #f56565; }
+
+        /* 复查看板弹窗 */
+        .followup-dashboard-modal .modal-content { max-width: 500px; }
+        .followup-dashboard-modal .dash-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 14px 18px;
+            margin: 8px 0;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 15px;
+            font-weight: 500;
+        }
+        .followup-dashboard-modal .dash-row:hover { transform: scale(1.02); }
+        .followup-dashboard-modal .dash-row.dash-3 { background: #fff3cd; color: #856404; }
+        .followup-dashboard-modal .dash-row.dash-6 { background: #ffe0b2; color: #e65100; }
+        .followup-dashboard-modal .dash-row.dash-1 { background: #f8d7da; color: #721c24; }
+        .followup-dashboard-modal .dash-row .dash-badge {
+            background: rgba(0,0,0,0.15);
+            border-radius: 20px;
+            padding: 4px 14px;
+            font-weight: bold;
+            font-size: 18px;
+        }
+
+        /* 复查列表 */
+        .followup-list-modal .modal-content { max-width: 700px; }
+        .followup-list-table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 13px; }
+        .followup-list-table th, .followup-list-table td { padding: 10px 12px; text-align: left; border-bottom: 1px solid #e0e0e0; }
+        .followup-list-table th { background: #f8f9fa; font-weight: 600; }
+        .followup-list-table tr:hover { background: #f8f9fa; }
+        .followup-notify-btn {
+            background: #667eea; color: white; border: none; padding: 5px 14px; border-radius: 4px; cursor: pointer; font-size: 12px;
+        }
+        .followup-notify-btn:hover { background: #5a67d8; }
+
+        /* 复查记录面板 */
+        .followup-review-section { margin-top: 15px; }
+        .followup-review-table { width: 100%; border-collapse: collapse; font-size: 12px; margin-top: 8px; }
+        .followup-review-table th, .followup-review-table td { padding: 8px 10px; border-bottom: 1px solid #e0e0e0; text-align: center; }
+        .followup-review-table th { background: #f8f9fa; font-weight: 600; }
+        .followup-interval-selector { display: flex; gap: 8px; justify-content: center; margin-top: 10px; }
+        .followup-interval-selector button {
+            padding: 6px 16px; border: 2px solid #e2e8f0; border-radius: 20px; background: white; cursor: pointer; font-size: 13px; transition: all 0.2s;
+        }
+        .followup-interval-selector button:hover { border-color: #667eea; color: #667eea; }
+        .followup-interval-selector button.selected { border-color: #667eea; background: #667eea; color: white; }
+
+
         .user-info { display: flex; align-items: center; gap: 20px; flex-wrap: wrap; }
         .logout-btn { background: rgba(255,255,255,0.2); border: none; color: white; padding: 8px 20px; border-radius: 5px; cursor: pointer; transition: background 0.3s; }
         .logout-btn:hover { background: rgba(255,255,255,0.3); }
@@ -315,6 +385,9 @@
             <div class="motto-text">加载中...</div>
         </div>
         <div class="user-info">
+            <button class="followup-widget" id="followupWidget" onclick="showFollowupDashboard()" title="复查提醒">
+                🔔 复查: <span id="followupBadge">-</span>
+            </button>
             <span class="shop-name-tag" id="shopNameTag" style="display:none;"></span>
             <span id="userRoleBadge" class="role-badge"></span>
             <button id="userManageBtn" class="btn btn-primary admin-only" onclick="showUserManageModal()" style="background:#ed8936;">👥 用户管理</button>
@@ -468,7 +541,8 @@
                     <div class="form-row">
                         <div class="form-group"><label>配镜总金额</label><input type="text" id="editTotalAmount" readonly style="background:#f0f0f0; font-weight:bold; font-size:16px; color:#667eea;"></div>
                         <div class="form-group"><label>配镜顾问 <span style="color:red">*</span></label><select id="editConsultantSelect" onchange="onConsultantSelectChange()"><option value="">请选择顾问</option></select><input type="text" id="editConsultant" placeholder="或手动输入顾问姓名"><span class="error" id="consultantError">请填写配镜顾问</span></div>
-                        <div class="form-group"><label>是否需要回访</label><select id="editNeedFollowup"><option value="否">否</option><option value="是">是</option></select></div>
+                        <div class="form-group"><label>是否需要回访</label><select id="editNeedFollowup" onchange="toggleFollowupInterval()"><option value="否">否</option><option value="是">是</option></select></div>
+                        <div class="form-group" id="followupIntervalGroup" style="display:none;"><label>复查周期</label><select id="editFollowupInterval"><option value="3" selected>三个月复查</option><option value="6">六个月复查</option></select></div>
                     </div>
                     <div class="form-group"><label>备注</label><textarea id="editRemark" rows="2"></textarea></div>
                 </div>
@@ -555,6 +629,36 @@
     <div class="picker-container">
         <div class="picker-header"><h4 id="pickerTitle">选择数值</h4><button id="signToggleBtn" class="sign-toggle-btn" style="display:none;">负值 -</button><span class="close" onclick="closePicker()">&times;</span></div>
         <div id="pickerTableContainer"></div>
+    </div>
+</div>
+
+<!-- ========== 复查提醒：看板弹窗 ========== -->
+<div id="followupDashboardModal" class="modal followup-dashboard-modal">
+    <div class="modal-content">
+        <div class="modal-header"><h3>🔔 复查提醒</h3><span class="close" onclick="closeFollowupDashboard()">&times;</span></div>
+        <div class="modal-body" id="followupDashboardBody">
+            <div class="loading">加载中...</div>
+        </div>
+    </div>
+</div>
+
+<!-- ========== 复查提醒：列表弹窗 ========== -->
+<div id="followupListModal" class="modal followup-list-modal">
+    <div class="modal-content" style="max-width:800px;">
+        <div class="modal-header"><h3 id="followupListTitle">复查列表</h3><span class="close" onclick="closeFollowupList()">&times;</span></div>
+        <div class="modal-body" id="followupListBody">
+            <div class="loading">加载中...</div>
+        </div>
+    </div>
+</div>
+
+<!-- ========== 复查提醒：复查记录管理弹窗 ========== -->
+<div id="followupReviewModal" class="modal followup-list-modal">
+    <div class="modal-content" style="max-width:900px;">
+        <div class="modal-header"><h3>📋 复查记录管理</h3><span class="close" onclick="closeFollowupReview()">&times;</span></div>
+        <div class="modal-body" id="followupReviewBody">
+            <div class="loading">加载中...</div>
+        </div>
     </div>
 </div>
 
@@ -1406,6 +1510,8 @@
             }
         }
         document.getElementById('editNeedFollowup').value = data.needFollowup || '否';
+        document.getElementById('editFollowupInterval').value = data.followupInterval || '3';
+        toggleFollowupInterval();
         document.getElementById('editRemark').value = data.remark || '';
         let ps = document.getElementById('editGlassesPurpose');
         if (ps) ps.dispatchEvent(new Event('change'));
@@ -1454,6 +1560,7 @@
             totalAmount: parseFloat(document.getElementById('editTotalAmount')?.value) || null,
             consultant: document.getElementById('editConsultant')?.value,
             needFollowup: document.getElementById('editNeedFollowup')?.value,
+            followupInterval: document.getElementById('editFollowupInterval')?.value,
             remark: document.getElementById('editRemark')?.value,
             frameBrand: document.getElementById('editFrameBrand')?.value,
             frameSeries: document.getElementById('editFrameSeries')?.value,
@@ -1564,6 +1671,12 @@
 
     function showToast(msg,type) { let t=document.getElementById('toast'); t.textContent=msg; t.className='toast '+type; t.style.display='block'; setTimeout(()=>t.style.display='none',3000); }
 
+    function toggleFollowupInterval() {
+        let followupVal = document.getElementById('editNeedFollowup')?.value;
+        let group = document.getElementById('followupIntervalGroup');
+        if (group) group.style.display = (followupVal === '是') ? '' : 'none';
+    }
+
     async function submitEdit() {
         if (!validateForm()) return;
 
@@ -1655,6 +1768,8 @@
         document.getElementById('editPrescriptionDate').value = `${n.getFullYear()}-${String(n.getMonth()+1).padStart(2,'0')}-${String(n.getDate()).padStart(2,'0')}T${String(n.getHours()).padStart(2,'0')}:${String(n.getMinutes()).padStart(2,'0')}`;
         document.getElementById('editOccupation').value = '无';
         document.getElementById('editNeedFollowup').value = '否';
+        document.getElementById('editFollowupInterval').value = '3';
+        document.getElementById('followupIntervalGroup').style.display = 'none';
         document.getElementById('editOtherCost').value = 0;
         let ps = document.getElementById('editGlassesPurpose');
         if (ps) ps.dispatchEvent(new Event('change'));
@@ -1802,7 +1917,7 @@
     async function clearDateFilter() { currentDateRange=''; currentStartDate=''; currentEndDate=''; document.getElementById('startDate').value=''; document.getElementById('endDate').value=''; currentPage=1; let kw=document.getElementById('searchInput')?.value||''; await fetchData(kw,'','',''); document.querySelectorAll('.btn-date').forEach(btn=>btn.classList.remove('active')); }
     async function fetchData(kw,dr,sd,ed) {
         let tc=document.getElementById('tableContent'); tc.innerHTML='<div class="loading">加载中...</div>';
-        try{ let body={search:kw||'', page: currentPage-1, pageSize: pageSize}; if(dr) body.dateRange=dr; if(sd) body.startDate=sd; if(ed) body.endDate=ed; if(currentViewShopName) body.shopName=currentViewShopName; let res=await fetch(`${API_BASE}/getData`,{method:'POST',headers:{'Content-Type':'application/json'},credentials:'include',body:JSON.stringify(body)}); let r=await res.json(); if(r.success){ currentPageData=r.data||[]; totalCount=r.total||0; renderTableWithPagination(); await loadStatistics(kw,dr,sd,ed); await loadSalesStars(); }else{ tc.innerHTML=`<div class="empty-data">${r.message||'获取失败'}</div>`; if(r.message==='未登录') checkLoginStatus(); } }catch(e){ tc.innerHTML='<div class="empty-data">网络错误</div>'; }
+        try{ let body={search:kw||'', page: currentPage-1, pageSize: pageSize}; if(dr) body.dateRange=dr; if(sd) body.startDate=sd; if(ed) body.endDate=ed; if(currentViewShopName) body.shopName=currentViewShopName; let res=await fetch(`${API_BASE}/getData`,{method:'POST',headers:{'Content-Type':'application/json'},credentials:'include',body:JSON.stringify(body)}); let r=await res.json(); if(r.success){ currentPageData=r.data||[]; totalCount=r.total||0; renderTableWithPagination(); await loadStatistics(kw,dr,sd,ed); await loadSalesStars(); loadFollowupDashboard(); }else{ tc.innerHTML=`<div class="empty-data">${r.message||'获取失败'}</div>`; if(r.message==='未登录') checkLoginStatus(); } }catch(e){ tc.innerHTML='<div class="empty-data">网络错误</div>'; }
     }
     async function loadStatistics(kw,dr,sd,ed) {
         var ts = getShiftedDate('today', statTodayOffset);
@@ -2315,6 +2430,7 @@
         bindPickerEvents();
         loadSavedLoginInfo();
         loadDailyMotto();
+        loadFollowupDashboard();
         document.getElementById('rxDetailModal')?.addEventListener('click', function(e) { if (e.target === this) this.classList.remove('show'); });
         // 门店切换时刷新顾问下拉
         document.getElementById('editShopName')?.addEventListener('change', function() {
@@ -2587,6 +2703,299 @@
         managerEditImagePaths = [];
         managerUploadedImages = [];
     }
+    // ========== 复查提醒功能 ==========
+    let currentFollowupType = '';
+
+    async function loadFollowupDashboard() {
+        try {
+            let params = '?';
+            if (currentViewShopName) params += '&shopName=' + encodeURIComponent(currentViewShopName);
+            let res = await fetch(`${API_BASE}/followup/dashboard${params}`, { credentials: 'include' });
+            let r = await res.json();
+            if (r.success) {
+                let total = r.totalCount || 0;
+                let badge = document.getElementById('followupBadge');
+                let widget = document.getElementById('followupWidget');
+                if (badge) badge.textContent = total;
+                if (widget) {
+                    if (total > 0) widget.classList.add('has-alert');
+                    else widget.classList.remove('has-alert');
+                }
+            }
+        } catch(e) {}
+    }
+
+    async function showFollowupDashboard() {
+        document.getElementById('followupDashboardModal').style.display = 'block';
+        let body = document.getElementById('followupDashboardBody');
+        body.innerHTML = '<div class="loading">加载中...</div>';
+        try {
+            let params = '?';
+            if (currentViewShopName) params += '&shopName=' + encodeURIComponent(currentViewShopName);
+            let res = await fetch(`${API_BASE}/followup/dashboard${params}`, { credentials: 'include' });
+            let r = await res.json();
+            if (r.success) {
+                let t3 = r.threeMonthCount || 0, t6 = r.sixMonthCount || 0, t1 = r.yearEndCount || 0;
+                body.innerHTML = `
+                    <div class="dash-row dash-3" onclick="showFollowupList('3')">
+                        <span>📅 三个月复查提醒</span>
+                        <span class="dash-badge">${t3} 人</span>
+                    </div>
+                    <div class="dash-row dash-6" onclick="showFollowupList('6')">
+                        <span>📆 六个月复查提醒</span>
+                        <span class="dash-badge">${t6} 人</span>
+                    </div>
+                    <div class="dash-row dash-1" onclick="showFollowupList('1')">
+                        <span>📌 一年兜底复查提醒</span>
+                        <span class="dash-badge">${t1} 人</span>
+                    </div>
+                    <p style="text-align:center;margin-top:12px;color:#888;font-size:13px;">点击上述行进入复查列表</p>
+                `;
+            }
+        } catch(e) {
+            body.innerHTML = '<div class="empty-data">加载失败</div>';
+        }
+    }
+
+    function closeFollowupDashboard() {
+        document.getElementById('followupDashboardModal').style.display = 'none';
+    }
+
+    async function showFollowupList(type) {
+        currentFollowupType = type;
+        let titleMap = { '3': '三个月复查提醒', '6': '六个月复查提醒', '1': '一年兜底复查提醒' };
+        document.getElementById('followupListTitle').textContent = '📋 ' + (titleMap[type] || '复查列表');
+        document.getElementById('followupDashboardModal').style.display = 'none';
+        document.getElementById('followupListModal').style.display = 'block';
+        let body = document.getElementById('followupListBody');
+        body.innerHTML = '<div class="loading">加载中...</div>';
+        try {
+            let params = '?type=' + type;
+            if (currentViewShopName) params += '&shopName=' + encodeURIComponent(currentViewShopName);
+            let res = await fetch(`${API_BASE}/followup/list${params}`, { credentials: 'include' });
+            let r = await res.json();
+            if (r.success) {
+                let items = r.data || [];
+                if (items.length === 0) {
+                    body.innerHTML = '<div class="empty-data">暂无待复查记录</div>';
+                } else {
+                    let html = '<table class="followup-list-table"><thead><tr><th>姓名</th><th>门店</th><th>配镜日期</th><th>产品</th><th>到期类型</th><th>操作</th></tr></thead><tbody>';
+                    items.forEach(function(item) {
+                        let dateStr = item.prescriptionDate ? item.prescriptionDate.substring(0, 10) : '-';
+                        html += `<tr>
+                            <td>${item.name || '-'}</td>
+                            <td>${item.shopName || '-'}</td>
+                            <td>${dateStr}</td>
+                            <td>${item.lensProduct || '-'}</td>
+                            <td>${item.periodDesc || '-'}</td>
+                            <td>
+                                <button class="followup-notify-btn" onclick="notifyFollowup(${item.id})">📨 通知</button>
+                                <button class="followup-notify-btn" style="background:#48bb78;" onclick="showFollowupReview(${item.id})">📋 记录</button>
+                            </td>
+                        </tr>`;
+                    });
+                    html += '</tbody></table>';
+                    body.innerHTML = html;
+                }
+            }
+        } catch(e) {
+            body.innerHTML = '<div class="empty-data">加载失败</div>';
+        }
+    }
+
+    function closeFollowupList() {
+        document.getElementById('followupListModal').style.display = 'none';
+    }
+
+    async function notifyFollowup(userDataId) {
+        let nextInterval = prompt('选择下次复查时间：\n输入 3 = 三个月后\n输入 6 = 六个月后\n输入 12 = 一年后\n输入 STOP = 不再跟进', '3');
+        if (!nextInterval) return;
+        nextInterval = nextInterval.toUpperCase();
+        if (!['3','6','12','STOP'].includes(nextInterval)) {
+            showToast('无效选择', 'error'); return;
+        }
+        try {
+            let res = await fetch(`${API_BASE}/followup/notify`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                credentials: 'include',
+                body: JSON.stringify({ userDataId: userDataId, nextInterval: nextInterval })
+            });
+            let r = await res.json();
+            if (r.success) {
+                navigator.clipboard.writeText(r.notificationText || '').then(function() {
+                    showToast('复查通知已复制到剪贴板', 'success');
+                }, function() {
+                    showToast('复制失败，请手动复制', 'error');
+                });
+                showFollowupList(currentFollowupType);
+                loadFollowupDashboard();
+            } else {
+                showToast(r.message || '操作失败', 'error');
+            }
+        } catch(e) {
+            showToast('网络错误', 'error');
+        }
+    }
+
+    async function showFollowupReview(userDataId) {
+        document.getElementById('followupListModal').style.display = 'none';
+        document.getElementById('followupReviewModal').style.display = 'block';
+        let body = document.getElementById('followupReviewBody');
+        body.innerHTML = '<div class="loading">加载中...</div>';
+        try {
+            let res = await fetch(`${API_BASE}/followup/summary/${userDataId}`, { credentials: 'include' });
+            let r = await res.json();
+            if (r.success) {
+                let d = r.data;
+                let fmtD = function(v) { return (v !== null && v !== undefined && v !== '') ? parseFloat(v).toFixed(2) : '-'; };
+                let fmtDiopter = function(v) { let s = fmtD(v); return s === '0.00' ? '平光' : s; };
+                let html = `<div style="margin-bottom:16px;">
+                    <strong>${d.name || '-'}</strong> | 产品: ${d.lensProduct || '-'}
+                </div>`;
+                html += `<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px;padding:12px;background:#f8f9fa;border-radius:8px;font-size:13px;">
+                    <div><strong>原始处方</strong></div><div></div>
+                    <div>右眼: 球镜 ${fmtDiopter(d.rightSphere)} / 柱镜 ${fmtDiopter(d.rightCylinder)} / 轴位 ${d.rightAxis||'-'} / 矫正视力 ${d.rightCorrectedVision||'-'} / 瞳距 ${d.rightPupilDistance||'-'}</div>
+                    <div>左眼: 球镜 ${fmtDiopter(d.leftSphere)} / 柱镜 ${fmtDiopter(d.leftCylinder)} / 轴位 ${d.leftAxis||'-'} / 矫正视力 ${d.leftCorrectedVision||'-'} / 瞳距 ${d.leftPupilDistance||'-'}</div>
+                </div>`;
+
+                let reviews = d.reviews || [];
+                if (reviews.length > 0) {
+                    html += '<h4 style="margin-bottom:8px;">📜 复查历史</h4>';
+                    html += '<table class="followup-review-table"><thead><tr><th>日期</th><th>右眼(球/柱/轴)</th><th>右矫正视力</th><th>右瞳距</th><th>左眼(球/柱/轴)</th><th>左矫正视力</th><th>左瞳距</th><th>备注</th><th>下次</th></tr></thead><tbody>';
+                    reviews.forEach(function(rv) {
+                        let rvDate = rv.reviewDate ? rv.reviewDate.substring(0, 10) : '-';
+                        let rx = fmtDiopter(rv.rightSphere) + '/' + fmtDiopter(rv.rightCylinder) + '/' + (rv.rightAxis||'-');
+                        let lx = fmtDiopter(rv.leftSphere) + '/' + fmtDiopter(rv.leftCylinder) + '/' + (rv.leftAxis||'-');
+                        let ni = rv.nextInterval ? (rv.nextInterval === 'STOP' ? '不再跟进' : rv.nextInterval + '个月') : '-';
+                        html += `<tr>
+                            <td>${rvDate}</td>
+                            <td>${rx}</td>
+                            <td>${rv.rightBestVision||'-'}</td>
+                            <td>${rv.rightPd||'-'}</td>
+                            <td>${lx}</td>
+                            <td>${rv.leftBestVision||'-'}</td>
+                            <td>${rv.leftPd||'-'}</td>
+                            <td>${rv.remarks||'-'}</td>
+                            <td>${ni}</td>
+                        </tr>`;
+                    });
+                    html += '</tbody></table>';
+                }
+
+                html += `<div class="followup-review-section">
+                    <h4 style="margin-bottom:8px;">➕ 新增复查记录</h4>
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:13px;">
+                        <div style="background:#f0fdf4;padding:8px;border-radius:6px;">
+                            <strong>右眼</strong>
+                            <div style="display:flex;gap:6px;margin-top:4px;">
+                                <input type="number" step="0.01" id="rvRightSphere" placeholder="球镜" style="width:70px;">
+                                <input type="number" step="0.01" id="rvRightCylinder" placeholder="柱镜" style="width:70px;">
+                                <input type="number" id="rvRightAxis" placeholder="轴位" style="width:60px;">
+                            </div>
+                            <div style="display:flex;gap:6px;margin-top:4px;">
+                                <input type="text" id="rvRightBestVision" placeholder="最佳矫正视力" style="width:100px;">
+                                <input type="number" step="0.01" id="rvRightPd" placeholder="瞳距" style="width:70px;">
+                            </div>
+                        </div>
+                        <div style="background:#eef2ff;padding:8px;border-radius:6px;">
+                            <strong>左眼</strong>
+                            <div style="display:flex;gap:6px;margin-top:4px;">
+                                <input type="number" step="0.01" id="rvLeftSphere" placeholder="球镜" style="width:70px;">
+                                <input type="number" step="0.01" id="rvLeftCylinder" placeholder="柱镜" style="width:70px;">
+                                <input type="number" id="rvLeftAxis" placeholder="轴位" style="width:60px;">
+                            </div>
+                            <div style="display:flex;gap:6px;margin-top:4px;">
+                                <input type="text" id="rvLeftBestVision" placeholder="最佳矫正视力" style="width:100px;">
+                                <input type="number" step="0.01" id="rvLeftPd" placeholder="瞳距" style="width:70px;">
+                            </div>
+                        </div>
+                    </div>
+                    <div style="margin-top:8px;">
+                        <textarea id="rvRemarks" rows="2" placeholder="复查备注" style="width:100%;padding:8px;border:1px solid #ddd;border-radius:4px;font-size:13px;"></textarea>
+                    </div>
+                    <div style="margin-top:8px;">
+                        <strong style="font-size:13px;">下次复查时间：</strong>
+                        <div class="followup-interval-selector" id="followupIntervalSelector">
+                            <button onclick="selectFollowupInterval(this, '3')">三个月</button>
+                            <button onclick="selectFollowupInterval(this, '6')">六个月</button>
+                            <button onclick="selectFollowupInterval(this, '12')">一年</button>
+                            <button onclick="selectFollowupInterval(this, 'STOP')">不再跟进</button>
+                        </div>
+                        <input type="hidden" id="rvNextInterval" value="">
+                    </div>
+                    <button class="btn btn-success" style="margin-top:10px;width:100%;" onclick="addFollowupReview(${userDataId})">💾 保存复查记录</button>
+                </div>`;
+
+                body.innerHTML = html;
+            } else {
+                body.innerHTML = '<div class="empty-data">加载失败</div>';
+            }
+        } catch(e) {
+            body.innerHTML = '<div class="empty-data">网络错误</div>';
+        }
+    }
+
+    function selectFollowupInterval(btn, val) {
+        let sel = document.getElementById('followupIntervalSelector');
+        if (sel) {
+            sel.querySelectorAll('button').forEach(function(b) { b.classList.remove('selected'); });
+        }
+        btn.classList.add('selected');
+        document.getElementById('rvNextInterval').value = val;
+    }
+
+    async function addFollowupReview(userDataId) {
+        let nextInterval = document.getElementById('rvNextInterval')?.value;
+        if (!nextInterval) { showToast('请选择下次复查时间', 'error'); return; }
+        let data = {
+            userDataId: userDataId,
+            rightSphere: document.getElementById('rvRightSphere')?.value || null,
+            rightCylinder: document.getElementById('rvRightCylinder')?.value || null,
+            rightAxis: document.getElementById('rvRightAxis')?.value || null,
+            rightBestVision: document.getElementById('rvRightBestVision')?.value || null,
+            rightPd: document.getElementById('rvRightPd')?.value || null,
+            leftSphere: document.getElementById('rvLeftSphere')?.value || null,
+            leftCylinder: document.getElementById('rvLeftCylinder')?.value || null,
+            leftAxis: document.getElementById('rvLeftAxis')?.value || null,
+            leftBestVision: document.getElementById('rvLeftBestVision')?.value || null,
+            leftPd: document.getElementById('rvLeftPd')?.value || null,
+            remarks: document.getElementById('rvRemarks')?.value || null,
+            nextInterval: nextInterval
+        };
+        try {
+            let res = await fetch(`${API_BASE}/followup/review`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                credentials: 'include',
+                body: JSON.stringify(data)
+            });
+            let r = await res.json();
+            if (r.success) {
+                showToast('复查记录已保存', 'success');
+                showFollowupReview(userDataId);
+                loadFollowupDashboard();
+            } else {
+                showToast(r.message, 'error');
+            }
+        } catch(e) {
+            showToast('网络错误', 'error');
+        }
+    }
+
+    function closeFollowupReview() {
+        document.getElementById('followupReviewModal').style.display = 'none';
+    }
+
+    // 监听仪表盘遮罩点击关闭
+    document.addEventListener('DOMContentLoaded', function() {
+        var fbModal = document.getElementById('followupDashboardModal');
+        var flModal = document.getElementById('followupListModal');
+        var frModal = document.getElementById('followupReviewModal');
+        if (fbModal) fbModal.addEventListener('click', function(e) { if (e.target === this) closeFollowupDashboard(); });
+        if (flModal) flModal.addEventListener('click', function(e) { if (e.target === this) closeFollowupList(); });
+        if (frModal) frModal.addEventListener('click', function(e) { if (e.target === this) closeFollowupReview(); });
+    });
 </script>
 <!-- 图片管理模态框 -->
 <div id="imageManagerModal" class="modal">

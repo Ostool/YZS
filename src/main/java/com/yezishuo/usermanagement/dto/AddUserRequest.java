@@ -48,6 +48,7 @@ public class AddUserRequest {
     private BigDecimal totalAmount;
     private String consultant;
     private String needFollowup;
+    private String followupInterval;
     private String remark;
 
     private String redemptionChannel;
