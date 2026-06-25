@@ -3,9 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-    <title>叶子说眼镜 · 门店调货系统（支持多货品）</title>
+    <title>叶子说眼镜 · 货盘调货系统</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <style>
         /* 分页样式 */
         .pagination-container {
@@ -705,7 +706,7 @@
             width: 100%;
             border-collapse: collapse;
             font-size: 0.85rem;
-            min-width: 1000px;
+            min-width: 1300px;
         }
         .record-table th {
             text-align: left;
@@ -814,6 +815,77 @@
             .notification-panel { right: 20px; width: 320px; }
             .items-table th, .items-table td { padding: 8px; }
         }
+
+        /* 标签页导航 */
+        .tab-nav { display:flex; gap:4px; padding:12px 24px 0 24px; background:#f8fafd; border-bottom:2px solid #e2e8f0; flex-wrap:wrap; }
+        .tab-btn { padding:10px 24px; border:none; background:transparent; cursor:pointer; font-size:0.9rem; font-weight:500; color:#64748b; border-radius:8px 8px 0 0; transition:all 0.2s; position:relative; }
+        .tab-btn:hover { color:var(--klein-blue); background:#eef2ff; }
+        .tab-btn.active { color:var(--klein-blue); background:white; font-weight:700; }
+        .tab-btn.active::after { content:''; position:absolute; bottom:-2px; left:4px; right:4px; height:2px; background:var(--klein-blue); border-radius:2px; }
+        .tab-panel { display:none; }
+        .tab-panel.active { display:block; }
+
+        /* 总盘卡片 */
+        .pallet-grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(260px, 1fr)); gap:16px; }
+        .pallet-card { background:white; border:1px solid #e2e8f0; border-radius:10px; padding:16px; transition:box-shadow 0.2s; }
+        .pallet-card:hover { box-shadow:0 4px 12px rgba(0,47,167,0.08); }
+        .pallet-card-type { display:inline-block; padding:2px 10px; border-radius:12px; font-size:0.7rem; font-weight:600; margin-bottom:8px; }
+        .pallet-card-type.frame { background:#eef2ff; color:#002FA7; }
+        .pallet-card-type.lens { background:#f0fdf4; color:#166534; }
+        .pallet-card-shop { font-size:0.7rem; color:#94a3b8; margin-bottom:4px; }
+        .pallet-card-brand { font-size:1.1rem; font-weight:700; color:#1a2c3e; }
+        .pallet-card-series { font-size:0.85rem; color:#64748b; margin-bottom:8px; }
+        .pallet-card-qty { font-size:1.5rem; font-weight:700; color:var(--klein-blue); }
+
+        /* 库存表单 */
+        .inline-form { display:flex; gap:10px; align-items:flex-end; flex-wrap:wrap; margin-bottom:16px; }
+        .inline-form .input-group { margin-bottom:0; flex:1; min-width:140px; }
+        .inline-form .input-group input, .inline-form .input-group select { width:100%; padding:10px 12px; border:1px solid #e2e8f0; border-radius:8px; font-size:0.85rem; }
+        .inline-form .input-group label { font-size:0.75rem; color:#64748b; margin-bottom:4px; display:block; }
+        .inline-form .btn-primary { padding:10px 20px; white-space:nowrap; }
+
+        /* 盘点表单 */
+        .sales-form { display:flex; gap:10px; align-items:flex-end; flex-wrap:wrap; margin-bottom:16px; padding:16px; background:#f8fafd; border-radius:10px; }
+        .sales-form .input-group { margin-bottom:0; flex:1; min-width:120px; }
+        .sales-form .input-group input, .sales-form .input-group select { width:100%; padding:10px 12px; border:1px solid #e2e8f0; border-radius:8px; font-size:0.85rem; }
+        .sales-form .input-group label { font-size:0.75rem; color:#64748b; margin-bottom:4px; display:block; }
+        .sales-form .btn-primary { padding:10px 20px; white-space:nowrap; }
+
+        /* 货盘筛选 */
+        .pallet-filter { display:flex; gap:10px; align-items:center; margin-bottom:16px; }
+        .pallet-filter select { padding:8px 12px; border:1px solid #e2e8f0; border-radius:8px; font-size:0.85rem; }
+
+        /* 小表 */
+        .compact-table { width:100%; border-collapse:collapse; font-size:0.85rem; }
+        .compact-table th { background:#f8fafd; padding:10px 12px; text-align:left; font-weight:600; color:#475569; border-bottom:2px solid #e2e8f0; }
+        .compact-table td { padding:10px 12px; border-bottom:1px solid #f1f5f9; }
+        .compact-table tr:hover td { background:#f8fafd; }
+        .compact-table .empty-row td { text-align:center; color:#94a3b8; padding:30px; }
+        .chart-container { max-width:400px; margin:0 auto 20px auto; }
+        .chart-row { display:flex; gap:20px; flex-wrap:wrap; }
+        .chart-box { flex:1; min-width:300px; }
+        @media (max-width:720px) { .chart-row { flex-direction:column; } }
+
+        /* 品牌选择模态弹窗 */
+        .brand-modal-overlay { display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,0.5); z-index:9999; justify-content:center; align-items:center; }
+        .brand-modal-overlay.show { display:flex; }
+        .brand-modal { background:white; border-radius:16px; padding:24px; width:90%; max-width:600px; max-height:70vh; overflow-y:auto; box-shadow:0 20px 60px rgba(0,0,0,0.3); }
+        .brand-modal h3 { margin:0 0 16px 0; font-size:1.1rem; color:#1a2c3e; }
+        .brand-modal-search { width:100%; padding:10px 14px; border:1px solid #e2e8f0; border-radius:8px; font-size:0.9rem; margin-bottom:16px; }
+        .brand-pills { display:flex; flex-wrap:wrap; gap:8px; max-height:360px; overflow-y:auto; padding:4px; }
+        .brand-pill { padding:8px 16px; border:1px solid #e2e8f0; border-radius:20px; cursor:pointer; font-size:0.85rem; color:#334155; background:#f8fafd; transition:all 0.2s; white-space:nowrap; }
+        .brand-pill:hover { background:var(--klein-blue); color:white; border-color:var(--klein-blue); }
+        .brand-pill.selected { background:var(--klein-blue); color:white; border-color:var(--klein-blue); }
+        .modal-close-btn { float:right; border:none; background:none; font-size:1.3rem; cursor:pointer; color:#94a3b8; }
+        .catalog-series-row { display:flex; align-items:center; gap:8px; padding:6px 8px; border-bottom:1px solid #f1f5f9; }
+        .catalog-series-row:last-child { border-bottom:none; }
+        .catalog-series-row .series-name { flex:1; font-size:0.85rem; color:#334155; }
+        .catalog-series-row .series-ri { font-size:0.75rem; color:#64748b; background:#f1f5f9; padding:2px 8px; border-radius:10px; }
+        .catalog-series-row .series-del-btn { background:none; border:none; color:#ef4444; cursor:pointer; font-size:0.8rem; padding:2px 8px; }
+        .catalog-series-row .series-del-btn:hover { background:#fef2f2; border-radius:4px; }
+        .catalog-series-row .series-ri-select { padding:2px 6px; border:1px solid #e2e8f0; border-radius:6px; font-size:0.75rem; }
+        .brand-trigger-btn { width:100%; padding:8px 10px; border:1px solid #e2e8f0; border-radius:8px; background:white; cursor:pointer; font-size:0.85rem; text-align:left; color:#64748b; min-width:100px; }
+        .brand-trigger-btn .brand-selected-text { color:#334155; }
     </style>
 </head>
 <body>
@@ -823,8 +895,8 @@
         <div class="brand-header-left">
             <a href="/index.html" class="home-nav-btn">🏠 门户首页</a>
             <div class="brand-title" id="goHomeBtn">
-                <h1><i class="fas fa-leaf"></i> 叶子说眼镜 · 调货系统</h1>
-                <p>门店调货协同 | 月末统计 | 清晰明细 | 支持多货品批量录入</p>
+                <h1><i class="fas fa-leaf"></i> 叶子说眼镜 · 货盘调货系统</h1>
+                <p>门店货盘管理 | 调货协同 | 每日盘点</p>
             </div>
         </div>
         <div class="right-header">
@@ -843,6 +915,35 @@
         </div>
     </div>
 
+    <!-- 标签页导航 -->
+    <div class="tab-nav" id="tabNav" style="display:none;">
+        <button class="tab-btn active" data-tab="transfer"><i class="fas fa-exchange-alt"></i> 调货管理</button>
+        <button class="tab-btn" data-tab="pallet"><i class="fas fa-pallet"></i> 总盘</button>
+        <button class="tab-btn" data-tab="inventory"><i class="fas fa-boxes"></i> 库存管理</button>
+        <button class="tab-btn" data-tab="sales"><i class="fas fa-clipboard-check"></i> 盘点记录</button>
+        <button class="tab-btn" data-tab="catalog"><i class="fas fa-database"></i> 产品目录</button>
+    </div>
+
+    <!-- 品牌选择弹窗 -->
+    <div class="brand-modal-overlay" id="brandModal">
+        <div class="brand-modal">
+            <button class="modal-close-btn" id="brandModalClose">&times;</button>
+            <h3 id="brandModalTitle">选择品牌</h3>
+            <input type="text" class="brand-modal-search" id="brandModalSearch" placeholder="搜索品牌..." autocomplete="off">
+            <div class="brand-pills" id="brandPills"></div>
+        </div>
+    </div>
+
+    <!-- 系列选择弹窗 -->
+    <div class="brand-modal-overlay" id="seriesModal">
+        <div class="brand-modal">
+            <button class="modal-close-btn" id="seriesModalClose">&times;</button>
+            <h3 id="seriesModalTitle">选择系列</h3>
+            <input type="text" class="brand-modal-search" id="seriesModalSearch" placeholder="搜索系列..." autocomplete="off">
+            <div class="brand-pills" id="seriesPills"></div>
+        </div>
+    </div>
+
     <!-- 通知面板 -->
     <div class="notification-panel" id="notificationPanel">
         <div class="notification-header">
@@ -855,6 +956,8 @@
     </div>
 
     <div id="mainContent" style="display: none;">
+        <!-- 调货管理 tab -->
+        <div class="tab-panel active" id="tab-transfer">
         <div class="card form-card">
             <div class="section-title">
                 <i class="fas fa-exchange-alt"></i>
@@ -902,23 +1005,37 @@
                     </div>
                 </div>
 
-                <!-- 多货品动态表格（无单位） -->
+                <!-- 多货品动态表格 -->
                 <div style="margin: 20px 0 10px 0;">
                     <label style="font-weight:600; margin-bottom:8px; display:block;"><i class="fas fa-boxes"></i> 货品清单 *</label>
                     <div class="items-table-container">
-                        <table class="items-table" id="itemsTable">
-                            <thead>
-                            <tr><th style="width:65%">货品名称</th><th style="width:25%">数量</th><th style="width:10%">操作</th><tr>
-                            </thead>
-                            <tbody id="itemsTableBody">
-                            <tr class="item-row">
-                                <td><input type="text" class="item-name" placeholder="例: 暴龙BT" required></td>
-                                <td><input type="number" class="item-quantity" min="1" value="1" step="1" required></td>
-                                <td style="text-align:center"><button type="button" class="remove-item-btn" style="display:none;"><i class="fas fa-trash-alt"></i></button></td>
-                            </tr>
-                            </tbody>
-                        </table>
-                    </div>
+    <table class="items-table" id="itemsTable">
+        <thead>
+        <tr>
+            <th style="width:12%">货品类型</th>
+            <th style="width:20%">品牌</th>
+            <th style="width:20%">系列</th>
+            <th style="width:14%">型号</th>
+            <th style="width:12%">数量</th>
+            <th style="width:22%">备注/货品名</th>
+            <th style="width:6%">操作</th>
+        </tr>
+        </thead>
+        <tbody id="itemsTableBody">
+        <tr class="item-row">
+            <td><select class="item-type"><option value="FRAME">镜架</option><option value="LENS">镜片</option><option value="MATERIAL">物料</option></select></td>
+            <td>
+                <button type="button" class="brand-trigger-btn item-brand-btn"><span class="brand-selected-text">点击选择品牌</span></button>
+            </td>
+            <td><button type="button" class="brand-trigger-btn item-series-btn"><span class="series-selected-text">点击选择系列</span></button></td>
+            <td><input type="text" class="item-model" placeholder="可选" style="width:100%;"></td>
+            <td><input type="number" class="item-quantity" min="1" value="1" step="1" style="width:100%;"></td>
+            <td><input type="text" class="item-productname material-remark" placeholder="货品名/物料内容" style="width:100%;"></td>
+            <td style="text-align:center"><button type="button" class="remove-item-btn" style="display:none;"><i class="fas fa-trash-alt"></i></button></td>
+        </tr>
+        </tbody>
+    </table>
+</div>
                     <button type="button" class="add-item-btn" id="addItemBtn"><i class="fas fa-plus"></i> 添加货品</button>
                 </div>
 
@@ -962,8 +1079,8 @@
             </div>
             <div class="table-wrapper">
                 <table class="record-table">
-                    <thead><tr><th>取货时间</th><th>方向</th><th>方向明细</th><th>取货人</th><th>货品</th><th>数量</th><th>备注</th><th>填写人</th><th>状态</th><th>操作</th></tr></thead>
-                    <tbody id="tableBody"><tr class="empty-row"><td colspan="10">📭 暂无调货记录</td></tr></tbody>
+                    <thead><tr><th>取货时间</th><th>方向</th><th>方向明细</th><th>取货人</th><th>类型</th><th>品牌</th><th>系列</th><th>型号</th><th>数量</th><th>备注</th><th>填写人</th><th>状态</th><th>操作</th></tr></thead>
+                    <tbody id="tableBody"><tr class="empty-row"><td colspan="13">📭 暂无调货记录</td></tr></tbody>
                 </table>
             </div>
             <div class="pagination-container" id="paginationContainer">
@@ -981,6 +1098,155 @@
                     <span><i class="fas fa-balance-scale"></i> 净调出: <strong id="netOutflow">0</strong></span>
                 </div>
                 <div><i class="fas fa-chart-line"></i> 月末依据明细核对收款</div>
+            </div>
+        </div>
+        </div><!-- /tab-transfer -->
+
+        <!-- 总盘 tab -->
+        <div class="tab-panel" id="tab-pallet">
+            <div class="card form-card">
+                <div class="section-title"><i class="fas fa-pallet"></i><span>货盘总览</span></div>
+                <div class="pallet-filter">
+                    <select id="palletShopFilter"><option value="">全部门店</option></select>
+                    <select id="palletTypeFilter"><option value="">全部类型</option><option value="FRAME">镜架</option><option value="LENS">镜片</option><option value="MATERIAL">物料</option></select>
+                    <button class="btn-secondary" id="refreshPalletBtn"><i class="fas fa-sync-alt"></i> 刷新</button>
+                </div>
+                <div class="chart-row">
+                    <div class="chart-box chart-container"><canvas id="palletTypeChart" height="200"></canvas></div>
+                    <div class="chart-box chart-container"><canvas id="palletShopChart" height="200"></canvas></div>
+                </div>
+                <div class="pallet-grid" id="palletGrid"><div style="grid-column:1/-1;text-align:center;color:#94a3b8;padding:30px;">加载中...</div></div>
+            </div>
+        </div>
+
+        <!-- 库存管理 tab -->
+        <div class="tab-panel" id="tab-inventory">
+            <div class="card form-card">
+                <div class="section-title"><i class="fas fa-boxes"></i><span>新增/补充库存</span></div>
+                <div class="inline-form">
+                    <div class="input-group"><label>门店 *</label><select id="invShopName"><option value="">选择门店</option></select></div>
+                    <div class="input-group"><label>类型 *</label><select id="invProductType"><option value="FRAME">镜架</option><option value="LENS">镜片</option></select></div>
+                    <div class="input-group"><label>品牌 *</label><button type="button" class="brand-trigger-btn" id="invBrandBtn" style="min-width:120px;"><span class="inv-brand-text">点击选择品牌</span></button></div>
+                    <div class="input-group"><label>系列 *</label><button type="button" class="brand-trigger-btn" id="invSeriesBtn" style="min-width:120px;"><span class="inv-series-text">点击选择系列</span></button></div>
+                    <div class="input-group"><label>型号</label><input type="text" id="invModel" placeholder="可选"></div>
+                    <div class="input-group"><label>数量 *</label><input type="number" id="invQuantity" min="1" value="1"></div>
+                    <div class="input-group"><button class="btn-primary" id="addStockBtn"><i class="fas fa-plus"></i> 入库</button></div>
+                </div>
+            </div>
+            <div class="card form-card">
+                <div class="section-title"><i class="fas fa-list"></i><span>库存明细</span></div>
+                <div class="pallet-filter">
+                    <select id="invDetailShopFilter"><option value="">全部门店</option></select>
+                    <button class="btn-secondary" id="refreshInvBtn"><i class="fas fa-sync-alt"></i> 刷新</button>
+                    <button class="btn-secondary" id="exportInvBtn"><i class="fas fa-download"></i> 导出CSV</button>
+                </div>
+                <div class="table-wrapper">
+                    <table class="compact-table">
+                        <thead><tr><th>门店</th><th>类型</th><th>品牌</th><th>系列</th><th>型号</th><th>数量</th><th>操作</th></tr></thead>
+                        <tbody id="invTableBody"><tr class="empty-row"><td colspan="6">暂无库存数据</td></tr></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- 盘点记录 tab -->
+        <div class="tab-panel" id="tab-sales">
+            <div class="card form-card">
+                <div class="section-title"><i class="fas fa-clipboard-check"></i><span>记录盘点数据</span></div>
+                <div class="sales-form" style="display:flex; flex-wrap:wrap; gap:12px; align-items:flex-end;">
+                    <div class="input-group"><label>门店 *</label><select id="salesShopName"><option value="">选择门店</option></select></div>
+                    <div class="input-group"><label>类型 *</label><select id="salesProductType"><option value="FRAME">镜架</option><option value="LENS">镜片</option></select></div>
+                    <div class="input-group"><label>品牌 *</label><button type="button" class="brand-trigger-btn" id="salesBrandBtn" style="min-width:120px;"><span class="sales-brand-text">点击选择品牌</span></button></div>
+                    <div class="input-group"><label>系列 *</label><button type="button" class="brand-trigger-btn" id="salesSeriesBtn" style="min-width:120px;"><span class="sales-series-text">点击选择系列</span></button></div>
+                    <div class="input-group"><label>型号</label><input type="text" id="salesModel" placeholder="可选" style="width:80px;"></div>
+                    <div class="input-group"><label>盘点数量 *</label><input type="number" id="salesQuantity" min="0" value="1" style="width:80px;"></div>
+                    <div class="input-group"><label>备注</label><input type="text" id="salesRemark" placeholder="可选" style="width:100px;"></div>
+                    <div class="input-group"><button class="btn-primary" id="recordSaleBtn"><i class="fas fa-check"></i> 记录盘点</button></div>
+                </div>
+            </div>
+            <div class="card form-card">
+                <div class="section-title"><i class="fas fa-history"></i><span>盘点记录</span></div>
+                <div class="pallet-filter">
+                    <select id="salesHistoryShopFilter"><option value="">全部门店</option></select>
+                    <input type="date" id="salesStartDate" style="padding:8px 12px;border:1px solid #e2e8f0;border-radius:8px;">
+                    <span style="color:#64748b;">至</span>
+                    <input type="date" id="salesEndDate" style="padding:8px 12px;border:1px solid #e2e8f0;border-radius:8px;">
+                    <button class="btn-secondary" id="refreshSalesBtn"><i class="fas fa-sync-alt"></i> 刷新</button>
+                    <select id="salesExportType"><option value="range">当前时间段</option><option value="month">按月导出</option><option value="year">按年导出</option></select>
+                    <select id="salesExportYear" style="display:none;"><option value="2024">2024年</option><option value="2025">2025年</option><option value="2026">2026年</option></select>
+                    <select id="salesExportMonth" style="display:none;"><option value="1">1月</option><option value="2">2月</option><option value="3">3月</option><option value="4">4月</option><option value="5">5月</option><option value="6">6月</option><option value="7">7月</option><option value="8">8月</option><option value="9">9月</option><option value="10">10月</option><option value="11">11月</option><option value="12">12月</option></select>
+                    <button class="btn-secondary" id="exportSalesBtn"><i class="fas fa-download"></i> 导出CSV</button>
+                </div>
+                <div class="table-wrapper">
+                    <table class="compact-table">
+                        <thead><tr><th>门店</th><th>类型</th><th>品牌</th><th>系列</th><th>型号</th><th>盘点数量</th><th>记录人</th><th>备注</th><th>时间</th><th>操作</th></tr></thead>
+                        <tbody id="salesTableBody"><tr class="empty-row"><td colspan="10">暂无盘点记录</td></tr></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- 产品目录 tab（仅超级账号可见） -->
+        <div class="tab-panel" id="tab-catalog">
+            <div class="card form-card">
+                <div class="section-title"><i class="fas fa-database"></i><span>产品目录管理</span></div>
+                <div class="inline-form">
+                    <div class="input-group"><label>类型 *</label><select id="catalogProductType"><option value="FRAME">镜架</option><option value="LENS">镜片</option><option value="MATERIAL">物料</option></select></div>
+                    <div class="input-group"><label>品牌 *</label><input type="text" id="catalogBrand" placeholder="例: 暴龙"></div>
+                    <div class="input-group" id="catalogRefractiveGroup" style="display:none;"><label>折射率 *</label><select id="catalogRefractiveIndex"><option value="">请选择</option><option value="1.56">1.56</option><option value="1.60">1.60</option><option value="1.67">1.67</option><option value="1.71">1.71</option><option value="1.74">1.74</option><option value="其他">其他</option></select></div>
+                    <div class="input-group"><label>系列 *</label><input type="text" id="catalogSeries" placeholder="例: BJ系列"></div>
+                    <div class="input-group"><button class="btn-primary" id="addCatalogBtn"><i class="fas fa-plus"></i> 添加到目录</button></div>
+                </div>
+                <div class="pallet-filter" style="margin-top:12px;">
+                    <select id="catalogTypeFilter"><option value="">全部类型</option><option value="FRAME">镜架</option><option value="LENS">镜片</option><option value="MATERIAL">物料</option></select>
+                    <input type="text" id="catalogSearchInput" placeholder="搜索品牌或系列..." style="padding:8px 12px;border:1px solid #e2e8f0;border-radius:8px;width:180px;">
+                    <button class="btn-secondary" id="refreshCatalogBtn"><i class="fas fa-sync-alt"></i> 刷新</button>
+                </div>
+                <div class="table-wrapper" style="max-height:400px; overflow-y:auto;">
+                    <table class="compact-table">
+                        <thead><tr><th>类型</th><th>品牌</th><th>系列</th><th>折射率</th><th>操作</th></tr></thead>
+                        <tbody id="catalogTableBody"><tr class="empty-row"><td colspan="5">暂无产品数据</td></tr></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 库存历史弹窗 -->
+    <div class="brand-modal-overlay" id="historyModal">
+        <div class="brand-modal" style="max-width:700px;">
+            <button class="modal-close-btn" id="historyModalClose">&times;</button>
+            <h3 id="historyModalTitle">📋 出纳历史</h3>
+            <div id="historyContent" style="max-height:55vh;overflow-y:auto;"></div>
+        </div>
+    </div>
+
+    <!-- 产品目录编辑弹窗 -->
+    <div class="brand-modal-overlay" id="catalogEditModal">
+        <div class="brand-modal" style="max-width:650px;">
+            <button class="modal-close-btn" id="catalogEditModalClose">&times;</button>
+            <h3 id="catalogEditModalTitle">编辑产品目录</h3>
+            <div style="margin-bottom:12px;">
+                <label style="font-size:0.8rem;color:#64748b;">品牌</label>
+                <input type="text" id="catalogEditBrand" style="width:100%;padding:10px;border:1px solid #e2e8f0;border-radius:8px;font-size:0.9rem;box-sizing:border-box;">
+            </div>
+            <div style="margin-bottom:12px;">
+                <label style="font-size:0.8rem;color:#64748b;">系列列表</label>
+                <div id="catalogEditSeriesList" style="max-height:280px;overflow-y:auto;border:1px solid #e2e8f0;border-radius:8px;padding:10px;"></div>
+                <div style="display:flex;gap:8px;margin-top:8px;">
+                    <input type="text" id="catalogEditNewSeries" placeholder="新系列名称" style="flex:1;padding:8px;border:1px solid #e2e8f0;border-radius:8px;font-size:0.85rem;">
+                    <select id="catalogEditNewRefractive" style="width:100px;padding:8px;border:1px solid #e2e8f0;border-radius:8px;font-size:0.85rem;">
+                        <option value="">无折射率</option>
+                        <option value="1.56">1.56</option><option value="1.60">1.60</option>
+                        <option value="1.67">1.67</option><option value="1.71">1.71</option>
+                        <option value="1.74">1.74</option><option value="其他">其他</option>
+                    </select>
+                    <button class="btn-primary" id="catalogAddSeriesBtn" style="padding:8px 16px;font-size:0.85rem;white-space:nowrap;">+ 添加</button>
+                </div>
+            </div>
+            <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:16px;border-top:1px solid #e2e8f0;padding-top:16px;">
+                <button class="btn-secondary" id="catalogEditCancelBtn">取消</button>
+                <button class="btn-primary" id="catalogEditSaveBtn">保存修改</button>
             </div>
         </div>
     </div>
@@ -1033,13 +1299,30 @@
         const newRow = document.createElement('tr');
         newRow.className = 'item-row';
         newRow.innerHTML = `
-            <td><input type="text" class="item-name" placeholder="例: 钢笔" required></td>
-            <td><input type="number" class="item-quantity" min="1" value="1" step="1" required></td>
+            <td><select class="item-type"><option value="FRAME">镜架</option><option value="LENS">镜片</option><option value="MATERIAL">物料</option></select></td>
+            <td><button type="button" class="brand-trigger-btn item-brand-btn"><span class="brand-selected-text">点击选择品牌</span></button></td>
+            <td><button type="button" class="brand-trigger-btn item-series-btn"><span class="series-selected-text">点击选择系列</span></button></td>
+            <td><input type="text" class="item-model" placeholder="可选" style="width:100%;"></td>
+            <td><input type="number" class="item-quantity" min="1" value="1" step="1" style="width:100%;"></td>
+            <td><input type="text" class="item-productname" placeholder="货品名" style="width:100%;"></td>
             <td style="text-align:center"><button type="button" class="remove-item-btn"><i class="fas fa-trash-alt"></i></button></td>
         `;
         tbody.appendChild(newRow);
+        initRowTypeToggle(newRow);
         attachRemoveEvent(newRow);
         updateRemoveButtonsVisibility();
+        const btn = newRow.querySelector('.brand-trigger-btn');
+        if (btn) {
+            btn.addEventListener('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                const typeSelect = newRow.querySelector('.item-type');
+                if (typeSelect && typeSelect.value === 'MATERIAL') return;
+                openBrandModal(newRow);
+            });
+        }
+        const sbtn = newRow.querySelector('.item-series-btn');
+        if (sbtn) bindSeriesBtnClick(sbtn, newRow);
     }
 
     function attachRemoveEvent(row) {
@@ -1067,23 +1350,358 @@
         });
     }
 
+    function initRowTypeToggle(row) {
+        const typeSelect = row.querySelector('.item-type');
+        const brandBtn = row.querySelector('.brand-trigger-btn');
+        const seriesEl = row.querySelector('.item-series-btn, .item-series');
+        const modelInput = row.querySelector('.item-model');
+        const productNameInput = row.querySelector('.item-productname');
+        if (!typeSelect) return;
+        typeSelect.addEventListener('change', function() {
+            const isMaterial = this.value === 'MATERIAL';
+            const brandTd = brandBtn ? brandBtn.closest('td') : null;
+            const seriesTd = seriesEl ? seriesEl.closest('td') : null;
+            const modelTd = modelInput ? modelInput.closest('td') : null;
+            if (brandTd) brandTd.style.display = isMaterial ? 'none' : '';
+            if (seriesTd) seriesTd.style.display = isMaterial ? 'none' : '';
+            if (modelTd) modelTd.style.display = isMaterial ? 'none' : '';
+            if (productNameInput) productNameInput.placeholder = isMaterial ? '请写上具体物料内容（必填）' : '货品名（可选）';
+        });
+        typeSelect.dispatchEvent(new Event('change'));
+    }
+
+    // 品牌弹窗全局状态
+    let brandModalTarget = null;
+
+    function openBrandModal(row) {
+        brandModalTarget = row;
+        const typeSelect = row.querySelector('.item-type');
+        const productType = typeSelect ? typeSelect.value : 'FRAME';
+        document.getElementById('brandModalTitle').textContent = productType === 'LENS' ? '选择镜片品牌' : '选择镜架品牌';
+        document.getElementById('brandModalSearch').value = '';
+        fetchBrands(productType);
+        document.getElementById('brandModal').classList.add('show');
+    }
+
+    async function fetchBrands(productType) {
+        try {
+            const resp = await fetch('/api/inventory/products?type=' + productType, { credentials: 'include' });
+            const brands = await resp.json();
+            const pills = document.getElementById('brandPills');
+            if (!Array.isArray(brands) || brands.length === 0) {
+                pills.innerHTML = '<div style="color:#94a3b8;padding:20px;">暂无品牌数据，请先在产品目录中添加</div>';
+                return;
+            }
+            pills.innerHTML = brands.map(b => `<div class="brand-pill" data-brand="${b}">${b}</div>`).join('');
+            pills.querySelectorAll('.brand-pill').forEach(pill => {
+                pill.addEventListener('click', function() {
+                    selectBrand(this.dataset.brand);
+                });
+            });
+        } catch(e) {
+            document.getElementById('brandPills').innerHTML = '<div style="color:#ef4444;padding:20px;">加载失败，请检查网络</div>';
+        }
+    }
+
+    function selectBrand(brand) {
+        if (!brandModalTarget) return;
+        if (brandModalTarget === 'sales') {
+            const btn = document.getElementById('salesBrandBtn');
+            const text = btn ? btn.querySelector('.sales-brand-text') : null;
+            if (text) text.textContent = brand;
+            if (btn) { btn.style.color = '#334155'; btn.style.borderColor = 'var(--klein-blue)'; }
+            document.getElementById('brandModal').classList.remove('show');
+            loadSalesSeries(brand);
+            brandModalTarget = null;
+            return;
+        }
+        if (brandModalTarget === 'inventory') {
+            const btn = document.getElementById('invBrandBtn');
+            const text = btn ? btn.querySelector('.inv-brand-text') : null;
+            if (text) text.textContent = brand;
+            if (btn) { btn.style.color = '#334155'; btn.style.borderColor = 'var(--klein-blue)'; }
+            document.getElementById('brandModal').classList.remove('show');
+            loadInvSeries(brand);
+            brandModalTarget = null;
+            return;
+        }
+        const btn = brandModalTarget.querySelector('.brand-trigger-btn');
+        const selectedText = brandModalTarget.querySelector('.brand-selected-text');
+        if (selectedText) selectedText.textContent = brand;
+        if (btn) { btn.style.color = '#334155'; btn.style.borderColor = 'var(--klein-blue)'; }
+        document.getElementById('brandModal').classList.remove('show');
+        const typeSelect = brandModalTarget.querySelector('.item-type');
+        const productType = typeSelect ? typeSelect.value : 'FRAME';
+        loadSeriesForRow(brandModalTarget, productType, brand);
+        brandModalTarget = null;
+    }
+
+    // 系列弹窗全局状态
+    let seriesModalTarget = null;
+
+    function openSeriesModal(row, brand) {
+        seriesModalTarget = row;
+        const typeSelect = row.querySelector('.item-type');
+        const productType = typeSelect ? typeSelect.value : 'FRAME';
+        document.getElementById('seriesModalTitle').textContent = '选择系列 — ' + brand;
+        document.getElementById('seriesModalSearch').value = '';
+        fetchSeriesForModal(brand, productType);
+        document.getElementById('seriesModal').classList.add('show');
+    }
+
+    async function fetchSeriesForModal(brand, productType) {
+        const pills = document.getElementById('seriesPills');
+        pills.innerHTML = '<div style="color:#94a3b8;padding:20px;">加载中...</div>';
+        try {
+            const resp = await fetch('/api/inventory/products/series?type=' + productType + '&brand=' + encodeURIComponent(brand), { credentials: 'include' });
+            const data = await resp.json();
+            const seriesList = data.series || [];
+            if (!Array.isArray(seriesList) || seriesList.length === 0) {
+                pills.innerHTML = '<div style="color:#94a3b8;padding:20px;">该品牌暂无系列数据，可关闭窗口手动输入</div>';
+                return;
+            }
+            pills.innerHTML = seriesList.map(s => `<div class="brand-pill" data-series="${s}">${s}</div>`).join('');
+            pills.querySelectorAll('.brand-pill').forEach(pill => {
+                pill.addEventListener('click', function() {
+                    selectSeriesForRow(this.dataset.series);
+                });
+            });
+        } catch(e) {
+            pills.innerHTML = '<div style="color:#ef4444;padding:20px;">加载失败，请重试</div>';
+        }
+    }
+
+    function selectSeriesForRow(series) {
+        if (!seriesModalTarget) return;
+        if (seriesModalTarget === 'sales') {
+            const btn = document.getElementById('salesSeriesBtn');
+            const text = btn ? btn.querySelector('.sales-series-text') : null;
+            if (text) text.textContent = series;
+            if (btn) { btn.style.color = '#334155'; btn.style.borderColor = 'var(--klein-blue)'; }
+            document.getElementById('seriesModal').classList.remove('show');
+            seriesModalTarget = null;
+            return;
+        }
+        if (seriesModalTarget === 'inventory') {
+            const btn = document.getElementById('invSeriesBtn');
+            const text = btn ? btn.querySelector('.inv-series-text') : null;
+            if (text) text.textContent = series;
+            if (btn) { btn.style.color = '#334155'; btn.style.borderColor = 'var(--klein-blue)'; }
+            document.getElementById('seriesModal').classList.remove('show');
+            seriesModalTarget = null;
+            return;
+        }
+        const btn = seriesModalTarget.querySelector('.item-series-btn');
+        const selectedText = seriesModalTarget.querySelector('.series-selected-text');
+        if (selectedText) selectedText.textContent = series;
+        if (btn) { btn.style.color = '#334155'; btn.style.borderColor = 'var(--klein-blue)'; }
+        document.getElementById('seriesModal').classList.remove('show');
+        seriesModalTarget = null;
+    }
+
+    // ==================== 盘点表单：品牌/系列选择 ====================
+    function loadSalesSeries(brand) {
+        const productType = document.getElementById('salesProductType').value;
+        const seriesBtn = document.getElementById('salesSeriesBtn');
+        const seriesText = seriesBtn ? seriesBtn.querySelector('.sales-series-text') : null;
+        if (!seriesBtn || !seriesText) return;
+        fetch('/api/inventory/products/series?type=' + productType + '&brand=' + encodeURIComponent(brand), { credentials: 'include' })
+            .then(resp => resp.json())
+            .then(data => {
+                const seriesList = data.series || [];
+                if (seriesList.length === 0) {
+                    seriesText.textContent = '手动输入系列';
+                    seriesBtn.style.color = '#f59e0b';
+                    seriesBtn.style.borderColor = '#f59e0b';
+                } else {
+                    seriesText.textContent = '点击选择系列';
+                    seriesBtn.style.color = '#64748b';
+                    seriesBtn.style.borderColor = '#e2e8f0';
+                }
+            })
+            .catch(() => {
+                seriesText.textContent = '点击选择系列';
+            });
+    }
+
+    // ==================== 库存表单：品牌/系列选择 ====================
+    function loadInvSeries(brand) {
+        const productType = document.getElementById('invProductType').value;
+        const seriesBtn = document.getElementById('invSeriesBtn');
+        const seriesText = seriesBtn ? seriesBtn.querySelector('.inv-series-text') : null;
+        if (!seriesBtn || !seriesText) return;
+        fetch('/api/inventory/products/series?type=' + productType + '&brand=' + encodeURIComponent(brand), { credentials: 'include' })
+            .then(resp => resp.json())
+            .then(data => {
+                const seriesList = data.series || [];
+                if (seriesList.length === 0) {
+                    seriesText.textContent = '点击选择系列';
+                    seriesBtn.style.color = '#64748b';
+                    seriesBtn.style.borderColor = '#e2e8f0';
+                } else {
+                    seriesText.textContent = '点击选择系列';
+                    seriesBtn.style.color = '#64748b';
+                    seriesBtn.style.borderColor = '#e2e8f0';
+                }
+            })
+            .catch(() => {
+                seriesText.textContent = '点击选择系列';
+            });
+    }
+
+    function openInvBrandModal() {
+        const productType = document.getElementById('invProductType').value;
+        brandModalTarget = 'inventory';
+        document.getElementById('brandModalTitle').textContent = productType === 'LENS' ? '选择镜片品牌' : '选择镜架品牌';
+        document.getElementById('brandModalSearch').value = '';
+        fetchBrands(productType);
+        document.getElementById('brandModal').classList.add('show');
+    }
+
+    function openInvSeriesModal() {
+        const brandBtn = document.getElementById('invBrandBtn');
+        const brandText = brandBtn ? brandBtn.querySelector('.inv-brand-text') : null;
+        const brand = brandText ? brandText.textContent.trim() : '';
+        if (!brand || brand === '点击选择品牌') { alert('请先选择品牌'); return; }
+        const productType = document.getElementById('invProductType').value;
+        seriesModalTarget = 'inventory';
+        document.getElementById('seriesModalTitle').textContent = '选择系列 — ' + brand;
+        document.getElementById('seriesModalSearch').value = '';
+        fetchSeriesForModal(brand, productType);
+        document.getElementById('seriesModal').classList.add('show');
+    }
+
+    function openSalesBrandModal() {
+        const productType = document.getElementById('salesProductType').value;
+        brandModalTarget = 'sales';
+        document.getElementById('brandModalTitle').textContent = productType === 'LENS' ? '选择镜片品牌' : '选择镜架品牌';
+        document.getElementById('brandModalSearch').value = '';
+        fetchBrands(productType);
+        document.getElementById('brandModal').classList.add('show');
+    }
+
+    function openSalesSeriesModal() {
+        const brandBtn = document.getElementById('salesBrandBtn');
+        const brandText = brandBtn ? brandBtn.querySelector('.sales-brand-text') : null;
+        const brand = brandText ? brandText.textContent.trim() : '';
+        if (!brand || brand === '点击选择品牌') { alert('请先选择品牌'); return; }
+        const productType = document.getElementById('salesProductType').value;
+        seriesModalTarget = 'sales';
+        document.getElementById('seriesModalTitle').textContent = '选择系列 — ' + brand;
+        document.getElementById('seriesModalSearch').value = '';
+        fetchSeriesForModal(brand, productType);
+        document.getElementById('seriesModal').classList.add('show');
+    }
+
+    async function loadSeriesForRow(row, productType, brand) {
+        const seriesBtn = row.querySelector('.item-series-btn');
+        const seriesSelect = row.querySelector('.item-series');
+        // If neither exists (already replaced with input or different structure), skip
+        if (!seriesBtn && !seriesSelect) return;
+
+        try {
+            const resp = await fetch('/api/inventory/products/series?type=' + productType + '&brand=' + encodeURIComponent(brand), { credentials: 'include' });
+            const data = await resp.json();
+            const seriesList = data.series || [];
+            if (seriesList.length === 0) {
+                // No series found: replace button/select with text input
+                const td = (seriesBtn || seriesSelect).parentElement;
+                td.innerHTML = '<input type="text" class="item-series" placeholder="系列名" style="width:100%;">';
+            } else {
+                // Series exist: ensure button is present, reset text
+                if (seriesSelect) {
+                    const td = seriesSelect.parentElement;
+                    td.innerHTML = '<button type="button" class="brand-trigger-btn item-series-btn"><span class="series-selected-text">点击选择系列</span></button>';
+                    const newBtn = td.querySelector('.item-series-btn');
+                    if (newBtn) bindSeriesBtnClick(newBtn, row);
+                } else if (seriesBtn) {
+                    const text = seriesBtn.querySelector('.series-selected-text');
+                    if (text) text.textContent = '点击选择系列';
+                    seriesBtn.style.color = '#64748b'; seriesBtn.style.borderColor = '#e2e8f0';
+                }
+            }
+        } catch(e) {
+            const td = (seriesBtn || seriesSelect).parentElement;
+            td.innerHTML = '<input type="text" class="item-series" placeholder="系列名" style="width:100%;">';
+        }
+    }
+
+    function bindSeriesBtnClick(btn, row) {
+        btn.addEventListener('click', function(e) {
+            e.preventDefault(); e.stopPropagation();
+            const typeSelect = row.querySelector('.item-type');
+            if (typeSelect && typeSelect.value === 'MATERIAL') return;
+            const brandBtn = row.querySelector('.brand-trigger-btn');
+            const brandText = brandBtn ? brandBtn.querySelector('.brand-selected-text') : null;
+            const brand = brandText ? brandText.textContent.trim() : '';
+            if (!brand || brand === '点击选择品牌') { alert('请先选择品牌'); return; }
+            openSeriesModal(row, brand);
+        });
+    }
+
+    function getAllItemRows() {
+        return document.querySelectorAll('#itemsTableBody .item-row');
+    }
+
+    function initAllItemRows() {
+        getAllItemRows().forEach(row => {
+            initRowTypeToggle(row);
+            const btn = row.querySelector('.brand-trigger-btn');
+            if (btn) {
+                btn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    const typeSelect = row.querySelector('.item-type');
+                    if (typeSelect && typeSelect.value === 'MATERIAL') return;
+                    openBrandModal(row);
+                });
+            }
+            const sbtn = row.querySelector('.item-series-btn');
+            if (sbtn) bindSeriesBtnClick(sbtn, row);
+        });
+    }
+
     function getItemsFromForm() {
         const items = [];
-        const rows = document.querySelectorAll('#itemsTableBody .item-row');
-        for(let row of rows) {
-            const name = row.querySelector('.item-name').value.trim();
-            const quantity = parseInt(row.querySelector('.item-quantity').value, 10);
-            if(!name) {
-                alert(`货品名称不能为空`);
-                return null;
+        const rows = getAllItemRows();
+        for (let row of rows) {
+            const typeSelect = row.querySelector('.item-type');
+            const selectedText = row.querySelector('.brand-selected-text');
+            const seriesBtn = row.querySelector('.item-series-btn');
+            const seriesInput = row.querySelector('.item-series');
+            const modelVal = row.querySelector('.item-model');
+            const productNameVal = row.querySelector('.item-productname');
+            const quantityVal = row.querySelector('.item-quantity');
+            const productType = typeSelect ? typeSelect.value : 'FRAME';
+
+            const brand = (selectedText && selectedText.textContent !== '点击选择品牌') ? selectedText.textContent.trim() : '';
+            let series = '';
+            if (seriesBtn) {
+                const seriesText = seriesBtn.querySelector('.series-selected-text');
+                if (seriesText && seriesText.textContent !== '点击选择系列' && seriesText.textContent !== '请先选品牌') {
+                    series = seriesText.textContent.trim();
+                }
+            } else if (seriesInput) {
+                series = seriesInput.value.trim();
             }
-            if(isNaN(quantity) || quantity < 1) {
-                alert(`货品“${name}”数量不合法`);
-                return null;
+            const model = modelVal ? modelVal.value.trim() : '';
+            let productName = productNameVal ? productNameVal.value.trim() : '';
+
+            if (productType === 'MATERIAL') {
+                if (!productName) { alert('请填写物料备注内容'); return null; }
+                productName = productName;
+            } else {
+                if (!brand) { alert('请选择品牌'); return null; }
+                if (!series) { alert('请填写系列'); return null; }
+                productName = brand + ' ' + series + (model ? ' ' + model : '');
             }
-            items.push({ name, quantity });
+
+            const quantity = parseInt(quantityVal ? quantityVal.value : '0', 10);
+            if (isNaN(quantity) || quantity < 1) { alert('数量不合法'); return null; }
+
+            items.push({ productType, brand, series, model, productName, quantity });
         }
-        if(items.length === 0) { alert("请至少添加一个货品"); return null; }
+        if (items.length === 0) { alert("请至少添加一个货品"); return null; }
         return items;
     }
 
@@ -1114,7 +1732,11 @@
             remark,
             filler,
             items: items.map(item => ({
-                productName: item.name,
+                productType: item.productType,
+                brand: item.brand,
+                series: item.series,
+                model: item.model,
+                productName: item.productName,
                 quantity: item.quantity
             }))
         };
@@ -1131,6 +1753,8 @@
                 alert(`新增成功！共提交 ${items.length} 种货品`);
                 resetFormFields();
                 fetchRecords();
+                loadInventory();
+                loadPallet();
                 if (currentUserRole === 'SUPER') loadNotifications();
             } else {
                 alert(data.error || '提交失败');
@@ -1253,11 +1877,13 @@
             exportFileName += `_${year}年`;
         } else { exportFileName += `_全部`; }
         if(filteredData.length === 0){ alert('所选范围内无数据可导出'); return; }
-        const headers = ['取货时间', '取货方向', '方向明细', '取货人', '货品', '数量', '备注', '填写人'];
-        const rows = filteredData.map(t => [
+        const headers = ['取货时间','取货方向','方向明细','取货人','类型','品牌','系列','型号','货品','数量','备注','填写人'];
+        const rows = filteredData.map(t => {
+            const typeLabel = t.productType === 'MATERIAL' ? '物料' : (t.productType === 'LENS' ? '镜片' : '镜架');
+            return [
             formatDateTime(t.transferTime), t.direction === 'out' ? '调出' : '调入', t.directionDetail || '',
-            t.pickupPerson, t.productName, t.quantity, t.remark || '', t.filler || ''
-        ]);
+            t.pickupPerson, typeLabel, t.brand || '', t.series || '', t.model || '', t.productName || '', t.quantity, t.remark || '', t.filler || ''
+        ];});
         const csvContent = [headers, ...rows].map(row => row.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(',')).join('\n');
         const blob = new Blob(["\uFEFF" + csvContent], { type: 'text/csv;charset=utf-8;' });
         const link = document.createElement('a'); link.href = URL.createObjectURL(blob); link.setAttribute('download', `${exportFileName}.csv`); document.body.appendChild(link); link.click(); document.body.removeChild(link); URL.revokeObjectURL(link.href);
@@ -1323,21 +1949,28 @@
         const pageData = filteredData.slice(startIdx, endIdx);
         const tbody = document.getElementById('tableBody');
         if (pageData.length === 0) {
-            tbody.innerHTML = '<tr class="empty-row"><td colspan="10">📭 没有找到相关调货记录，请新增调货明细</td></tr>';
+            tbody.innerHTML = '<tr class="empty-row"><td colspan="13">📭 没有找到相关调货记录，请新增调货明细</td></tr>';
         } else {
-            tbody.innerHTML = pageData.map(rec => `
+            tbody.innerHTML = pageData.map(rec => {
+                const typeLabel = rec.productType === 'MATERIAL' ? '<span style="color:#f59e0b;font-weight:600;">物料</span>' : (rec.productType === 'LENS' ? '<span style="color:#22c55e;font-weight:600;">镜片</span>' : '<span style="color:#002FA7;font-weight:600;">镜架</span>');
+                const displayName = rec.productName || (rec.brand ? (rec.brand + ' ' + (rec.series||'') + ' ' + (rec.model||'')) : '—');
+                return `
                 <tr>
                     <td>${formatDateTime(rec.transferTime)}</td>
-                    <td>${rec.direction === 'out' ? '<span class="direction-badge out"><i class="fas fa-sign-out-alt"></i> 调出</span>' : '<span class="direction-badge in"><i class="fas fa-sign-in-alt"></i> 调入</span>'}${escapeHtml(rec.directionDetail) || '—'}</span></td>
+                    <td>${rec.direction === 'out' ? '<span class="direction-badge out"><i class="fas fa-sign-out-alt"></i> 调出</span>' : '<span class="direction-badge in"><i class="fas fa-sign-in-alt"></i> 调入</span>'}</td>
+                    <td>${escapeHtml(rec.directionDetail) || '—'}</td>
                     <td>${escapeHtml(rec.pickupPerson)}</td>
-                    <td>${escapeHtml(rec.productName)}</td>
+                    <td>${typeLabel}</td>
+                    <td>${escapeHtml(rec.brand || '—')}</td>
+                    <td>${escapeHtml(rec.series || '—')}</td>
+                    <td>${escapeHtml(rec.model || '—')}</td>
                     <td style="font-weight:600;">${rec.quantity}</td>
-                    <td>${escapeHtml(rec.remark) || '—'}</td>
-                    <td>${escapeHtml(rec.filler) || '—'}</td>
+                    <td>${escapeHtml(rec.remark || '—')}</td>
+                    <td>${escapeHtml(rec.filler || '—')}</td>
                     <td>${rec.deleteStatus === 'pending' ? '<span class="status-badge">待审核删除</span>' : (rec.status === 'deleted' ? '<span style="color:#999;">已删除</span>' : '—')}</td>
                     <td>${rec.status !== 'deleted' && rec.deleteStatus !== 'pending' ? `<button class="delete-btn" data-id="${rec.id}"><i class="fas fa-trash-alt"></i></button>` : '—'}</td>
-                </tr>
-            `).join('');
+                </tr>`;
+            }).join('');
         }
         document.querySelectorAll('.delete-btn').forEach(btn => btn.addEventListener('click', () => deleteRecord(btn.getAttribute('data-id'))));
         updatePagination(totalCount, totalPages);
@@ -1387,10 +2020,12 @@
         const tbody = document.getElementById('itemsTableBody');
         tbody.innerHTML = '';
         const defaultRow = document.createElement('tr'); defaultRow.className = 'item-row';
-        defaultRow.innerHTML = `<td><input type="text" class="item-name" placeholder="例: 暴龙BT" required></td><td><input type="number" class="item-quantity" min="1" value="1" step="1" required></td><td style="text-align:center"><button type="button" class="remove-item-btn" style="display:none;"><i class="fas fa-trash-alt"></i></button></td>`;
+        defaultRow.innerHTML = `<td><select class="item-type"><option value="FRAME">镜架</option><option value="LENS">镜片</option><option value="MATERIAL">物料</option></select></td><td><button type="button" class="brand-trigger-btn item-brand-btn"><span class="brand-selected-text">点击选择品牌</span></button></td><td><button type="button" class="brand-trigger-btn item-series-btn"><span class="series-selected-text">点击选择系列</span></button></td><td><input type="text" class="item-model" placeholder="可选" style="width:100%;"></td><td><input type="number" class="item-quantity" min="1" value="1" step="1" style="width:100%;"></td><td><input type="text" class="item-productname material-remark" placeholder="货品名（可选）" style="width:100%;"></td><td style="text-align:center"><button type="button" class="remove-item-btn" style="display:none;"><i class="fas fa-trash-alt"></i></button></td>`;
         tbody.appendChild(defaultRow);
         attachRemoveEvent(defaultRow);
         updateRemoveButtonsVisibility();
+        // initialize brand button events and row toggle for the default row
+        setTimeout(() => initAllItemRows(), 100);
         buildDropdownOptions('');
         document.getElementById('detailDropdown')?.classList.remove('show');
         document.getElementById('detailSelectTrigger')?.classList.remove('open');
@@ -1404,21 +2039,23 @@
                 if (data.needLogin || data.userRole === 'GUEST') { showLoginPrompt(); return; }
                 transfers = (data.records || []).sort((a, b) => new Date(b.createTime) - new Date(a.createTime));
                 currentUserRole = data.userRole;
-                currentUserName = data.userName || '门店用户';
+                currentUserName = data.realName || data.userName || '门店用户';
                 document.getElementById('userName').innerText = currentUserName;
                 document.getElementById('userAvatar').innerText = currentUserName.charAt(0);
                 document.getElementById('userRole').innerText = currentUserRole === 'SUPER' ? '超级管理员' : '门店账号';
                 document.getElementById('userInfoCard').style.display = 'flex';
                 document.getElementById('mainContent').style.display = 'block';
+                document.getElementById('tabNav').style.display = 'flex';
                 document.getElementById('loginPrompt').style.display = 'none';
                 currentPage = 1;
                 renderTable();
+                updateRoleUI();
                 if (currentUserRole === 'SUPER') loadNotifications();
             })
             .catch(error => { console.error('获取数据失败:', error); showLoginPrompt(); });
     }
 
-    function showLoginPrompt() { document.getElementById('userInfoCard').style.display = 'none'; document.getElementById('mainContent').style.display = 'none'; document.getElementById('loginPrompt').style.display = 'block'; if (notificationCheckInterval) clearInterval(notificationCheckInterval); }
+    function showLoginPrompt() { document.getElementById('userInfoCard').style.display = 'none'; document.getElementById('mainContent').style.display = 'none'; document.getElementById('loginPrompt').style.display = 'block'; if (document.getElementById('tabNav')) document.getElementById('tabNav').style.display = 'none'; if (notificationCheckInterval) clearInterval(notificationCheckInterval); }
     function goToHome() { window.location.href = '/index.html'; }
     function bindPaginationEvents() { document.getElementById('firstPageBtn')?.addEventListener('click', firstPage); document.getElementById('prevPageBtn')?.addEventListener('click', prevPage); document.getElementById('nextPageBtn')?.addEventListener('click', nextPage); document.getElementById('lastPageBtn')?.addEventListener('click', lastPage); }
     function logout() {
@@ -1439,7 +2076,7 @@
                 });
         }
     }
-    function checkLoginStatus() { fetch('/api/transfer/current-user', { credentials: 'include' }).then(response => response.json()).then(data => { if (data.isLoggedIn && data.userRole !== 'GUEST') { fetchRecords(); if (notificationCheckInterval) clearInterval(notificationCheckInterval); notificationCheckInterval = setInterval(() => { if (currentUserRole === 'SUPER') loadNotifications(); }, 30000); } else { showLoginPrompt(); } }).catch(() => showLoginPrompt()); }
+    function checkLoginStatus() { fetch('/api/transfer/current-user', { credentials: 'include' }).then(response => response.json()).then(data => { if (data.isLoggedIn && data.userRole !== 'GUEST') { fetchRecords(); loadShopNames(); if (notificationCheckInterval) clearInterval(notificationCheckInterval); notificationCheckInterval = setInterval(() => { if (currentUserRole === 'SUPER') loadNotifications(); }, 30000); } else { showLoginPrompt(); } }).catch(() => showLoginPrompt()); }
     function goToLogin() { window.location.href = '/login.html'; }
     function toggleNotificationPanel() { const panel = document.getElementById('notificationPanel'); panel.classList.toggle('show'); if (panel.classList.contains('show') && currentUserRole === 'SUPER') loadNotifications(); }
 
@@ -1456,6 +2093,700 @@
     document.addEventListener('click', function(e) { const panel = document.getElementById('notificationPanel'); const bell = document.getElementById('notificationBell'); if (panel && !panel.contains(e.target) && !bell.contains(e.target)) panel.classList.remove('show'); });
     document.querySelectorAll('.direction-option').forEach(opt => opt.addEventListener('click', () => setActiveDirection(opt.getAttribute('data-dir'))));
     document.getElementById('addItemBtn')?.addEventListener('click', addItemRow);
+
+    // ==================== 标签页切换 ====================
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+            this.classList.add('active');
+            const tabId = this.getAttribute('data-tab');
+            document.getElementById('tab-' + tabId).classList.add('active');
+            if (tabId === 'pallet') loadPallet();
+            if (tabId === 'inventory') loadInventory();
+            if (tabId === 'sales') loadSalesRecords();
+            if (tabId === 'catalog') loadProductCatalog();
+        });
+    });
+
+    // ==================== 权限UI控制 ====================
+    function updateRoleUI() {
+        const isSuper = currentUserRole === 'SUPER';
+        // 库存入库表单：NORMAL整体隐藏
+        const invCard = document.querySelector('#tab-inventory .card.form-card');
+        if (invCard && !isSuper) invCard.style.display = 'none';
+        // 盘点记录表单：NORMAL整体隐藏
+        const salesForm = document.querySelector('#tab-sales .sales-form');
+        if (salesForm) salesForm.style.display = isSuper ? '' : 'none';
+        // 产品目录标签：SUPER可见
+        const catalogTab = document.querySelector('.tab-btn[data-tab="catalog"]');
+        if (catalogTab) catalogTab.style.display = isSuper ? '' : 'none';
+        // SUPER恢复显示
+        if (isSuper) {
+            if (invCard) invCard.style.display = '';
+            if (salesForm) salesForm.style.display = '';
+        }
+    }
+
+    // 图表实例
+    let typeChart = null, shopChart = null;
+
+    function renderPalletCharts(items) {
+        // Only render FRAME and LENS in charts
+        const chartItems = items.filter(i => i.productType !== 'MATERIAL');
+        if (chartItems.length === 0) return;
+
+        // 各品牌系列在所属大类中的占比 (donut for FRAME + donut for LENS)
+        const frameItems = chartItems.filter(i => i.productType === 'FRAME');
+        const lensItems = chartItems.filter(i => i.productType === 'LENS');
+
+        function drawDonut(ctx, label, dataItems) {
+            if (!ctx) return;
+            const labels = dataItems.map(i => i.brand + ' ' + i.series);
+            const values = dataItems.map(i => i.totalQuantity);
+            const total = values.reduce((a,b)=>a+b,0);
+            if (total === 0) return;
+            return new Chart(ctx, { type: 'doughnut', data: { labels, datasets: [{ data: values, backgroundColor: ['#002FA7','#22c55e','#f59e0b','#ef4444','#8b5cf6','#06b6d4','#ec4899','#14b8a6','#f97316','#84cc16','#6366f1','#d946ef','#0ea5e9','#a855f7','#e11d48','#65a30d','#0891b2','#c026d3','#ea580c','#2563eb'] }] }, options: { responsive:true, plugins: { legend:{display:false}, title:{display:true,text:label + ' (共' + total + '件)'} } } });
+        }
+
+        const typeCtx = document.getElementById('palletTypeChart');
+        const shopCtx = document.getElementById('palletShopChart');
+        if (typeChart) typeChart.destroy();
+        if (shopChart) shopChart.destroy();
+        typeChart = frameItems.length > 0 ? drawDonut(typeCtx, '镜架品牌系列占比', frameItems) : null;
+        shopChart = lensItems.length > 0 ? drawDonut(shopCtx, '镜片品牌系列占比', lensItems) : null;
+    }
+
+    // ==================== 总盘 ====================
+    async function loadPallet() {
+        const shopFilter = document.getElementById('palletShopFilter').value;
+        const typeFilter = document.getElementById('palletTypeFilter').value;
+        try {
+            const params = new URLSearchParams();
+            if (shopFilter) params.append('shopName', shopFilter);
+            const resp = await fetch('/api/inventory/pallet?' + params, { credentials: 'include' });
+            const data = await resp.json();
+            const grid = document.getElementById('palletGrid');
+            if (!data.success || !data.pallet || data.pallet.length === 0) {
+                grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;color:#94a3b8;padding:30px;">暂无库存数据</div>';
+                return;
+            }
+            let items = data.pallet;
+            if (typeFilter) items = items.filter(i => i.productType === typeFilter);
+            grid.innerHTML = items.map(i => `
+                <div class="pallet-card">
+                    <div><span class="pallet-card-type ${i.productType === 'FRAME' ? 'frame' : 'lens'}">${i.productType === 'FRAME' ? '镜架' : '镜片'}</span></div>
+                    <div class="pallet-card-shop">${escapeHtml(i.shopName)}</div>
+                    <div class="pallet-card-brand">${escapeHtml(i.brand)}</div>
+                    <div class="pallet-card-series">${escapeHtml(i.series)}</div>
+                    <div class="pallet-card-qty">${i.totalQuantity} <span style="font-size:0.6em;font-weight:400;">件</span></div>
+                </div>
+            `).join('');
+            renderPalletCharts(items);
+        } catch(e) { console.error('加载总盘失败:', e); }
+    }
+
+    // ==================== 库存管理 ====================
+    async function showInventoryHistory(itemId) {
+        try {
+            document.getElementById('historyContent').innerHTML = '<div style="color:#94a3b8;padding:20px;text-align:center;">加载中...</div>';
+            document.getElementById('historyModal').classList.add('show');
+            const resp = await fetch('/api/inventory/item/' + itemId + '/history', { credentials: 'include' });
+            const data = await resp.json();
+            if (!data.success || !data.history || data.history.length === 0) {
+                document.getElementById('historyContent').innerHTML = '<div style="color:#94a3b8;padding:20px;text-align:center;">暂无出纳记录</div>';
+                return;
+            }
+            let html = '<table style="width:100%;border-collapse:collapse;font-size:0.85rem;"><thead><tr style="background:#f8fafd;"><th style="padding:8px;text-align:left;">时间</th><th style="padding:8px;">事件</th><th style="padding:8px;text-align:right;">变动</th><th style="padding:8px;text-align:right;">余额</th><th style="padding:8px;">说明</th><th style="padding:8px;">操作人</th></tr></thead><tbody>';
+            data.history.forEach(h => {
+                let changeColor = h.quantityChange > 0 ? '#22c55e' : (h.quantityChange < 0 ? '#ef4444' : '#64748b');
+                let changeSign = h.quantityChange > 0 ? '+' : '';
+                let timeStr = h.eventTime ? h.eventTime.replace('T',' ').substring(0,16) : '';
+                html += `<tr style="border-bottom:1px solid #e2e8f0;">
+                    <td style="padding:8px;color:#64748b;">${timeStr}</td>
+                    <td style="padding:8px;">${h.eventType}</td>
+                    <td style="padding:8px;text-align:right;color:${changeColor};font-weight:600;">${changeSign}${h.quantityChange}</td>
+                    <td style="padding:8px;text-align:right;font-weight:600;">${h.balanceAfter}</td>
+                    <td style="padding:8px;color:#64748b;">${h.relatedInfo || ''}</td>
+                    <td style="padding:8px;">${h.operator || ''}</td>
+                </tr>`;
+            });
+            html += '</tbody></table>';
+            document.getElementById('historyContent').innerHTML = html;
+        } catch(e) {
+            document.getElementById('historyContent').innerHTML = '<div style="color:#ef4444;padding:20px;text-align:center;">加载失败</div>';
+        }
+    }
+
+    async function loadInventory() {
+        const shopFilter = document.getElementById('invDetailShopFilter').value;
+        const params = new URLSearchParams();
+        if (shopFilter) params.append('shopName', shopFilter);
+        try {
+            const resp = await fetch('/api/inventory/items?' + params, { credentials: 'include' });
+            const data = await resp.json();
+            allInventoryItems = data.items || [];
+            const tbody = document.getElementById('invTableBody');
+            if (!data.items || data.items.length === 0) {
+                tbody.innerHTML = '<tr class="empty-row"><td colspan="7">暂无库存数据</td></tr>';
+                return;
+            }
+            const isSuper = currentUserRole === 'SUPER';
+            tbody.innerHTML = data.items.map(i => `
+                <tr data-iid="${i.id}" class="inv-row" style="cursor:pointer;" title="点击查看出纳历史">
+                    <td>${escapeHtml(i.shopName)}</td>
+                    <td>${i.productType === 'FRAME' ? '镜架' : (i.productType === 'LENS' ? '镜片' : '物料')}</td>
+                    <td>${escapeHtml(i.brand)}</td>
+                    <td>${escapeHtml(i.series)}</td>
+                    <td>${escapeHtml(i.model || '—')}</td>
+                    <td style="font-weight:700;color:var(--klein-blue);"><span class="inv-qty-val">${i.quantity}</span><input type="number" class="inv-qty-edit" value="${i.quantity}" min="0" style="display:none;width:60px;padding:2px 6px;"></td>
+                    <td>${isSuper ? `<button class="btn-secondary inv-correct-btn" data-iid="${i.id}" style="padding:4px 10px;font-size:0.7rem;" title="修正库存"><i class="fas fa-pen"></i> 修正</button>` : '—'}</td>
+                </tr>
+            `).join('');
+            document.querySelectorAll('.inv-row').forEach(row => {
+                row.addEventListener('click', function(e) {
+                    if (e.target.closest('.inv-correct-btn') || e.target.closest('.inv-qty-edit')) return;
+                    showInventoryHistory(this.dataset.iid);
+                });
+            });
+            document.querySelectorAll('.inv-correct-btn').forEach(btn => {
+                btn.addEventListener('click', function() { startCorrectInventory(this); });
+            });
+        } catch(e) { console.error('加载库存失败:', e); }
+    }
+
+    function startCorrectInventory(btn) {
+        const row = btn.closest('tr');
+        const qtyVal = row.querySelector('.inv-qty-val');
+        const qtyEdit = row.querySelector('.inv-qty-edit');
+        if (!qtyVal || !qtyEdit) return;
+        const isEditing = qtyEdit.style.display === 'inline-block';
+        if (isEditing) {
+            // Save
+            const newQty = parseInt(qtyEdit.value, 10);
+            if (isNaN(newQty) || newQty < 0) { alert('请输入合法数量'); return; }
+            const iid = btn.getAttribute('data-iid');
+            fetch('/api/inventory/item/' + iid, {
+                method: 'PUT', credentials: 'include',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ quantity: newQty })
+            }).then(resp => {
+                if (resp.ok) {
+                    qtyVal.textContent = newQty;
+                    qtyVal.style.display = ''; qtyEdit.style.display = 'none';
+                    btn.innerHTML = '<i class="fas fa-pen"></i> 修正';
+                    loadPallet();
+                } else {
+                    alert('修正失败');
+                }
+            }).catch(() => alert('修正失败'));
+        } else {
+            // Edit mode
+            qtyVal.style.display = 'none'; qtyEdit.style.display = 'inline-block';
+            qtyEdit.focus(); qtyEdit.select();
+            btn.innerHTML = '<i class="fas fa-check"></i> 保存';
+        }
+    }
+
+    async function addStock() {
+        const brandBtn = document.getElementById('invBrandBtn');
+        const brandText = brandBtn ? brandBtn.querySelector('.inv-brand-text') : null;
+        let brand = brandText ? brandText.textContent.trim() : '';
+        if (brand === '点击选择品牌') brand = '';
+        const seriesBtn = document.getElementById('invSeriesBtn');
+        const seriesText = seriesBtn ? seriesBtn.querySelector('.inv-series-text') : null;
+        let series = seriesText ? seriesText.textContent.trim() : '';
+        if (series === '点击选择系列') series = '';
+        const payload = {
+            shopName: document.getElementById('invShopName').value,
+            productType: document.getElementById('invProductType').value,
+            brand: brand,
+            series: series,
+            model: document.getElementById('invModel').value.trim() || null,
+            quantity: parseInt(document.getElementById('invQuantity').value, 10)
+        };
+        if (!payload.shopName || !payload.brand || !payload.series || !payload.quantity) {
+            alert('请填写完整信息'); return;
+        }
+        try {
+            const resp = await fetch('/api/inventory/item', {
+                method: 'POST', credentials: 'include',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+            const data = await resp.json();
+            if (resp.ok) {
+                alert('入库成功！当前库存: ' + data.item.quantity);
+                resetInvBrandSeries();
+                document.getElementById('invModel').value = '';
+                document.getElementById('invQuantity').value = '1';
+                loadInventory();
+                loadPallet();
+            } else {
+                alert(data.error || '入库失败');
+            }
+        } catch(e) { alert('入库失败: ' + e.message); }
+    }
+
+    function resetInvBrandSeries() {
+        const bb = document.getElementById('invBrandBtn');
+        const bt = bb ? bb.querySelector('.inv-brand-text') : null;
+        if (bt) bt.textContent = '点击选择品牌';
+        if (bb) { bb.style.color = ''; bb.style.borderColor = ''; }
+        const sb = document.getElementById('invSeriesBtn');
+        const st = sb ? sb.querySelector('.inv-series-text') : null;
+        if (st) st.textContent = '点击选择系列';
+        if (sb) { sb.style.color = ''; sb.style.borderColor = ''; }
+    }
+
+    // ==================== 盘点记录 ====================
+    async function loadSalesRecords() {
+        const shopFilter = document.getElementById('salesHistoryShopFilter').value;
+        const startDate = document.getElementById('salesStartDate').value;
+        const endDate = document.getElementById('salesEndDate').value;
+        const params = new URLSearchParams();
+        if (shopFilter) params.append('shopName', shopFilter);
+        if (startDate) params.append('startDate', startDate + ' 00:00:00');
+        if (endDate) params.append('endDate', endDate + ' 23:59:59');
+        try {
+            const resp = await fetch('/api/inventory/check-records?' + params, { credentials: 'include' });
+            const data = await resp.json();
+            const tbody = document.getElementById('salesTableBody');
+            if (!data.records || data.records.length === 0) {
+                tbody.innerHTML = '<tr class="empty-row"><td colspan="10">暂无盘点记录</td></tr>';
+                return;
+            }
+            tbody.innerHTML = data.records.map(r => `
+                <tr>
+                    <td>${escapeHtml(r.shopName)}</td>
+                    <td>${r.productType === 'FRAME' ? '镜架' : '镜片'}</td>
+                    <td>${escapeHtml(r.brand)}</td>
+                    <td>${escapeHtml(r.series)}</td>
+                    <td>${escapeHtml(r.model || '—')}</td>
+                    <td style="font-weight:700;color:var(--klein-blue);">${r.soldQuantity}</td>
+                    <td>${escapeHtml(r.recorder)}</td>
+                    <td>${escapeHtml(r.remark || '—')}</td>
+                    <td style="font-size:0.75rem;">${r.salesDate ? r.salesDate.replace('T',' ') : '—'}</td>
+                    <td><button class="delete-btn" data-sid="${r.id}" title="删除"><i class="fas fa-trash-alt"></i></button></td>
+                </tr>
+            `).join('');
+            document.querySelectorAll('#salesTableBody .delete-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    if (confirm('确定删除此盘点记录吗？')) undoDeleteSales(this.getAttribute('data-sid'));
+                });
+            });
+        } catch(e) { console.error('加载盘点记录失败:', e); }
+    }
+
+    async function recordSale() {
+        const brandBtn = document.getElementById('salesBrandBtn');
+        const brandText = brandBtn ? brandBtn.querySelector('.sales-brand-text') : null;
+        let brand = brandText ? brandText.textContent.trim() : '';
+        if (brand === '点击选择品牌') brand = '';
+        const seriesBtn = document.getElementById('salesSeriesBtn');
+        const seriesText = seriesBtn ? seriesBtn.querySelector('.sales-series-text') : null;
+        let series = seriesText ? seriesText.textContent.trim() : '';
+        if (series === '点击选择系列' || series === '手动输入系列') series = '';
+
+        const payload = {
+            productType: document.getElementById('salesProductType').value,
+            brand: brand,
+            series: series,
+            model: document.getElementById('salesModel').value.trim() || null,
+            soldQuantity: parseInt(document.getElementById('salesQuantity').value, 10),
+            remark: document.getElementById('salesRemark').value.trim() || null,
+            salesDate: new Date().toISOString()
+        };
+        const shopName = document.getElementById('salesShopName').value;
+        if (!shopName || !payload.brand || !payload.series || payload.soldQuantity < 0) {
+            alert('请填写完整信息（品牌、系列、盘点数量）'); return;
+        }
+        try {
+            const url = '/api/inventory/check-records' + (currentUserRole === 'SUPER' ? '?shopName=' + encodeURIComponent(shopName) : '');
+            const resp = await fetch(url, {
+                method: 'POST', credentials: 'include',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+            const data = await resp.json();
+            if (resp.ok) {
+                alert('盘点记录已保存');
+                // Reset brand/series buttons
+                if (brandText) { brandText.textContent = '点击选择品牌'; brandBtn.style.color = '#64748b'; brandBtn.style.borderColor = '#e2e8f0'; }
+                if (seriesText) { seriesText.textContent = '点击选择系列'; seriesBtn.style.color = '#64748b'; seriesBtn.style.borderColor = '#e2e8f0'; }
+                document.getElementById('salesModel').value = '';
+                document.getElementById('salesQuantity').value = '1';
+                document.getElementById('salesRemark').value = '';
+                loadSalesRecords();
+            } else {
+                alert(data.error || '记录失败');
+            }
+        } catch(e) { alert('记录失败: ' + e.message); }
+    }
+
+    async function undoDeleteSales(sid) {
+        try {
+            const resp = await fetch('/api/inventory/check-records/' + sid, { method: 'DELETE', credentials: 'include' });
+            const data = await resp.json();
+            if (resp.ok) { alert('盘点记录已删除'); loadSalesRecords(); }
+            else alert(data.error || '删除失败');
+        } catch(e) { alert('删除失败: ' + e.message); }
+    }
+
+    // ==================== 导出功能 ====================
+    let allInventoryItems = [];
+    let allSalesRecords = [];
+
+    function exportInventoryCSV() {
+        if (allInventoryItems.length === 0) { alert('暂无库存数据可导出'); return; }
+        const headers = ['门店','类型','品牌','系列','型号','数量'];
+        const rows = allInventoryItems.map(i => [i.shopName, i.productType==='FRAME'?'镜架':'镜片', i.brand, i.series, i.model||'', i.quantity]);
+        const csv = '\uFEFF' + [headers, ...rows].map(r => r.map(c => '"' + String(c).replace(/"/g,'""') + '"').join(',')).join('\n');
+        const blob = new Blob([csv], {type:'text/csv;charset=utf-8'});
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a'); a.href=url; a.download='库存明细_' + new Date().toISOString().slice(0,10) + '.csv'; a.click(); URL.revokeObjectURL(url);
+    }
+
+    async function exportSalesCSV() {
+        const type = document.getElementById('salesExportType').value;
+        let endDate = new Date();
+        let startDate = new Date();
+        startDate.setHours(0,0,0,0); endDate.setHours(23,59,59,999);
+
+        if (type === 'month') {
+            const y = parseInt(document.getElementById('salesExportYear').value);
+            const m = parseInt(document.getElementById('salesExportMonth').value) - 1;
+            startDate = new Date(y, m, 1, 0, 0, 0);
+            endDate = new Date(y, m + 1, 0, 23, 59, 59);
+        } else if (type === 'year') {
+            const y = parseInt(document.getElementById('salesExportYear').value);
+            startDate = new Date(y, 0, 1, 0, 0, 0);
+            endDate = new Date(y, 11, 31, 23, 59, 59);
+        }
+
+        const sds = startDate.toISOString().slice(0,19).replace('T',' ');
+        const eds = endDate.toISOString().slice(0,19).replace('T',' ');
+        const shopFilter = document.getElementById('salesHistoryShopFilter').value;
+        const params = new URLSearchParams();
+        if (shopFilter) params.append('shopName', shopFilter);
+        params.append('startDate', sds);
+        params.append('endDate', eds);
+
+        try {
+            const resp = await fetch('/api/inventory/check-records?' + params, { credentials: 'include' });
+            const data = await resp.json();
+            const records = data.records || [];
+            if (records.length === 0) { alert('所选时间段无盘点数据'); return; }
+            const headers = ['门店','类型','品牌','系列','型号','盘点数量','记录人','备注','时间'];
+            const rows = records.map(r => [r.shopName, r.productType==='FRAME'?'镜架':'镜片', r.brand, r.series, r.model||'', r.soldQuantity, r.recorder, r.remark||'', (r.salesDate||'').replace('T',' ')]);
+            const csv = '\uFEFF' + [headers, ...rows].map(r => r.map(c => '"' + String(c).replace(/"/g,'""') + '"').join(',')).join('\n');
+            const blob = new Blob([csv], {type:'text/csv;charset=utf-8'});
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a'); a.href=url; a.download='盘点记录_' + new Date().toISOString().slice(0,10) + '.csv'; a.click(); URL.revokeObjectURL(url);
+        } catch(e) { alert('导出失败: ' + e.message); }
+    }
+
+    function setupSalesExportControls() {
+        const typeSel = document.getElementById('salesExportType');
+        const yearSel = document.getElementById('salesExportYear');
+        const monthSel = document.getElementById('salesExportMonth');
+        if (!typeSel) return;
+        typeSel.addEventListener('change', () => {
+            const v = typeSel.value;
+            yearSel.style.display = (v === 'month' || v === 'year') ? 'inline-block' : 'none';
+            monthSel.style.display = (v === 'month') ? 'inline-block' : 'none';
+        });
+    }
+
+    // ==================== 货盘系统门店列表加载 ====================
+    async function loadShopNames() {
+        try {
+            const resp = await fetch('/api/inventory/shop-names', { credentials: 'include' });
+            const data = await resp.json();
+            const shops = Array.isArray(data) ? data : (data.shopNames || []);
+            const isSuper = currentUserRole === 'SUPER';
+            const selects = ['palletShopFilter', 'invShopName', 'invDetailShopFilter', 'salesShopName', 'salesHistoryShopFilter'];
+            selects.forEach(sid => {
+                const sel = document.getElementById(sid);
+                if (!sel) return;
+                sel.innerHTML = (isSuper ? '<option value="">全部门店</option>' : '') + shops.map(s => `<option value="${escapeHtml(s)}">${escapeHtml(s)}</option>`).join('');
+                if (!isSuper && shops.length === 1) sel.value = shops[0];
+            });
+            // NORMAL用户加载默认总盘数据
+            if (!isSuper && shops.length === 1) {
+                document.getElementById('palletShopFilter').value = shops[0];
+            }
+        } catch(e) { console.error('加载门店列表失败:', e); }
+    }
+
+    // ==================== 产品目录管理 ====================
+    async function loadProductCatalog() {
+        const typeFilter = document.getElementById('catalogTypeFilter').value;
+        const searchTerm = document.getElementById('catalogSearchInput').value.toLowerCase().trim();
+        try {
+            const url = '/api/inventory/products/all' + (typeFilter ? '?type=' + typeFilter : '');
+            const resp = await fetch(url, { credentials: 'include' });
+            const data = await resp.json();
+            const tbody = document.getElementById('catalogTableBody');
+            const items = Array.isArray(data) ? data : [];
+            if (items.length === 0) {
+                tbody.innerHTML = '<tr class="empty-row"><td colspan="5">暂无产品数据</td></tr>';
+                return;
+            }
+            // 按品牌+折射率分组
+            const grouped = {};
+            items.forEach(p => {
+                const ri = p.refractiveIndex || '';
+                const key = p.productType + '|||' + p.brand + '|||' + ri;
+                if (!grouped[key]) grouped[key] = { productType: p.productType, brand: p.brand, refractiveIndex: ri, series: [], ids: [] };
+                grouped[key].series.push(p.series);
+                grouped[key].ids.push(p.id);
+            });
+
+            let rows = Object.values(grouped);
+            if (searchTerm) {
+                rows = rows.filter(g =>
+                    g.brand.toLowerCase().includes(searchTerm) ||
+                    g.series.some(s => s.toLowerCase().includes(searchTerm))
+                );
+            }
+            if (rows.length === 0) {
+                tbody.innerHTML = '<tr class="empty-row"><td colspan="5">未找到匹配产品</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = rows.map(g => {
+                const typeLabel = g.productType === 'FRAME' ? '镜架' : (g.productType === 'LENS' ? '镜片' : '物料');
+                const seriesStr = g.series.join(', ');
+                const riLabel = g.refractiveIndex || '-';
+                const brandEncoded = escapeHtml(g.brand);
+                const seriesEncoded = escapeHtml(seriesStr);
+                return `
+                <tr data-cat-brand="${brandEncoded}" data-cat-type="${g.productType}" data-cat-ids="${g.ids.join(',')}" data-cat-ri="${g.refractiveIndex || ''}">
+                    <td>${typeLabel}</td>
+                    <td class="cat-brand-cell">${brandEncoded}</td>
+                    <td class="cat-series-cell">${seriesEncoded}</td>
+                    <td class="cat-ri-cell">${riLabel}</td>
+                    <td>
+                        <button class="btn-secondary catalog-edit-btn" style="padding:4px 10px;font-size:0.75rem;"><i class="fas fa-edit"></i></button>
+                        <button class="delete-btn catalog-del-btn" title="删除" style="margin-left:4px;"><i class="fas fa-trash-alt"></i></button>
+                    </td>
+                </tr>`;
+            }).join('');
+
+            document.querySelectorAll('#catalogTableBody .catalog-del-btn').forEach(btn => {
+                btn.addEventListener('click', function() { deleteCatalogBrand(this); });
+            });
+            document.querySelectorAll('#catalogTableBody .catalog-edit-btn').forEach(btn => {
+                btn.addEventListener('click', function() { openCatalogEditModal(this); });
+            });
+        } catch(e) { console.error('加载产品目录失败:', e); }
+    }
+
+    // ── 产品目录编辑弹窗 ──
+    let catalogEditData = []; // [{id, series, refractiveIndex}]
+
+    function openCatalogEditModal(btn) {
+        const row = btn.closest('tr');
+        if (!row) return;
+        const productType = row.getAttribute('data-cat-type');
+        const brand = row.getAttribute('data-cat-brand');
+        const ids = (row.getAttribute('data-cat-ids') || '').split(',').filter(Boolean);
+        const seriesArr = row.querySelector('.cat-series-cell').textContent.split(',').map(s => s.trim());
+        
+        // 从现有数据构建编辑列表
+        catalogEditData = [];
+        const riValue = row.getAttribute('data-cat-ri') || '';
+
+        seriesArr.forEach((s, i) => {
+            catalogEditData.push({
+                id: ids[i] || null,
+                series: s,
+                refractiveIndex: riValue
+            });
+        });
+
+        document.getElementById('catalogEditModalTitle').textContent = '编辑 — ' + brand + ' [折射率:' + (riValue||'无') + '] (' + (productType==='FRAME'?'镜架':(productType==='LENS'?'镜片':'物料')) + ')';
+        document.getElementById('catalogEditBrand').value = brand;
+        document.getElementById('catalogEditBrand').setAttribute('data-cat-type', productType);
+        document.getElementById('catalogEditBrand').setAttribute('data-cat-oldbrand', brand);
+        document.getElementById('catalogEditBrand').setAttribute('data-old-ids', row.getAttribute('data-cat-ids'));
+        
+        // 折射率选择器可见性
+        const newRiSelect = document.getElementById('catalogEditNewRefractive');
+        newRiSelect.style.display = productType === 'LENS' ? '' : 'none';
+        document.getElementById('catalogEditNewSeries').placeholder = productType === 'LENS' ? '新系列名称 + 可选折射率' : '新系列名称';
+
+        renderCatalogEditSeries();
+        document.getElementById('catalogEditModal').classList.add('show');
+    }
+
+    function renderCatalogEditSeries() {
+        const container = document.getElementById('catalogEditSeriesList');
+        const productType = document.getElementById('catalogEditBrand').getAttribute('data-cat-type');
+        const isLens = productType === 'LENS';
+        if (catalogEditData.length === 0) {
+            container.innerHTML = '<div style="color:#94a3b8;padding:10px;text-align:center;">暂无系列，请添加</div>';
+        } else {
+            container.innerHTML = catalogEditData.map((item, idx) => `
+                <div class="catalog-series-row" data-idx="${idx}">
+                    <span class="series-name">${escapeHtml(item.series)}</span>
+                    ${isLens ? `<span class="series-ri">${item.refractiveIndex || '无折射率'}</span>` : ''}
+                    <button class="series-del-btn" onclick="deleteCatalogEditSeries(${idx})" title="删除此系列"><i class="fas fa-times"></i></button>
+                </div>
+            `).join('');
+        }
+    }
+
+    function deleteCatalogEditSeries(idx) {
+        catalogEditData.splice(idx, 1);
+        renderCatalogEditSeries();
+    }
+
+    function addCatalogEditSeries() {
+        const input = document.getElementById('catalogEditNewSeries');
+        const riSelect = document.getElementById('catalogEditNewRefractive');
+        const seriesVal = input.value.trim();
+        if (!seriesVal) { alert('请输入系列名称'); return; }
+        const isLens = document.getElementById('catalogEditBrand').getAttribute('data-cat-type') === 'LENS';
+        catalogEditData.push({
+            id: null,
+            series: seriesVal,
+            refractiveIndex: isLens ? riSelect.value : ''
+        });
+        input.value = '';
+        riSelect.value = '';
+        renderCatalogEditSeries();
+    }
+
+    async function saveCatalogEdit() {
+        const brandInput = document.getElementById('catalogEditBrand');
+        const newBrand = brandInput.value.trim();
+        const productType = brandInput.getAttribute('data-cat-type');
+        if (!newBrand) { alert('品牌不能为空'); return; }
+        if (catalogEditData.length === 0) { alert('至少需要一个系列'); return; }
+
+        try {
+            // 只删除当前行对应的记录（不碰其他折射率的同类产品）
+            const oldIdsStr = brandInput.getAttribute('data-old-ids') || '';
+            const oldIds = oldIdsStr.split(',').filter(Boolean);
+            for (let id of oldIds) {
+                await fetch('/api/inventory/product/' + encodeURIComponent(id), { method: 'DELETE', credentials: 'include' });
+            }
+            // 重新添加
+            for (let item of catalogEditData) {
+                const payload = { productType, brand: newBrand, series: item.series };
+                if (productType === 'LENS' && item.refractiveIndex) payload.refractiveIndex = item.refractiveIndex;
+                await fetch('/api/inventory/product', {
+                    method: 'POST', credentials: 'include',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+            }
+            document.getElementById('catalogEditModal').classList.remove('show');
+            loadProductCatalog();
+        } catch(e) { alert('保存失败: ' + e.message); }
+    }
+
+    async function deleteCatalogBrand(btn) {
+        const row = btn.closest('tr');
+        const productType = row.getAttribute('data-cat-type');
+        const brand = row.getAttribute('data-cat-brand');
+        const ids = (row.getAttribute('data-cat-ids') || '').split(',').filter(Boolean);
+        const ri = row.getAttribute('data-cat-ri') || '';
+        const riLabel = ri ? ' (' + ri + ')' : '';
+        if (!confirm('确定删除品牌"' + brand + '"' + riLabel + '下的所有系列吗？')) return;
+        try {
+            for (let id of ids) {
+                await fetch('/api/inventory/product/' + encodeURIComponent(id), { method: 'DELETE', credentials: 'include' });
+            }
+            loadProductCatalog();
+        } catch(e) { alert('删除失败: ' + e.message); }
+    }
+
+    async function addCatalogItem() {
+        const productType = document.getElementById('catalogProductType').value;
+        const brand = document.getElementById('catalogBrand').value.trim();
+        const series = document.getElementById('catalogSeries').value.trim();
+        const payload = { productType, brand, series };
+        if (productType === 'LENS') {
+            payload.refractiveIndex = document.getElementById('catalogRefractiveIndex').value;
+        }
+        if (!payload.brand) { alert('品牌必填'); return; }
+        if (productType !== 'MATERIAL' && !payload.series) { alert('系列必填'); return; }
+        if (productType === 'MATERIAL' && !payload.series) { payload.series = '物料'; }
+        try {
+            const resp = await fetch('/api/inventory/product', {
+                method: 'POST', credentials: 'include',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+            if (resp.ok) {
+                alert('添加成功！');
+                document.getElementById('catalogBrand').value = '';
+                document.getElementById('catalogSeries').value = '';
+                if (productType === 'LENS') document.getElementById('catalogRefractiveIndex').value = '';
+                loadProductCatalog();
+            } else {
+                const data = await resp.json();
+                alert(data.error || '添加失败');
+            }
+        } catch(e) { alert('添加失败: ' + e.message); }
+    }
+
+    // 绑定新按钮事件
+    document.getElementById('addStockBtn')?.addEventListener('click', addStock);
+    document.getElementById('recordSaleBtn')?.addEventListener('click', recordSale);
+    // 盘点表单：品牌/系列选择按钮
+    document.getElementById('salesBrandBtn')?.addEventListener('click', function(e) {
+        e.preventDefault(); e.stopPropagation(); openSalesBrandModal();
+    });
+    document.getElementById('salesSeriesBtn')?.addEventListener('click', function(e) {
+        e.preventDefault(); e.stopPropagation(); openSalesSeriesModal();
+    });
+    document.getElementById('invBrandBtn')?.addEventListener('click', function(e) {
+        e.preventDefault(); e.stopPropagation(); openInvBrandModal();
+    });
+    document.getElementById('invSeriesBtn')?.addEventListener('click', function(e) {
+        e.preventDefault(); e.stopPropagation(); openInvSeriesModal();
+    });
+    document.getElementById('refreshPalletBtn')?.addEventListener('click', loadPallet);
+    document.getElementById('refreshInvBtn')?.addEventListener('click', loadInventory);
+    document.getElementById('refreshSalesBtn')?.addEventListener('click', loadSalesRecords);
+    document.getElementById('palletShopFilter')?.addEventListener('change', loadPallet);
+    document.getElementById('palletTypeFilter')?.addEventListener('change', loadPallet);
+    document.getElementById('invDetailShopFilter')?.addEventListener('change', loadInventory);
+    document.getElementById('salesHistoryShopFilter')?.addEventListener('change', loadSalesRecords);
+    document.getElementById('salesStartDate')?.addEventListener('change', loadSalesRecords);
+    document.getElementById('salesEndDate')?.addEventListener('change', loadSalesRecords);
+    document.getElementById('exportInvBtn')?.addEventListener('click', () => { if(allInventoryItems.length===0){alert('暂无数据可导出');return;} exportInventoryCSV(); });
+    document.getElementById('exportSalesBtn')?.addEventListener('click', exportSalesCSV);
+    document.getElementById('addCatalogBtn')?.addEventListener('click', addCatalogItem);
+    document.getElementById('refreshCatalogBtn')?.addEventListener('click', loadProductCatalog);
+    document.getElementById('catalogTypeFilter')?.addEventListener('change', loadProductCatalog);
+    document.getElementById('catalogSearchInput')?.addEventListener('input', loadProductCatalog);
+
+    // 折射率下拉框显隐 & 物料系列可选
+    document.getElementById('catalogProductType')?.addEventListener('change', function() {
+        const group = document.getElementById('catalogRefractiveGroup');
+        if (group) group.style.display = this.value === 'LENS' ? '' : 'none';
+        const seriesInput = document.getElementById('catalogSeries');
+        const seriesLabel = seriesInput?.previousElementSibling;
+        if (this.value === 'MATERIAL') {
+            seriesInput.placeholder = '可选（默认"物料"）';
+            if (seriesLabel) seriesLabel.innerHTML = '系列 <span style="color:#94a3b8;font-weight:normal;">(可选)</span>';
+        } else {
+            seriesInput.placeholder = '例: BJ系列';
+            if (seriesLabel) seriesLabel.innerHTML = '系列 <span style="color:red;">*</span>';
+        }
+    });
+
+    // 产品目录编辑弹窗
+    document.getElementById('catalogEditModalClose')?.addEventListener('click', () => document.getElementById('catalogEditModal').classList.remove('show'));
+    document.getElementById('catalogEditCancelBtn')?.addEventListener('click', () => document.getElementById('catalogEditModal').classList.remove('show'));
+    document.getElementById('catalogEditSaveBtn')?.addEventListener('click', saveCatalogEdit);
+    document.getElementById('catalogAddSeriesBtn')?.addEventListener('click', addCatalogEditSeries);
+    document.getElementById('catalogEditModal')?.addEventListener('click', function(e) { if (e.target === this) this.classList.remove('show'); });
 
     // 批量提交表单
     document.getElementById('transferForm')?.addEventListener('submit', async (e) => {
@@ -1476,8 +2807,31 @@
     setActiveDirection('out');
     initCustomSelect();
     setupExportControls();
+    setupSalesExportControls();
     bindPaginationEvents();
     updateRemoveButtonsVisibility();
+    setTimeout(() => initAllItemRows(), 200);
+    // 品牌弹窗事件
+    document.getElementById('brandModalClose')?.addEventListener('click', () => document.getElementById('brandModal').classList.remove('show'));
+    document.getElementById('brandModal')?.addEventListener('click', function(e) { if (e.target === this) this.classList.remove('show'); });
+    document.getElementById('brandModalSearch')?.addEventListener('input', function(e) {
+        const term = e.target.value.toLowerCase();
+        document.querySelectorAll('.brand-pill').forEach(p => {
+            p.style.display = p.dataset.brand.toLowerCase().includes(term) ? '' : 'none';
+        });
+    });
+    // 系列弹窗事件
+    document.getElementById('seriesModalClose')?.addEventListener('click', () => document.getElementById('seriesModal').classList.remove('show'));
+    document.getElementById('seriesModal')?.addEventListener('click', function(e) { if (e.target === this) this.classList.remove('show'); });
+    // 历史弹窗事件
+    document.getElementById('historyModalClose')?.addEventListener('click', () => document.getElementById('historyModal').classList.remove('show'));
+    document.getElementById('historyModal')?.addEventListener('click', function(e) { if (e.target === this) this.classList.remove('show'); });
+    document.getElementById('seriesModalSearch')?.addEventListener('input', function(e) {
+        const term = e.target.value.toLowerCase();
+        document.querySelectorAll('#seriesPills .brand-pill').forEach(p => {
+            p.style.display = p.dataset.series.toLowerCase().includes(term) ? '' : 'none';
+        });
+    });
     checkLoginStatus();
 </script>
 </body>

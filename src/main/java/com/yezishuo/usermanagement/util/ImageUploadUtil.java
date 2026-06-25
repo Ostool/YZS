@@ -40,7 +40,7 @@ public class ImageUploadUtil {
             String folderPath = getTodayFolderPath();
             ensureDirExists(folderPath);
 
-            String timestamp = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss"));
+            String timestamp = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMddHHmmssSSS"));
             String safeName = customerName.replaceAll("[\\\\/:*?\"<>|]", "");
             String fileName = safeName + timestamp + ".jpg";
             String fullPath = folderPath + fileName;
@@ -144,7 +144,7 @@ public class ImageUploadUtil {
             String folderPath = getInspectionTodayFolderPath();
             ensureDirExists(folderPath);
 
-            String timestamp = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss"));
+            String timestamp = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMddHHmmssSSS"));
             String safeName = storeName.replaceAll("[\\\\/:*?\"<>|]", "");
             String fileName = safeName + timestamp + ".jpg";
             String fullPath = folderPath + fileName;

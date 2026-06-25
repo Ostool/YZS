@@ -1,5 +1,7 @@
 package com.yezishuo.transfer.service;
 
+import com.yezishuo.inventory.repository.InventoryItemRepository;
+import com.yezishuo.inventory.entity.InventoryItem;
 import com.yezishuo.transfer.dto.BatchItemDTO;
 import com.yezishuo.transfer.dto.BatchTransferDTO;
 import com.yezishuo.transfer.dto.TransferRecordDTO;
@@ -8,6 +10,7 @@ import com.yezishuo.transfer.entity.TransferRecord;
 import com.yezishuo.transfer.entity.TransferDeleteAudit;
 import com.yezishuo.transfer.repository.TransferRecordRepository;
 import com.yezishuo.transfer.repository.TransferDeleteAuditRepository;
+import com.yezishuo.transfer.util.ShopNameUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -25,20 +28,44 @@ public class TransferServiceImpl implements TransferService {
 
     private static final Logger log = LoggerFactory.getLogger(TransferServiceImpl.class);
 
+    /**
+     * 门店短名 → 完整店名映射，由 ShopNameUtil 统一管理
+     */
+    private static final Map<String, String> SHOP_NAME_MAP = new HashMap<>();
+    static {
+        SHOP_NAME_MAP.put("1店", "普宁明华体育馆店");
+        SHOP_NAME_MAP.put("2店", "普宁广场店");
+        SHOP_NAME_MAP.put("3店", "普宁国际商品城店");
+        SHOP_NAME_MAP.put("4店", "普宁中华新城店");
+        SHOP_NAME_MAP.put("5店", "普宁开心广场店");
+        SHOP_NAME_MAP.put("6店", "普宁万泰新天地店");
+        SHOP_NAME_MAP.put("进贤门店", "揭阳进贤门店");
+        SHOP_NAME_MAP.put("东山店", "揭阳东山店");
+        SHOP_NAME_MAP.put("中华路店", "潮阳中华路店");
+        SHOP_NAME_MAP.put("谷饶店", "潮阳谷饶店");
+        SHOP_NAME_MAP.put("峡山店", "潮南广祥路店");
+        SHOP_NAME_MAP.put("两英店", "潮南两英店");
+        SHOP_NAME_MAP.put("大坝店", "普宁大坝店");
+        SHOP_NAME_MAP.put("总部", "叶子说-总部");
+    }
+
     private final TransferRecordRepository recordRepository;
     private final TransferDeleteAuditRepository auditRepository;
     private final WeChatWorkNotifyService notifyService;
     private final NotificationService notificationService;
+    private final InventoryItemRepository inventoryItemRepository;
 
     @Autowired
     public TransferServiceImpl(TransferRecordRepository recordRepository,
                                TransferDeleteAuditRepository auditRepository,
                                WeChatWorkNotifyService notifyService,
-                               NotificationService notificationService) {
+                               NotificationService notificationService,
+                               InventoryItemRepository inventoryItemRepository) {
         this.recordRepository = recordRepository;
         this.auditRepository = auditRepository;
         this.notifyService = notifyService;
         this.notificationService = notificationService;
+        this.inventoryItemRepository = inventoryItemRepository;
     }
 
     @Override
@@ -60,6 +87,10 @@ public class TransferServiceImpl implements TransferService {
         record.setDirection(dto.getDirection());
         record.setDirectionDetail(dto.getDirectionDetail());
         record.setPickupPerson(dto.getPickupPerson());
+        record.setProductType(dto.getProductType());
+        record.setBrand(dto.getBrand());
+        record.setSeries(dto.getSeries());
+        record.setModel(dto.getModel());
         record.setProductName(dto.getProductName());
         record.setQuantity(dto.getQuantity());
         record.setRemark(dto.getRemark());
@@ -71,13 +102,24 @@ public class TransferServiceImpl implements TransferService {
         TransferRecord saved = recordRepository.save(record);
         log.info("调货记录保存成功，ID: {}", saved.getId());
 
+        // 同步货盘库存
+        syncInventoryOnTransfer(saved);
+
         // 发送新增通知
         Map<String, Object> details = new LinkedHashMap<>();
-        details.put("货品", record.getProductName());
-        details.put("数量", record.getQuantity());
-        details.put("方向", record.getDirectionDetail());
-        details.put("取货人", record.getPickupPerson());
-        details.put("填写人", record.getFiller());
+        String typeLabel = "MATERIAL".equals(saved.getProductType()) ? "物料" : ("FRAME".equals(saved.getProductType()) ? "镜架" : "镜片");
+        details.put("类型", typeLabel);
+        if (saved.getBrand() != null) details.put("品牌", saved.getBrand());
+        if (saved.getSeries() != null) details.put("系列", saved.getSeries());
+        if (saved.getModel() != null && !saved.getModel().isEmpty()) details.put("型号", saved.getModel());
+        // 物料类型用productName，镜架镜片已有品牌系列不重复
+        if ("MATERIAL".equals(saved.getProductType())) {
+            details.put("货品", saved.getProductName());
+        }
+        details.put("数量", saved.getQuantity());
+        details.put("方向", saved.getDirectionDetail());
+        details.put("取货人", saved.getPickupPerson());
+        details.put("填写人", saved.getFiller());
         if (record.getRemark() != null && !record.getRemark().isEmpty()) {
             details.put("备注", record.getRemark());
         }
@@ -235,6 +277,10 @@ public class TransferServiceImpl implements TransferService {
             record.setDirection(batchDTO.getDirection());
             record.setDirectionDetail(batchDTO.getDirectionDetail());
             record.setPickupPerson(batchDTO.getPickupPerson());
+            record.setProductType(item.getProductType());
+            record.setBrand(item.getBrand());
+            record.setSeries(item.getSeries());
+            record.setModel(item.getModel());
             record.setProductName(item.getProductName());
             record.setQuantity(item.getQuantity());
             record.setRemark(batchDTO.getRemark());
@@ -242,7 +288,11 @@ public class TransferServiceImpl implements TransferService {
             record.setStatus("active");
             record.setCreateTime(LocalDateTime.now());
             record.setCreateBy(operator);
-            savedRecords.add(recordRepository.save(record));
+            TransferRecord saved = recordRepository.save(record);
+            savedRecords.add(saved);
+
+            // 同步货盘库存
+            syncInventoryOnTransfer(saved);
         }
 
         log.info("批量保存成功，共 {} 条记录", savedRecords.size());
@@ -253,8 +303,14 @@ public class TransferServiceImpl implements TransferService {
         // 构建货品列表字符串
         StringBuilder productList = new StringBuilder();
         for (BatchItemDTO item : batchDTO.getItems()) {
-            productList.append("货品：").append(item.getProductName()).append("\n");
-            productList.append("数量：").append(item.getQuantity()).append("\n");
+            String typeLabel = "MATERIAL".equals(item.getProductType()) ? "物料" : ("FRAME".equals(item.getProductType()) ? "镜架" : "镜片");
+            productList.append("[").append(typeLabel).append("] ");
+            if (item.getBrand() != null) productList.append(item.getBrand()).append(" ");
+            if (item.getSeries() != null) productList.append(item.getSeries()).append(" ");
+            if (item.getModel() != null && !item.getModel().isEmpty()) productList.append(item.getModel()).append(" ");
+            if ("MATERIAL".equals(item.getProductType())) productList.append(item.getProductName());
+            productList.append("\n");
+            productList.append("数量：").append(item.getQuantity()).append("\n\n");
         }
         details.put("货品清单", productList.toString().trim());
         details.put("方向", batchDTO.getDirectionDetail());
@@ -271,5 +327,127 @@ public class TransferServiceImpl implements TransferService {
         notifyService.sendBatchAddNotification(operator, details, batchDTO.getItems().size());
 
         return savedRecords;
+    }
+
+    /**
+     * 解析方向明细，格式: "X从Y取货"，返回 [destination=X, source=Y]
+     */
+    private String[] parseDirectionDetail(String directionDetail) {
+        if (directionDetail == null || !directionDetail.contains("从") || !directionDetail.contains("取货")) {
+            return null;
+        }
+        int congIdx = directionDetail.indexOf("从");
+        int quhuoIdx = directionDetail.indexOf("取货");
+        if (congIdx < 0 || quhuoIdx < 0) return null;
+        String dest = directionDetail.substring(0, congIdx);
+        String source = directionDetail.substring(congIdx + 1, quhuoIdx);
+        return new String[]{dest, source};
+    }
+
+    /**
+     * 将短店名转换为完整店名，若无映射则原样返回
+     */
+    private String resolveShopName(String name) {
+        if (name == null) return null;
+        return SHOP_NAME_MAP.getOrDefault(name, name);
+    }
+
+    /**
+     * 调货时同步货盘库存变动
+     */
+    private void syncInventoryOnTransfer(TransferRecord record) {
+        // 仅镜架类型同步库存
+        if (!"FRAME".equals(record.getProductType())) {
+            log.debug("非镜架类型调货，跳过库存同步: type={}, name={}", record.getProductType(), record.getProductName());
+            return;
+        }
+        try {
+            String[] parsed = ShopNameUtil.parseDirectionDetail(record.getDirectionDetail());
+            if (parsed == null) {
+                log.debug("无法解析方向明细，跳过库存同步: {}", record.getDirectionDetail());
+                return;
+            }
+            String destShop = ShopNameUtil.resolveShopName(parsed[0]);
+            String sourceShop = ShopNameUtil.resolveShopName(parsed[1]);
+            String productType = record.getProductType();
+            String brand = record.getBrand();
+            String series = record.getSeries();
+            String model = record.getModel();
+            Integer quantity = record.getQuantity();
+
+            LocalDateTime now = LocalDateTime.now();
+
+            // 源门店减少库存（优先精确匹配，其次按品牌系列匹配）
+            InventoryItem sourceItem = findExactInventoryItem(sourceShop, productType, brand, series, model);
+            if (sourceItem == null) {
+                sourceItem = findInventoryItemByBrandSeries(sourceShop, productType, brand, series);
+            }
+            if (sourceItem != null) {
+                int newQty = Math.max(0, sourceItem.getQuantity() - quantity);
+                sourceItem.setQuantity(newQty);
+                sourceItem.setUpdateTime(now);
+                inventoryItemRepository.save(sourceItem);
+                log.info("调货扣减库存: 门店={}, 货品={} {}(型号={}), 扣减={}, 剩余={}",
+                        sourceShop, brand, series, model, quantity, newQty);
+            } else {
+                log.debug("源门店未找到匹配库存: shop={}, type={}, brand={}, series={}", sourceShop, productType, brand, series);
+            }
+
+            // 目标门店增加库存（优先精确匹配，其次按品牌系列匹配，否则创建）
+            InventoryItem destItem = findExactInventoryItem(destShop, productType, brand, series, model);
+            if (destItem == null) {
+                destItem = findInventoryItemByBrandSeries(destShop, productType, brand, series);
+            }
+            if (destItem != null) {
+                destItem.setQuantity(destItem.getQuantity() + quantity);
+                destItem.setUpdateTime(now);
+                inventoryItemRepository.save(destItem);
+                log.info("调货增加库存: 门店={}, 货品={} {}, 增加={}, 总数={}",
+                        destShop, brand, series, quantity, destItem.getQuantity());
+            } else {
+                // 目标门店无此货品，用源门店信息新建
+                InventoryItem newItem = new InventoryItem();
+                newItem.setId(UUID.randomUUID().toString().replace("-", ""));
+                newItem.setShopName(destShop);
+                newItem.setProductType(productType);
+                newItem.setBrand(brand);
+                newItem.setSeries(series);
+                newItem.setModel(model);
+                newItem.setQuantity(quantity);
+                newItem.setCreateTime(now);
+                inventoryItemRepository.save(newItem);
+                log.info("调货自动创建目标门店库存: 门店={}, 货品={} {}, 数量={}", destShop, brand, series, quantity);
+            }
+        } catch (Exception e) {
+            log.error("同步库存失败，调货记录ID: {}, error: {}", record.getId(), e.getMessage(), e);
+        }
+    }
+
+    private InventoryItem findExactInventoryItem(String shopName, String productType, String brand, String series, String model) {
+        return inventoryItemRepository.findMatching(shopName, productType, brand, series,
+                model != null && !model.isEmpty() ? model : null);
+    }
+
+    /**
+     * 按门店+品类+品牌+系列查找库存（不要求型号匹配），优先取最先创建的记录。
+     * 如果存在多条重复记录，自动合并到第一条并删除多余的。
+     */
+    private InventoryItem findInventoryItemByBrandSeries(String shopName, String productType, String brand, String series) {
+        List<InventoryItem> items = inventoryItemRepository.findByBrandSeries(shopName, productType, brand, series);
+        if (items.isEmpty()) return null;
+        InventoryItem main = items.get(0);
+        if (items.size() > 1) {
+            int total = main.getQuantity();
+            for (int i = 1; i < items.size(); i++) {
+                total += items.get(i).getQuantity();
+                inventoryItemRepository.delete(items.get(i));
+            }
+            main.setQuantity(total);
+            main.setUpdateTime(LocalDateTime.now());
+            inventoryItemRepository.save(main);
+            log.info("合并重复库存: 门店={}, 品牌={}, 系列={}, 合并{}条, 总数={}",
+                    shopName, brand, series, items.size(), total);
+        }
+        return items.get(0);
     }
 }

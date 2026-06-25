@@ -7,7 +7,10 @@ import java.time.LocalDateTime;
 
 @Data
 @Entity
-@Table(name = "user_data")
+@Table(name = "user_data", indexes = {
+    @Index(name = "idx_ud_deleted_shop_date", columnList = "is_deleted, shop_name, prescription_date"),
+    @Index(name = "idx_ud_deleted_date", columnList = "is_deleted, prescription_date")
+})
 public class UserData {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -126,8 +129,14 @@ public class UserData {
     @Column(name = "frame_brand")
     private String frameBrand;
 
+    @Column(name = "frame_series")
+    private String frameSeries;
+
     @Column(name = "lens_brand")
     private String lensBrand;
+
+    @Column(name = "lens_series")
+    private String lensSeries;
 
 // 添加对应的 getter/setter (Lombok 会自动生成)
 
@@ -148,6 +157,12 @@ public class UserData {
     @Column(name = "prescription_images")
     private String prescriptionImages;  // 存储图片路径，多个用逗号分隔
 
-    @Column(name = "is_deleted")
-    private Integer isDeleted;  // 0=未删除, 1=已删除
+    @Column(name = "is_deleted", columnDefinition = "INT DEFAULT 0")
+    private Integer isDeleted = 0;  // 0=未删除, 1=已删除
+
+    @Column(name = "redemption_channel", length = 20)
+    private String redemptionChannel;
+
+    @Column(name = "has_good_review", columnDefinition = "TINYINT DEFAULT 0")
+    private Integer hasGoodReview = 0;  // 0=无好评, 1=有好评
 }

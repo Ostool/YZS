@@ -14,6 +14,10 @@ public class TransferRecordDTO {
     private String direction;
     private String directionDetail;
     private String pickupPerson;
+    private String productType;
+    private String brand;
+    private String series;
+    private String model;
     private String productName;
     private Integer quantity;
     private String remark;

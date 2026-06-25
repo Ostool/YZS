@@ -23,7 +23,19 @@ public class TransferRecord {
     @Column(name = "pickup_person", nullable = false, length = 50)
     private String pickupPerson;
 
-    @Column(name = "product_name", nullable = false, length = 100)
+    @Column(name = "product_type", length = 20)
+    private String productType;
+
+    @Column(length = 100)
+    private String brand;
+
+    @Column(length = 100)
+    private String series;
+
+    @Column(length = 100)
+    private String model;
+
+    @Column(name = "product_name", nullable = false, length = 200)
     private String productName;
 
     @Column(nullable = false)
@@ -62,6 +74,18 @@ public class TransferRecord {
 
     public String getPickupPerson() { return pickupPerson; }
     public void setPickupPerson(String pickupPerson) { this.pickupPerson = pickupPerson; }
+
+    public String getProductType() { return productType; }
+    public void setProductType(String productType) { this.productType = productType; }
+
+    public String getBrand() { return brand; }
+    public void setBrand(String brand) { this.brand = brand; }
+
+    public String getSeries() { return series; }
+    public void setSeries(String series) { this.series = series; }
+
+    public String getModel() { return model; }
+    public void setModel(String model) { this.model = model; }
 
     public String getProductName() { return productName; }
     public void setProductName(String productName) { this.productName = productName; }

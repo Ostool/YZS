@@ -61,6 +61,7 @@ public class TransferController {
         result.put("isLoggedIn", loggedIn);
         result.put("userRole", userRole);
         result.put("userName", userName != null ? userName : "未知用户");
+        result.put("realName", session.getAttribute("realName"));
 
         return ResponseEntity.ok(result);
     }
@@ -75,6 +76,7 @@ public class TransferController {
         result.put("statistics", stats);
         result.put("userRole", session.getAttribute("userRole"));
         result.put("userName", session.getAttribute("userName"));
+        result.put("realName", session.getAttribute("realName"));
         return ResponseEntity.ok(result);
     }
 

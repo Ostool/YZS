@@ -9,6 +9,7 @@ public class UserInfoResponse {
     private Integer id;
     private String username;
     private String realName;
+    private String shopName;
     private String role;
     private Integer roleLevel;
     private Integer status;

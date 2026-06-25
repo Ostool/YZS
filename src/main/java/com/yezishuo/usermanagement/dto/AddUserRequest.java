@@ -50,6 +50,9 @@ public class AddUserRequest {
     private String needFollowup;
     private String remark;
 
+    private String redemptionChannel;
+    private Integer hasGoodReview;
+
     private String prescriptionImages;  // 处方图片路径
     private List<String> imageFiles;    // 上传的图片文件（Base64）
 
@@ -57,5 +60,7 @@ public class AddUserRequest {
     private List<String> newImages;       // 新上传的Base64图片
 
     private String frameBrand;
+    private String frameSeries;
     private String lensBrand;
+    private String lensSeries;
 }
