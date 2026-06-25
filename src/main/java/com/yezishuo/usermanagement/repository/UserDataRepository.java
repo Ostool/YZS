@@ -91,4 +91,16 @@ public interface UserDataRepository extends JpaRepository<UserData, Integer> {
 
     @Query("SELECT u FROM UserData u WHERE u.isDeleted = 0 AND u.followupStatus = 'PENDING' AND u.followupDeadline IS NOT NULL AND u.followupDeadline BETWEEN :start AND :end AND u.shopName = :shopName ORDER BY u.prescriptionDate ASC")
     List<UserData> findYearEndFollowupsByShop(@Param("start") LocalDateTime start, @Param("end") LocalDateTime end, @Param("shopName") String shopName);
+
+    @Query("SELECT COUNT(u) FROM UserData u WHERE u.isDeleted = 0 AND u.followupStatus = 'NOTIFIED'")
+    int countNotified();
+
+    @Query("SELECT COUNT(u) FROM UserData u WHERE u.isDeleted = 0 AND u.followupStatus = 'NOTIFIED' AND u.shopName = :shopName")
+    int countNotifiedByShop(@Param("shopName") String shopName);
+
+    @Query("SELECT u FROM UserData u WHERE u.isDeleted = 0 AND u.followupStatus = 'NOTIFIED' ORDER BY u.nextFollowupDate ASC")
+    List<UserData> findNotifiedList();
+
+    @Query("SELECT u FROM UserData u WHERE u.isDeleted = 0 AND u.followupStatus = 'NOTIFIED' AND u.shopName = :shopName ORDER BY u.nextFollowupDate ASC")
+    List<UserData> findNotifiedListByShop(@Param("shopName") String shopName);
 }
