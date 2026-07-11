@@ -827,7 +827,7 @@
 
         /* 总盘卡片 */
         .pallet-grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(260px, 1fr)); gap:16px; }
-        .pallet-card { background:white; border:1px solid #e2e8f0; border-radius:10px; padding:16px; transition:box-shadow 0.2s; }
+        .pallet-card { background:white; border:1px solid #e2e8f0; border-radius:10px; padding:16px; transition:box-shadow 0.2s; cursor:pointer; }
         .pallet-card:hover { box-shadow:0 4px 12px rgba(0,47,167,0.08); }
         .pallet-card-type { display:inline-block; padding:2px 10px; border-radius:12px; font-size:0.7rem; font-weight:600; margin-bottom:8px; }
         .pallet-card-type.frame { background:#eef2ff; color:#002FA7; }
@@ -899,11 +899,27 @@
                 <p>门店货盘管理 | 调货协同 | 每日盘点</p>
             </div>
         </div>
-        <div class="right-header">
-            <div class="notification-bell" id="notificationBell">
-                <i class="fas fa-bell"></i>
-                <span class="notification-badge" id="notificationBadge" style="display: none;">0</span>
+
+        <!-- 人员管理 tab -->
+        <div class="tab-panel" id="tab-staff">
+            <div class="card form-card">
+                <div class="section-title"><i class="fas fa-user-plus"></i><span>新增店员</span></div>
+                <div class="inline-form">
+                    <div class="input-group"><label>所属门店 *</label><select id="staffShopName"><option value="">请选择门店</option></select></div>
+                    <div class="input-group"><label>店员姓名 *</label><input type="text" id="staffMemberName" placeholder="输入店员姓名"></div>
+                    <div class="input-group"><button class="btn-primary" id="addStaffBtn"><i class="fas fa-plus"></i> 添加店员</button></div>
+                </div>
             </div>
+            <div class="card form-card">
+                <div class="section-title"><i class="fas fa-list"></i><span>店员列表</span></div>
+                <div class="pallet-filter">
+                    <select id="staffFilterShop"><option value="">全部门店</option></select>
+                    <button class="btn-secondary" id="refreshStaffBtn"><i class="fas fa-sync-alt"></i> 刷新</button>
+                </div>
+                <div id="staffListContainer" style="padding:0 16px 16px;"></div>
+            </div>
+        </div>
+    </div>
             <div class="user-info-card" id="userInfoCard" style="display: none;">
                 <div class="user-avatar" id="userAvatar">用</div>
                 <div class="user-details">
@@ -922,6 +938,7 @@
         <button class="tab-btn" data-tab="inventory"><i class="fas fa-boxes"></i> 库存管理</button>
         <button class="tab-btn" data-tab="sales"><i class="fas fa-clipboard-check"></i> 盘点记录</button>
         <button class="tab-btn" data-tab="catalog"><i class="fas fa-database"></i> 产品目录</button>
+        <button class="tab-btn" data-tab="staff"><i class="fas fa-users"></i> 人员管理</button>
     </div>
 
     <!-- 品牌选择弹窗 -->
@@ -1151,17 +1168,22 @@
 
         <!-- 盘点记录 tab -->
         <div class="tab-panel" id="tab-sales">
+            <div id="discrepancyAlert" style="display:none;background:#fef2f2;border:1px solid #fecaca;border-radius:10px;padding:12px 16px;margin-bottom:16px;align-items:center;gap:12px;">
+                <span style="font-size:1.2rem;">&#9888;&#65039;</span>
+                <span style="color:#dc2626;font-weight:600;flex:1;" id="discrepancyText"></span>
+                <button class="btn-secondary" id="viewDiscrepancyBtn" style="font-size:0.8rem;padding:6px 14px;">查看差异</button>
+            </div>
             <div class="card form-card">
-                <div class="section-title"><i class="fas fa-clipboard-check"></i><span>记录盘点数据</span></div>
+                <div class="section-title"><i class="fas fa-clipboard-check"></i><span>记录盘点数据（新）</span></div>
                 <div class="sales-form" style="display:flex; flex-wrap:wrap; gap:12px; align-items:flex-end;">
-                    <div class="input-group"><label>门店 *</label><select id="salesShopName"><option value="">选择门店</option></select></div>
-                    <div class="input-group"><label>类型 *</label><select id="salesProductType"><option value="FRAME">镜架</option><option value="LENS">镜片</option></select></div>
-                    <div class="input-group"><label>品牌 *</label><button type="button" class="brand-trigger-btn" id="salesBrandBtn" style="min-width:120px;"><span class="sales-brand-text">点击选择品牌</span></button></div>
-                    <div class="input-group"><label>系列 *</label><button type="button" class="brand-trigger-btn" id="salesSeriesBtn" style="min-width:120px;"><span class="sales-series-text">点击选择系列</span></button></div>
-                    <div class="input-group"><label>型号</label><input type="text" id="salesModel" placeholder="可选" style="width:80px;"></div>
-                    <div class="input-group"><label>盘点数量 *</label><input type="number" id="salesQuantity" min="0" value="1" style="width:80px;"></div>
-                    <div class="input-group"><label>备注</label><input type="text" id="salesRemark" placeholder="可选" style="width:100px;"></div>
-                    <div class="input-group"><button class="btn-primary" id="recordSaleBtn"><i class="fas fa-check"></i> 记录盘点</button></div>
+                    <div class="input-group"><label>门店 *</label><select id="checkShopName"><option value="">选择门店</option></select></div>
+                    <div class="input-group"><label>类型 *</label><select id="checkProductType"><option value="FRAME">镜架</option><option value="LENS">镜片</option></select></div>
+                    <div class="input-group"><label>品牌 *</label><button type="button" class="brand-trigger-btn" id="checkBrandBtn" style="min-width:120px;"><span class="check-brand-text">点击选择品牌</span></button></div>
+                    <div class="input-group"><label>系列 *</label><button type="button" class="brand-trigger-btn" id="checkSeriesBtn" style="min-width:120px;"><span class="check-series-text">点击选择系列</span></button></div>
+                    <div class="input-group"><label>型号</label><input type="text" id="checkModel" placeholder="可选" style="width:80px;"></div>
+                    <div class="input-group"><label>盘点数量 *</label><input type="number" id="checkQuantity" min="0" value="0" style="width:80px;"></div>
+                    <div class="input-group"><label>备注</label><input type="text" id="checkRemark" placeholder="可选" style="width:100px;"></div>
+                    <div class="input-group"><button class="btn-primary" id="recordCheckBtn"><i class="fas fa-check"></i> 提交盘点</button></div>
                 </div>
             </div>
             <div class="card form-card">
@@ -1179,8 +1201,17 @@
                 </div>
                 <div class="table-wrapper">
                     <table class="compact-table">
-                        <thead><tr><th>门店</th><th>类型</th><th>品牌</th><th>系列</th><th>型号</th><th>盘点数量</th><th>记录人</th><th>备注</th><th>时间</th><th>操作</th></tr></thead>
-                        <tbody id="salesTableBody"><tr class="empty-row"><td colspan="10">暂无盘点记录</td></tr></tbody>
+                        <thead><tr><th>门店</th><th>类型</th><th>品牌</th><th>系列</th><th>型号</th><th>盘点数量</th><th>记录人</th><th>备注</th><th>时间</th><th>差异状态</th><th>操作</th></tr></thead>
+                        <tbody id="salesTableBody"><tr class="empty-row"><td colspan="11">暂无盘点记录</td></tr></tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="card form-card" id="checkListCard" style="display:none;">
+                <div class="section-title"><i class="fas fa-exclamation-triangle" style="color:#f59e0b;"></i><span>盘点差异记录</span></div>
+                <div class="table-wrapper" style="max-height:400px;overflow-y:auto;">
+                    <table class="compact-table">
+                        <thead><tr><th>门店</th><th>类型</th><th>品牌</th><th>系列</th><th>系统库存</th><th>盘点数</th><th>差异</th><th>状态</th><th>时间</th><th>操作</th></tr></thead>
+                        <tbody id="checkDiscrepancyBody"><tr class="empty-row"><td colspan="10">暂无差异记录</td></tr></tbody>
                     </table>
                 </div>
             </div>
@@ -1212,12 +1243,46 @@
         </div>
     </div>
 
-    <!-- 库存历史弹窗 -->
+    <!-- 库存历史弹窗（分页） -->
     <div class="brand-modal-overlay" id="historyModal">
-        <div class="brand-modal" style="max-width:700px;">
+        <div class="brand-modal" style="max-width:750px;">
             <button class="modal-close-btn" id="historyModalClose">&times;</button>
-            <h3 id="historyModalTitle">📋 出纳历史</h3>
-            <div id="historyContent" style="max-height:55vh;overflow-y:auto;"></div>
+            <h3 id="historyModalTitle">库存流水明细</h3>
+            <div id="ledgerFilterBar" style="display:flex;gap:8px;align-items:center;margin-bottom:12px;flex-wrap:wrap;">
+                <span style="font-size:0.8rem;color:#64748b;" id="ledgerItemLabel"></span>
+                <div style="display:flex;gap:8px;align-items:center;margin-left:auto;flex-wrap:wrap;">
+                    <input type="date" id="ledgerStartDate" style="font-size:0.75rem;padding:4px 8px;border:1px solid #e2e8f0;border-radius:6px;width:115px;" title="开始日期">
+                    <span style="font-size:0.7rem;color:#94a3b8;">至</span>
+                    <input type="date" id="ledgerEndDate" style="font-size:0.75rem;padding:4px 8px;border:1px solid #e2e8f0;border-radius:6px;width:115px;" title="结束日期">
+                    <select id="ledgerChangeType" style="font-size:0.75rem;padding:4px 8px;border:1px solid #e2e8f0;border-radius:6px;">
+                        <option value="">全部类型</option>
+                        <option value="TRANSFER_IN">调货入库</option>
+                        <option value="TRANSFER_OUT">调货出库</option>
+                        <option value="SALE">销售出库</option>
+                        <option value="MANUAL_ADD">手动入库</option>
+                        <option value="MANUAL_ADJUST">手动修正</option>
+                        <option value="CHECK_CORRECTION">盘点修正</option>
+                    </select>
+                    <button class="pagination-btn" id="ledgerFilterBtn" style="padding:4px 10px;font-size:0.75rem;">筛选</button>
+                    <button class="pagination-btn" id="ledgerResetBtn" style="padding:4px 10px;font-size:0.75rem;">重置</button>
+                    <select id="ledgerPageSize" style="font-size:0.75rem;padding:4px 8px;border:1px solid #e2e8f0;border-radius:6px;">
+                        <option value="10">10条</option>
+                        <option value="20" selected>20条</option>
+                        <option value="50">50条</option>
+                    </select>
+                </div>
+            </div>
+            <div id="historyContent" style="max-height:50vh;overflow-y:auto;"></div>
+            <div id="ledgerPagination" style="display:flex;justify-content:space-between;align-items:center;padding:12px 0 0 0;border-top:1px solid #e2e8f0;margin-top:8px;font-size:0.8rem;">
+                <span id="ledgerPageInfo" style="color:#64748b;"></span>
+                <div style="display:flex;gap:4px;">
+                    <button class="pagination-btn" id="ledgerFirstBtn" style="padding:4px 10px;font-size:0.75rem;">首页</button>
+                    <button class="pagination-btn" id="ledgerPrevBtn" style="padding:4px 10px;font-size:0.75rem;">上一页</button>
+                    <span id="ledgerPageNum" style="display:flex;align-items:center;padding:0 8px;color:#1a2c3e;"></span>
+                    <button class="pagination-btn" id="ledgerNextBtn" style="padding:4px 10px;font-size:0.75rem;">下一页</button>
+                    <button class="pagination-btn" id="ledgerLastBtn" style="padding:4px 10px;font-size:0.75rem;">末页</button>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -1425,6 +1490,16 @@
             brandModalTarget = null;
             return;
         }
+        if (brandModalTarget === 'check') {
+            const btn = document.getElementById('checkBrandBtn');
+            const text = btn ? btn.querySelector('.check-brand-text') : null;
+            if (text) text.textContent = brand;
+            if (btn) { btn.style.color = '#334155'; btn.style.borderColor = 'var(--klein-blue)'; }
+            document.getElementById('brandModal').classList.remove('show');
+            loadCheckSeries(brand);
+            brandModalTarget = null;
+            return;
+        }
         const btn = brandModalTarget.querySelector('.brand-trigger-btn');
         const selectedText = brandModalTarget.querySelector('.brand-selected-text');
         if (selectedText) selectedText.textContent = brand;
@@ -1485,6 +1560,15 @@
         if (seriesModalTarget === 'inventory') {
             const btn = document.getElementById('invSeriesBtn');
             const text = btn ? btn.querySelector('.inv-series-text') : null;
+            if (text) text.textContent = series;
+            if (btn) { btn.style.color = '#334155'; btn.style.borderColor = 'var(--klein-blue)'; }
+            document.getElementById('seriesModal').classList.remove('show');
+            seriesModalTarget = null;
+            return;
+        }
+        if (seriesModalTarget === 'check') {
+            const btn = document.getElementById('checkSeriesBtn');
+            const text = btn ? btn.querySelector('.check-series-text') : null;
             if (text) text.textContent = series;
             if (btn) { btn.style.color = '#334155'; btn.style.borderColor = 'var(--klein-blue)'; }
             document.getElementById('seriesModal').classList.remove('show');
@@ -1591,6 +1675,43 @@
         document.getElementById('seriesModalSearch').value = '';
         fetchSeriesForModal(brand, productType);
         document.getElementById('seriesModal').classList.add('show');
+    }
+
+    function openCheckBrandModal() {
+        const productType = document.getElementById('checkProductType').value;
+        brandModalTarget = 'check';
+        document.getElementById('brandModalTitle').textContent = productType === 'LENS' ? '选择镜片品牌' : '选择镜架品牌';
+        document.getElementById('brandModalSearch').value = '';
+        fetchBrands(productType);
+        document.getElementById('brandModal').classList.add('show');
+    }
+
+    function openCheckSeriesModal() {
+        const brandBtn = document.getElementById('checkBrandBtn');
+        const brandText = brandBtn ? brandBtn.querySelector('.check-brand-text') : null;
+        const brand = brandText ? brandText.textContent.trim() : '';
+        if (!brand || brand === '点击选择品牌') { alert('请先选择品牌'); return; }
+        const productType = document.getElementById('checkProductType').value;
+        seriesModalTarget = 'check';
+        document.getElementById('seriesModalTitle').textContent = '选择系列 — ' + brand;
+        document.getElementById('seriesModalSearch').value = '';
+        fetchSeriesForModal(brand, productType);
+        document.getElementById('seriesModal').classList.add('show');
+    }
+
+    function loadCheckSeries(brand) {
+        const productType = document.getElementById('checkProductType').value;
+        const seriesBtn = document.getElementById('checkSeriesBtn');
+        const seriesText = seriesBtn ? seriesBtn.querySelector('.check-series-text') : null;
+        if (!seriesBtn || !seriesText) return;
+        fetch('/api/inventory/products/series?type=' + productType + '&brand=' + encodeURIComponent(brand), { credentials: 'include' })
+            .then(resp => resp.json())
+            .then(data => {
+                const seriesList = data.series || [];
+                if (seriesList.length === 0) {
+                    seriesText.textContent = '点击选择系列';
+                }
+            }).catch(() => {});
     }
 
     async function loadSeriesForRow(row, productType, brand) {
@@ -2002,9 +2123,60 @@
 
     // ==================== 删除记录 ====================
     function deleteRecord(id) { showDeleteReasonModal(id); }
-    function showDeleteReasonModal(recordId) { /* 原有代码已保留，篇幅所限此处省略但功能完整 */ }
-    function confirmDelete(recordId) { /* 原有代码已保留 */ }
-    function closeDeleteModal() { const existingModal = document.getElementById('deleteReasonModal'); if (existingModal) existingModal.remove(); const loadingEl = document.getElementById('deleteLoadingMsg'); if (loadingEl) loadingEl.remove(); }
+
+    function showDeleteReasonModal(recordId) {
+        closeDeleteModal();
+        const overlay = document.createElement('div');
+        overlay.id = 'deleteReasonModal';
+        overlay.className = 'brand-modal-overlay show';
+        overlay.innerHTML = `
+            <div class="brand-modal" style="max-width:420px;">
+                <button class="modal-close-btn" onclick="closeDeleteModal()">&times;</button>
+                <h3 style="margin-bottom:12px;">删除调货记录</h3>
+                <div style="margin-bottom:12px;">
+                    <label style="font-size:0.8rem;color:#64748b;">删除原因 *</label>
+                    <textarea id="deleteReasonInput" placeholder="请填写删除原因" style="width:100%;padding:10px;border:1px solid #e2e8f0;border-radius:8px;resize:vertical;min-height:80px;font-size:0.9rem;box-sizing:border-box;"></textarea>
+                </div>
+                <div style="display:flex;gap:10px;justify-content:flex-end;">
+                    <button class="btn-secondary" onclick="closeDeleteModal()">取消</button>
+                    <button class="btn-primary" id="confirmDeleteBtn">确认删除</button>
+                </div>
+            </div>`;
+        document.body.appendChild(overlay);
+        overlay.addEventListener('click', function(e) { if (e.target === this) closeDeleteModal(); });
+        document.getElementById('confirmDeleteBtn').addEventListener('click', function() { confirmDelete(recordId); });
+        setTimeout(() => document.getElementById('deleteReasonInput').focus(), 100);
+    }
+
+    async function confirmDelete(recordId) {
+        const reason = document.getElementById('deleteReasonInput').value.trim();
+        if (!reason) { alert('请填写删除原因'); return; }
+        const btn = document.getElementById('confirmDeleteBtn');
+        btn.disabled = true; btn.textContent = '删除中...';
+        try {
+            const resp = await fetch('/api/transfer/record/' + recordId + '?reason=' + encodeURIComponent(reason), {
+                method: 'DELETE', credentials: 'include'
+            });
+            const data = await resp.json();
+            if (resp.ok) {
+                closeDeleteModal();
+                alert(data.message || '操作成功');
+                fetchRecords();
+            } else {
+                alert(data.error || '删除失败');
+            }
+        } catch(e) {
+            alert('删除失败: ' + e.message);
+        }
+        btn.disabled = false; btn.textContent = '确认删除';
+    }
+
+    function closeDeleteModal() {
+        const existingModal = document.getElementById('deleteReasonModal');
+        if (existingModal) existingModal.remove();
+        const loadingEl = document.getElementById('deleteLoadingMsg');
+        if (loadingEl) loadingEl.remove();
+    }
 
     function setActiveDirection(dir) { document.querySelectorAll('.direction-option').forEach(opt => { if(opt.getAttribute('data-dir') === dir) opt.classList.add('active'); else opt.classList.remove('active'); }); document.getElementById('directionInput').value = dir; }
     function setDefaultTransferTime() { const now = new Date(); const year = now.getFullYear(), month = String(now.getMonth() + 1).padStart(2,'0'), day = String(now.getDate()).padStart(2,'0'), hours = String(now.getHours()).padStart(2,'0'), minutes = String(now.getMinutes()).padStart(2,'0'); document.getElementById('transferDate').value = `${year}-${month}-${day}T${hours}:${minutes}`; }
@@ -2104,8 +2276,9 @@
             document.getElementById('tab-' + tabId).classList.add('active');
             if (tabId === 'pallet') loadPallet();
             if (tabId === 'inventory') loadInventory();
-            if (tabId === 'sales') loadSalesRecords();
+            if (tabId === 'sales') { loadSalesRecords(); loadCheckRecords(); }
             if (tabId === 'catalog') loadProductCatalog();
+            if (tabId === 'staff') loadStaffList();
         });
     });
 
@@ -2121,6 +2294,8 @@
         // 产品目录标签：SUPER可见
         const catalogTab = document.querySelector('.tab-btn[data-tab="catalog"]');
         if (catalogTab) catalogTab.style.display = isSuper ? '' : 'none';
+        const staffTab = document.querySelector('.tab-btn[data-tab="staff"]');
+        if (staffTab) staffTab.style.display = isSuper ? '' : 'none';
         // SUPER恢复显示
         if (isSuper) {
             if (invCard) invCard.style.display = '';
@@ -2174,7 +2349,7 @@
             let items = data.pallet;
             if (typeFilter) items = items.filter(i => i.productType === typeFilter);
             grid.innerHTML = items.map(i => `
-                <div class="pallet-card">
+                <div class="pallet-card" data-shop="${escapeHtml(i.shopName)}" data-type="${i.productType}" data-brand="${escapeHtml(i.brand)}" data-series="${escapeHtml(i.series)}" title="点击查看库存流水">
                     <div><span class="pallet-card-type ${i.productType === 'FRAME' ? 'frame' : 'lens'}">${i.productType === 'FRAME' ? '镜架' : '镜片'}</span></div>
                     <div class="pallet-card-shop">${escapeHtml(i.shopName)}</div>
                     <div class="pallet-card-brand">${escapeHtml(i.brand)}</div>
@@ -2182,40 +2357,174 @@
                     <div class="pallet-card-qty">${i.totalQuantity} <span style="font-size:0.6em;font-weight:400;">件</span></div>
                 </div>
             `).join('');
+            document.querySelectorAll('.pallet-card').forEach(card => {
+                card.addEventListener('click', function() {
+                    const shop = this.dataset.shop;
+                    const type = this.dataset.type;
+                    const brand = this.dataset.brand;
+                    const series = this.dataset.series;
+                    showProductLedger(shop, type, brand, series);
+                });
+            });
             renderPalletCharts(items);
         } catch(e) { console.error('加载总盘失败:', e); }
     }
 
     // ==================== 库存管理 ====================
+    let ledgerCurrentPage = 0;
+    let ledgerPageSize = 20;
+    let ledgerTotalPages = 0;
+    let ledgerShopName = '';
+    let ledgerProductType = '';
+    let ledgerBrand = '';
+    let ledgerSeries = '';
+    let ledgerModel = '';
+
     async function showInventoryHistory(itemId) {
         try {
             document.getElementById('historyContent').innerHTML = '<div style="color:#94a3b8;padding:20px;text-align:center;">加载中...</div>';
             document.getElementById('historyModal').classList.add('show');
-            const resp = await fetch('/api/inventory/item/' + itemId + '/history', { credentials: 'include' });
-            const data = await resp.json();
-            if (!data.success || !data.history || data.history.length === 0) {
-                document.getElementById('historyContent').innerHTML = '<div style="color:#94a3b8;padding:20px;text-align:center;">暂无出纳记录</div>';
+
+            const item = allInventoryItems.find(i => i.id === itemId);
+            if (!item) {
+                document.getElementById('historyContent').innerHTML = '<div style="color:#ef4444;padding:20px;text-align:center;">库存项未找到</div>';
                 return;
             }
-            let html = '<table style="width:100%;border-collapse:collapse;font-size:0.85rem;"><thead><tr style="background:#f8fafd;"><th style="padding:8px;text-align:left;">时间</th><th style="padding:8px;">事件</th><th style="padding:8px;text-align:right;">变动</th><th style="padding:8px;text-align:right;">余额</th><th style="padding:8px;">说明</th><th style="padding:8px;">操作人</th></tr></thead><tbody>';
-            data.history.forEach(h => {
-                let changeColor = h.quantityChange > 0 ? '#22c55e' : (h.quantityChange < 0 ? '#ef4444' : '#64748b');
-                let changeSign = h.quantityChange > 0 ? '+' : '';
-                let timeStr = h.eventTime ? h.eventTime.replace('T',' ').substring(0,16) : '';
+
+            ledgerShopName = item.shopName;
+            ledgerProductType = item.productType;
+            ledgerBrand = item.brand;
+            ledgerSeries = item.series;
+            ledgerModel = item.model || '';
+            ledgerCurrentPage = 0;
+            ledgerPageSize = parseInt(document.getElementById('ledgerPageSize').value, 10);
+
+            document.getElementById('ledgerStartDate').value = '';
+            document.getElementById('ledgerEndDate').value = '';
+            document.getElementById('ledgerChangeType').value = '';
+
+            document.getElementById('ledgerItemLabel').textContent =
+                (item.productType === 'FRAME' ? '镜架' : (item.productType === 'LENS' ? '镜片' : '物料')) +
+                ' | ' + (item.brand || '') + ' · ' + (item.series || '') +
+                (item.model ? ' · ' + item.model : '') + ' | ' + item.shopName;
+
+            await loadLedgerPage();
+        } catch(e) {
+            document.getElementById('historyContent').innerHTML = '<div style="color:#ef4444;padding:20px;text-align:center;">加载失败: ' + e.message + '</div>';
+        }
+    }
+
+    async function loadLedgerPage() {
+        try {
+            const changeType = document.getElementById('ledgerChangeType').value;
+            const startDate = document.getElementById('ledgerStartDate').value;
+            const endDate = document.getElementById('ledgerEndDate').value;
+            const hasFilter = changeType || startDate || endDate;
+
+            let url, params = new URLSearchParams();
+            params.append('page', ledgerCurrentPage);
+            params.append('size', ledgerPageSize);
+
+            if (hasFilter) {
+                params.append('shopName', ledgerShopName);
+                if (changeType) params.append('changeType', changeType);
+                if (startDate) params.append('startDate', startDate + ' 00:00:00');
+                if (endDate) params.append('endDate', endDate + ' 23:59:59');
+                url = '/api/inventory/ledger?' + params;
+            } else {
+                params.append('shopName', ledgerShopName);
+                params.append('productType', ledgerProductType);
+                params.append('brand', ledgerBrand);
+                params.append('series', ledgerSeries);
+                if (ledgerModel) params.append('model', ledgerModel);
+                url = '/api/inventory/ledger/entries?' + params;
+            }
+
+            const resp = await fetch(url, { credentials: 'include' });
+            const data = await resp.json();
+
+            if (!data.success || !data.data) {
+                document.getElementById('historyContent').innerHTML = '<div style="color:#94a3b8;padding:20px;text-align:center;">暂无库存流水记录</div>';
+                updateLedgerPagination(0, 0);
+                return;
+            }
+
+            const paged = data.data;
+            const items = paged.content || [];
+            ledgerTotalPages = paged.totalPages || 0;
+
+            if (items.length === 0) {
+                document.getElementById('historyContent').innerHTML = '<div style="color:#94a3b8;padding:20px;text-align:center;">暂无库存流水记录</div>';
+                updateLedgerPagination(0, 0);
+                return;
+            }
+
+            const changeLabels = {
+                'TRANSFER_IN': '调货入库', 'TRANSFER_OUT': '调货出库',
+                'SALE': '销售出库', 'SALE_REVERSAL': '销售撤销',
+                'MANUAL_ADD': '手动入库', 'MANUAL_ADJUST': '手动修正',
+                'CHECK_CORRECTION': '盘点修正', 'INITIAL': '初始入库'
+            };
+
+            let html = '<table style="width:100%;border-collapse:collapse;font-size:0.82rem;"><thead><tr style="background:#f8fafd;position:sticky;top:0;z-index:1;"><th style="padding:8px;text-align:left;">时间</th><th style="padding:8px;">类型</th><th style="padding:8px;text-align:right;">变动</th><th style="padding:8px;text-align:right;">余额</th><th style="padding:8px;">说明</th><th style="padding:8px;">操作人</th></tr></thead><tbody>';
+            items.forEach(h => {
+                const label = changeLabels[h.changeType] || h.changeType;
+                const changeColor = h.quantityChange > 0 ? '#22c55e' : (h.quantityChange < 0 ? '#ef4444' : '#64748b');
+                const changeSign = h.quantityChange > 0 ? '+' : '';
+                const timeStr = h.createTime ? h.createTime.replace('T',' ').substring(0,16) : '';
                 html += `<tr style="border-bottom:1px solid #e2e8f0;">
-                    <td style="padding:8px;color:#64748b;">${timeStr}</td>
-                    <td style="padding:8px;">${h.eventType}</td>
+                    <td style="padding:8px;color:#64748b;font-size:0.75rem;">${timeStr}</td>
+                    <td style="padding:8px;font-size:0.78rem;">${label}</td>
                     <td style="padding:8px;text-align:right;color:${changeColor};font-weight:600;">${changeSign}${h.quantityChange}</td>
                     <td style="padding:8px;text-align:right;font-weight:600;">${h.balanceAfter}</td>
-                    <td style="padding:8px;color:#64748b;">${h.relatedInfo || ''}</td>
-                    <td style="padding:8px;">${h.operator || ''}</td>
+                    <td style="padding:8px;color:#64748b;font-size:0.75rem;">${h.remark || ''}</td>
+                    <td style="padding:8px;font-size:0.78rem;">${h.operator || ''}</td>
                 </tr>`;
             });
             html += '</tbody></table>';
             document.getElementById('historyContent').innerHTML = html;
+
+            updateLedgerPagination(paged.totalElements, paged.totalPages);
         } catch(e) {
-            document.getElementById('historyContent').innerHTML = '<div style="color:#ef4444;padding:20px;text-align:center;">加载失败</div>';
+            document.getElementById('historyContent').innerHTML = '<div style="color:#ef4444;padding:20px;text-align:center;">加载失败: ' + e.message + '</div>';
         }
+    }
+
+    function updateLedgerPagination(total, totalPages) {
+        document.getElementById('ledgerPageInfo').textContent = '共 ' + total + ' 条记录';
+        document.getElementById('ledgerPageNum').textContent = (ledgerCurrentPage + 1) + ' / ' + Math.max(totalPages, 1);
+
+        const firstBtn = document.getElementById('ledgerFirstBtn');
+        const prevBtn = document.getElementById('ledgerPrevBtn');
+        const nextBtn = document.getElementById('ledgerNextBtn');
+        const lastBtn = document.getElementById('ledgerLastBtn');
+
+        firstBtn.disabled = ledgerCurrentPage <= 0;
+        prevBtn.disabled = ledgerCurrentPage <= 0;
+        nextBtn.disabled = ledgerCurrentPage >= totalPages - 1;
+        lastBtn.disabled = ledgerCurrentPage >= totalPages - 1;
+    }
+
+    function showProductLedger(shopName, productType, brand, series) {
+        ledgerShopName = shopName;
+        ledgerProductType = productType;
+        ledgerBrand = brand;
+        ledgerSeries = series;
+        ledgerModel = '';
+        ledgerCurrentPage = 0;
+        ledgerPageSize = parseInt(document.getElementById('ledgerPageSize').value, 10);
+
+        document.getElementById('ledgerStartDate').value = '';
+        document.getElementById('ledgerEndDate').value = '';
+        document.getElementById('ledgerChangeType').value = '';
+
+        document.getElementById('historyContent').innerHTML = '<div style="color:#94a3b8;padding:20px;text-align:center;">加载中...</div>';
+        document.getElementById('historyModal').classList.add('show');
+        document.getElementById('ledgerItemLabel').textContent =
+            (productType === 'FRAME' ? '镜架' : (productType === 'LENS' ? '镜片' : '物料')) +
+            ' | ' + brand + ' · ' + series + ' | ' + shopName;
+
+        loadLedgerPage();
     }
 
     async function loadInventory() {
@@ -2339,7 +2648,159 @@
         if (sb) { sb.style.color = ''; sb.style.borderColor = ''; }
     }
 
-    // ==================== 盘点记录 ====================
+    // ==================== 盘点记录（新，带差异检测） ====================
+    async function loadCheckRecords() {
+        const shopFilter = document.getElementById('salesHistoryShopFilter').value;
+        const params = new URLSearchParams();
+        if (shopFilter) params.append('shopName', shopFilter);
+
+        try {
+            const resp = await fetch('/api/inventory/check?' + params, { credentials: 'include' });
+            const data = await resp.json();
+            const tbody = document.getElementById('salesTableBody');
+            if (!data.success || !data.checks || data.checks.length === 0) {
+                tbody.innerHTML = '<tr class="empty-row"><td colspan="11">暂无盘点记录</td></tr>';
+                document.getElementById('discrepancyAlert').style.display = 'none';
+                document.getElementById('checkListCard').style.display = 'none';
+                return;
+            }
+
+            const checks = data.checks;
+            const discrepancies = checks.filter(c => c.status === 'DISCREPANCY');
+
+            if (discrepancies.length > 0) {
+                document.getElementById('discrepancyAlert').style.display = 'flex';
+                document.getElementById('discrepancyText').textContent =
+                    '发现 ' + discrepancies.length + ' 项库存差异，系统库存与实际盘点不一致，请及时处理。';
+                document.getElementById('checkListCard').style.display = '';
+                renderDiscrepancyTable(discrepancies);
+            } else {
+                document.getElementById('discrepancyAlert').style.display = 'none';
+                document.getElementById('checkListCard').style.display = 'none';
+            }
+
+            tbody.innerHTML = checks.map(r => {
+                const diffColor = r.difference === 0 ? '#22c55e' : '#ef4444';
+                const diffText = r.difference === 0 ? '一致' : (r.difference > 0 ? '+' + r.difference : String(r.difference));
+                const rowBg = r.difference !== 0 ? 'background:#fef2f2;' : '';
+                return `<tr style="${rowBg}">
+                    <td>${escapeHtml(r.shopName)}</td>
+                    <td>${r.productType === 'FRAME' ? '镜架' : (r.productType === 'LENS' ? '镜片' : '物料')}</td>
+                    <td>${escapeHtml(r.brand)}</td>
+                    <td>${escapeHtml(r.series)}</td>
+                    <td>${escapeHtml(r.model || '—')}</td>
+                    <td style="font-weight:700;">${r.checkQuantity}</td>
+                    <td>${escapeHtml(r.recorder)}</td>
+                    <td>${escapeHtml(r.remark || '—')}</td>
+                    <td style="font-size:0.75rem;">${r.checkTime ? r.checkTime.replace('T',' ').substring(0,16) : '—'}</td>
+                    <td>${r.status === 'DISCREPANCY' ? '<span style="color:#ef4444;font-weight:600;">' + diffText + '</span>' : '<span style="color:#22c55e;">一致</span>'}</td>
+                </tr>`;
+            }).join('');
+        } catch(e) { console.error('加载盘点记录失败:', e); }
+    }
+
+    function renderDiscrepancyTable(discrepancies) {
+        const tbody = document.getElementById('checkDiscrepancyBody');
+        tbody.innerHTML = discrepancies.map(r => {
+            const diffColor = r.difference > 0 ? '#22c55e' : '#ef4444';
+            const diffSign = r.difference > 0 ? '+' : '';
+            return `<tr style="background:#fef2f2;">
+                <td>${escapeHtml(r.shopName)}</td>
+                <td>${r.productType === 'FRAME' ? '镜架' : (r.productType === 'LENS' ? '镜片' : '物料')}</td>
+                <td>${escapeHtml(r.brand)}</td>
+                <td>${escapeHtml(r.series)}</td>
+                <td style="font-weight:700;">${r.systemQuantity}</td>
+                <td>${r.checkQuantity}</td>
+                <td style="color:${diffColor};font-weight:700;">${diffSign}${r.difference}</td>
+                <td><span style="color:#f59e0b;font-weight:600;">差异待处理</span></td>
+                <td style="font-size:0.75rem;">${r.checkTime ? r.checkTime.replace('T',' ').substring(0,16) : '—'}</td>
+                <td>${currentUserRole === 'SUPER' ? `
+                    <button class="btn-secondary resolve-check-btn" data-cid="${r.id}" data-accept="true" style="padding:3px 8px;font-size:0.7rem;color:#22c55e;" title="接受差异并修正库存">接受</button>
+                    <button class="btn-secondary resolve-check-btn" data-cid="${r.id}" data-accept="false" style="padding:3px 8px;font-size:0.7rem;color:#ef4444;" title="拒绝差异">拒绝</button>` : '—'}
+                </td>
+            </tr>`;
+        }).join('');
+        document.querySelectorAll('.resolve-check-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const cid = this.getAttribute('data-cid');
+                const accept = this.getAttribute('data-accept') === 'true';
+                resolveCheckDiscrepancy(cid, accept);
+            });
+        });
+    }
+
+    async function resolveCheckDiscrepancy(cid, accept) {
+        if (!accept && !confirm('确定拒绝此差异吗？')) return;
+        if (accept && !confirm('接受差异将修正系统库存为盘点数量，确定吗？')) return;
+        try {
+            const resp = await fetch('/api/inventory/check/' + cid + '/resolve', {
+                method: 'POST', credentials: 'include',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ accept: accept })
+            });
+            const data = await resp.json();
+            if (resp.ok) {
+                alert(data.message || (accept ? '已接受差异并修正库存' : '已拒绝差异'));
+                loadCheckRecords();
+                loadInventory();
+                loadPallet();
+            } else {
+                alert(data.error || '操作失败');
+            }
+        } catch(e) { alert('操作失败: ' + e.message); }
+    }
+
+    async function recordInventoryCheck() {
+        const brandBtn = document.getElementById('checkBrandBtn');
+        const brandText = brandBtn ? brandBtn.querySelector('.check-brand-text') : null;
+        let brand = brandText ? brandText.textContent.trim() : '';
+        if (brand === '点击选择品牌') brand = '';
+        const seriesBtn = document.getElementById('checkSeriesBtn');
+        const seriesText = seriesBtn ? seriesBtn.querySelector('.check-series-text') : null;
+        let series = seriesText ? seriesText.textContent.trim() : '';
+        if (series === '点击选择系列' || series === '手动输入系列') series = '';
+
+        const payload = {
+            productType: document.getElementById('checkProductType').value,
+            brand: brand,
+            series: series,
+            model: document.getElementById('checkModel').value.trim() || null,
+            checkQuantity: parseInt(document.getElementById('checkQuantity').value, 10),
+            remark: document.getElementById('checkRemark').value.trim() || null,
+            checkTime: new Date().toISOString()
+        };
+        const shopName = document.getElementById('checkShopName').value;
+        if (!shopName || !payload.brand || !payload.series || isNaN(payload.checkQuantity) || payload.checkQuantity < 0) {
+            alert('请填写完整信息（品牌、系列、盘点数量）'); return;
+        }
+        try {
+            const url = '/api/inventory/check' + (currentUserRole === 'SUPER' ? '?shopName=' + encodeURIComponent(shopName) : '');
+            const resp = await fetch(url, {
+                method: 'POST', credentials: 'include',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+            const data = await resp.json();
+            if (resp.ok) {
+                const check = data.check;
+                if (check.status === 'DISCREPANCY') {
+                    alert('盘点已记录 - 发现差异！系统库存: ' + check.systemQuantity + ', 盘点数量: ' + check.checkQuantity + ', 差异: ' + (check.difference > 0 ? '+' : '') + check.difference);
+                } else {
+                    alert('盘点已记录 - 库存一致 (数量: ' + check.checkQuantity + ')');
+                }
+                if (brandText) { brandText.textContent = '点击选择品牌'; brandBtn.style.color = '#64748b'; brandBtn.style.borderColor = '#e2e8f0'; }
+                if (seriesText) { seriesText.textContent = '点击选择系列'; seriesBtn.style.color = '#64748b'; seriesBtn.style.borderColor = '#e2e8f0'; }
+                document.getElementById('checkModel').value = '';
+                document.getElementById('checkQuantity').value = '0';
+                document.getElementById('checkRemark').value = '';
+                loadCheckRecords();
+            } else {
+                alert(data.error || '盘点失败');
+            }
+        } catch(e) { alert('盘点失败: ' + e.message); }
+    }
+
+    // ==================== 盘点记录（旧，兼容原有功能） ====================
     async function loadSalesRecords() {
         const shopFilter = document.getElementById('salesHistoryShopFilter').value;
         const startDate = document.getElementById('salesStartDate').value;
@@ -2353,7 +2814,7 @@
             const data = await resp.json();
             const tbody = document.getElementById('salesTableBody');
             if (!data.records || data.records.length === 0) {
-                tbody.innerHTML = '<tr class="empty-row"><td colspan="10">暂无盘点记录</td></tr>';
+                tbody.innerHTML = '<tr class="empty-row"><td colspan="11">暂无盘点记录</td></tr>';
                 return;
             }
             tbody.innerHTML = data.records.map(r => `
@@ -2367,6 +2828,7 @@
                     <td>${escapeHtml(r.recorder)}</td>
                     <td>${escapeHtml(r.remark || '—')}</td>
                     <td style="font-size:0.75rem;">${r.salesDate ? r.salesDate.replace('T',' ') : '—'}</td>
+                    <td>—</td>
                     <td><button class="delete-btn" data-sid="${r.id}" title="删除"><i class="fas fa-trash-alt"></i></button></td>
                 </tr>
             `).join('');
@@ -2505,12 +2967,15 @@
             const data = await resp.json();
             const shops = Array.isArray(data) ? data : (data.shopNames || []);
             const isSuper = currentUserRole === 'SUPER';
-            const selects = ['palletShopFilter', 'invShopName', 'invDetailShopFilter', 'salesShopName', 'salesHistoryShopFilter'];
+            const selects = ['palletShopFilter', 'invShopName', 'invDetailShopFilter', 'salesShopName', 'salesHistoryShopFilter', 'checkShopName', 'staffShopName', 'staffFilterShop'];
             selects.forEach(sid => {
                 const sel = document.getElementById(sid);
                 if (!sel) return;
-                sel.innerHTML = (isSuper ? '<option value="">全部门店</option>' : '') + shops.map(s => `<option value="${escapeHtml(s)}">${escapeHtml(s)}</option>`).join('');
-                if (!isSuper && shops.length === 1) sel.value = shops[0];
+                const isStaffSelect = sid === 'staffShopName';
+                const isStaffFilter = sid === 'staffFilterShop';
+                const defaultOption = isStaffSelect ? '请选择门店' : (isStaffFilter || isSuper ? '全部门店' : '');
+                sel.innerHTML = (defaultOption ? '<option value="">' + defaultOption + '</option>' : '') + shops.map(s => `<option value="${escapeHtml(s)}">${escapeHtml(s)}</option>`).join('');
+                if (!isSuper && shops.length === 1 && !isStaffSelect) sel.value = shops[0];
             });
             // NORMAL用户加载默认总盘数据
             if (!isSuper && shops.length === 1) {
@@ -2734,10 +3199,87 @@
         } catch(e) { alert('添加失败: ' + e.message); }
     }
 
+    // ==================== 人员管理 ====================
+    async function loadStaffList() {
+        try {
+            const shopFilter = document.getElementById('staffFilterShop').value;
+            let url = '/api/staff';
+            if (shopFilter) url += '?shopName=' + encodeURIComponent(shopFilter);
+            const resp = await fetch(url, { method: 'GET', credentials: 'include' });
+            const data = await resp.json();
+            const container = document.getElementById('staffListContainer');
+            if (!data.success || !data.data || data.data.length === 0) {
+                container.innerHTML = '<div style="text-align:center;padding:20px;color:#94a3b8;">暂无店员数据</div>';
+                return;
+            }
+            const grouped = {};
+            data.data.forEach(m => {
+                if (!grouped[m.shopName]) grouped[m.shopName] = [];
+                grouped[m.shopName].push(m);
+            });
+            let html = '';
+            Object.keys(grouped).sort().forEach(shop => {
+                html += '<div style="margin-bottom:14px;">';
+                html += '<strong style="color:var(--klein-blue);font-size:0.85rem;">' + escapeHtml(shop) + '</strong>';
+                html += '<table style="width:100%;border-collapse:collapse;margin-top:6px;font-size:0.85rem;"><tbody>';
+                grouped[shop].forEach(m => {
+                    html += '<tr style="border-bottom:1px solid #e2e8f0;">'
+                        + '<td style="padding:8px;">' + escapeHtml(m.name) + '</td>'
+                        + '<td style="padding:8px;text-align:right;">'
+                        + '<button class="delete-btn" data-sid="' + m.id + '" title="删除" onclick="deleteStaffMember(' + m.id + ')"><i class="fas fa-trash-alt"></i></button>'
+                        + '</td></tr>';
+                });
+                html += '</tbody></table></div>';
+            });
+            container.innerHTML = html;
+        } catch(e) {
+            document.getElementById('staffListContainer').innerHTML = '<div style="text-align:center;padding:20px;color:#ef4444;">加载失败</div>';
+        }
+    }
+
+    async function addStaffMember() {
+        const shop = document.getElementById('staffShopName').value;
+        const name = document.getElementById('staffMemberName').value.trim();
+        if (!shop) { alert('请选择门店'); return; }
+        if (!name) { alert('请输入店员姓名'); return; }
+        try {
+            const resp = await fetch('/api/staff', {
+                method: 'POST', credentials: 'include',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ shopName: shop, name: name })
+            });
+            const data = await resp.json();
+            if (resp.ok && data.success) {
+                document.getElementById('staffMemberName').value = '';
+                loadStaffList();
+                alert('添加成功');
+            } else {
+                alert(data.message || data.error || '添加失败');
+            }
+        } catch(e) { alert('添加失败: ' + e.message); }
+    }
+
+    async function deleteStaffMember(id) {
+        if (!confirm('确定删除该店员吗？')) return;
+        try {
+            const resp = await fetch('/api/staff/' + id, { method: 'DELETE', credentials: 'include' });
+            const data = await resp.json();
+            if (resp.ok) {
+                loadStaffList();
+                alert('已删除');
+            } else {
+                alert(data.message || data.error || '删除失败');
+            }
+        } catch(e) { alert('删除失败: ' + e.message); }
+    }
+
     // 绑定新按钮事件
     document.getElementById('addStockBtn')?.addEventListener('click', addStock);
     document.getElementById('recordSaleBtn')?.addEventListener('click', recordSale);
-    // 盘点表单：品牌/系列选择按钮
+    document.getElementById('recordCheckBtn')?.addEventListener('click', recordInventoryCheck);
+    document.getElementById('viewDiscrepancyBtn')?.addEventListener('click', () => {
+        document.getElementById('checkListCard').scrollIntoView({ behavior: 'smooth' });
+    });
     document.getElementById('salesBrandBtn')?.addEventListener('click', function(e) {
         e.preventDefault(); e.stopPropagation(); openSalesBrandModal();
     });
@@ -2751,20 +3293,23 @@
         e.preventDefault(); e.stopPropagation(); openInvSeriesModal();
     });
     document.getElementById('refreshPalletBtn')?.addEventListener('click', loadPallet);
-    document.getElementById('refreshInvBtn')?.addEventListener('click', loadInventory);
-    document.getElementById('refreshSalesBtn')?.addEventListener('click', loadSalesRecords);
     document.getElementById('palletShopFilter')?.addEventListener('change', loadPallet);
     document.getElementById('palletTypeFilter')?.addEventListener('change', loadPallet);
-    document.getElementById('invDetailShopFilter')?.addEventListener('change', loadInventory);
-    document.getElementById('salesHistoryShopFilter')?.addEventListener('change', loadSalesRecords);
-    document.getElementById('salesStartDate')?.addEventListener('change', loadSalesRecords);
-    document.getElementById('salesEndDate')?.addEventListener('change', loadSalesRecords);
+    document.getElementById('refreshInvBtn')?.addEventListener('click', loadInventory);
+    document.getElementById('refreshSalesBtn')?.addEventListener('click', () => { loadSalesRecords(); loadCheckRecords(); });
+    document.getElementById('salesHistoryShopFilter')?.addEventListener('change', () => { loadSalesRecords(); loadCheckRecords(); });
+    document.getElementById('salesStartDate')?.addEventListener('change', () => { loadSalesRecords(); loadCheckRecords(); });
+    document.getElementById('salesEndDate')?.addEventListener('change', () => { loadSalesRecords(); loadCheckRecords(); });
     document.getElementById('exportInvBtn')?.addEventListener('click', () => { if(allInventoryItems.length===0){alert('暂无数据可导出');return;} exportInventoryCSV(); });
     document.getElementById('exportSalesBtn')?.addEventListener('click', exportSalesCSV);
     document.getElementById('addCatalogBtn')?.addEventListener('click', addCatalogItem);
     document.getElementById('refreshCatalogBtn')?.addEventListener('click', loadProductCatalog);
     document.getElementById('catalogTypeFilter')?.addEventListener('change', loadProductCatalog);
     document.getElementById('catalogSearchInput')?.addEventListener('input', loadProductCatalog);
+    // 人员管理
+    document.getElementById('addStaffBtn')?.addEventListener('click', addStaffMember);
+    document.getElementById('refreshStaffBtn')?.addEventListener('click', loadStaffList);
+    document.getElementById('staffFilterShop')?.addEventListener('change', loadStaffList);
 
     // 折射率下拉框显隐 & 物料系列可选
     document.getElementById('catalogProductType')?.addEventListener('change', function() {
@@ -2826,6 +3371,24 @@
     // 历史弹窗事件
     document.getElementById('historyModalClose')?.addEventListener('click', () => document.getElementById('historyModal').classList.remove('show'));
     document.getElementById('historyModal')?.addEventListener('click', function(e) { if (e.target === this) this.classList.remove('show'); });
+    // 库存流水分页按钮
+    document.getElementById('ledgerFirstBtn')?.addEventListener('click', () => { ledgerCurrentPage = 0; loadLedgerPage(); });
+    document.getElementById('ledgerPrevBtn')?.addEventListener('click', () => { if (ledgerCurrentPage > 0) { ledgerCurrentPage--; loadLedgerPage(); } });
+    document.getElementById('ledgerNextBtn')?.addEventListener('click', () => { if (ledgerCurrentPage < ledgerTotalPages - 1) { ledgerCurrentPage++; loadLedgerPage(); } });
+    document.getElementById('ledgerLastBtn')?.addEventListener('click', () => { if (ledgerTotalPages > 0) { ledgerCurrentPage = ledgerTotalPages - 1; loadLedgerPage(); } });
+    document.getElementById('ledgerPageSize')?.addEventListener('change', function() {
+        ledgerPageSize = parseInt(this.value, 10);
+        ledgerCurrentPage = 0;
+        loadLedgerPage();
+    });
+    document.getElementById('ledgerFilterBtn')?.addEventListener('click', () => { ledgerCurrentPage = 0; loadLedgerPage(); });
+    document.getElementById('ledgerResetBtn')?.addEventListener('click', () => {
+        document.getElementById('ledgerStartDate').value = '';
+        document.getElementById('ledgerEndDate').value = '';
+        document.getElementById('ledgerChangeType').value = '';
+        ledgerCurrentPage = 0;
+        loadLedgerPage();
+    });
     document.getElementById('seriesModalSearch')?.addEventListener('input', function(e) {
         const term = e.target.value.toLowerCase();
         document.querySelectorAll('#seriesPills .brand-pill').forEach(p => {

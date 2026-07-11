@@ -3,7 +3,7 @@ package com.yezishuo.transfer.controller;
 import com.yezishuo.transfer.dto.*;
 import com.yezishuo.transfer.entity.TransferRecord;
 import com.yezishuo.transfer.entity.TransferDeleteAudit;
-import com.yezishuo.transfer.exception.BusinessException;
+import com.yezishuo.transfer.util.ShopNameUtil;
 import com.yezishuo.transfer.repository.TransferDeleteAuditRepository;
 import com.yezishuo.transfer.repository.TransferRecordRepository;
 import com.yezishuo.transfer.service.TransferService;
@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpSession;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/transfer")
@@ -68,11 +69,33 @@ public class TransferController {
 
     @GetMapping("/records")
     public ResponseEntity<?> getRecords(HttpSession session) {
-        List<TransferRecord> records = transferService.getAllRecords();
+        List<TransferRecord> allRecords = transferService.getAllRecords();
+
+        if (!SecurityUtils.isSuperAdmin()) {
+            String myShop = getEffectiveShopName(session);
+            if (myShop != null && !myShop.isEmpty()) {
+                String shortName = ShopNameUtil.toShortName(myShop);
+                if (shortName != null) {
+                    allRecords = allRecords.stream()
+                            .filter(r -> r.getDirectionDetail() != null && r.getDirectionDetail().contains(shortName))
+                            .collect(Collectors.toList());
+                }
+            }
+        }
+
         Map<String, Object> stats = transferService.getStatistics();
+        // Recompute stats for filtered records if not super admin
+        if (!SecurityUtils.isSuperAdmin()) {
+            int totalOut = allRecords.stream().filter(r -> "out".equals(r.getDirection())).mapToInt(TransferRecord::getQuantity).sum();
+            int totalIn = allRecords.stream().filter(r -> "in".equals(r.getDirection())).mapToInt(TransferRecord::getQuantity).sum();
+            stats.put("totalOut", totalOut);
+            stats.put("totalIn", totalIn);
+            stats.put("netOutflow", totalOut - totalIn);
+            stats.put("totalCount", allRecords.size());
+        }
 
         Map<String, Object> result = new HashMap<>();
-        result.put("records", records);
+        result.put("records", allRecords);
         result.put("statistics", stats);
         result.put("userRole", session.getAttribute("userRole"));
         result.put("userName", session.getAttribute("userName"));
@@ -100,6 +123,19 @@ public class TransferController {
 
         if (reason == null || reason.trim().isEmpty()) {
             return ResponseEntity.badRequest().body(errorMap("请填写删除原因"));
+        }
+
+        if (!SecurityUtils.isSuperAdmin()) {
+            TransferRecord record = recordRepository.findById(id).orElse(null);
+            if (record == null) {
+                return ResponseEntity.badRequest().body(errorMap("记录不存在"));
+            }
+            String myShop = getEffectiveShopName(session);
+            String shortName = ShopNameUtil.toShortName(myShop);
+            if (shortName == null || record.getDirectionDetail() == null
+                    || !record.getDirectionDetail().contains(shortName)) {
+                return ResponseEntity.status(403).body(errorMap("无权删除其他门店的记录"));
+            }
         }
 
         String userName = getUserName(session);
@@ -232,7 +268,48 @@ public class TransferController {
         return ResponseEntity.ok(records);
     }
 
+    @GetMapping("/admin/cleanup-before-july2026")
+    public ResponseEntity<?> cleanupOldData() {
+        if (!SecurityUtils.isSuperAdmin()) {
+            return ResponseEntity.status(403).body(errorMap("仅超级账号可执行"));
+        }
+        try {
+            java.time.LocalDateTime cutoff = java.time.LocalDateTime.of(2026, 7, 1, 0, 0);
+            List<TransferRecord> all = recordRepository.findAllActiveOrderByCreateTimeDesc();
+            int deleted = 0;
+            for (TransferRecord r : all) {
+                if (r.getCreateTime() != null && r.getCreateTime().isBefore(cutoff)) {
+                    r.setStatus("deleted");
+                    recordRepository.save(r);
+                    deleted++;
+                }
+            }
+            List<TransferDeleteAudit> audits = auditRepository.findAll();
+            for (TransferDeleteAudit a : audits) {
+                if (a.getRequestTime() != null && a.getRequestTime().isBefore(cutoff)) {
+                    auditRepository.delete(a);
+                }
+            }
+            return ResponseEntity.ok(successMap("message", "已清理 " + deleted + " 条旧记录，仅保留2026年7月及之后数据"));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(errorMap("清理失败: " + e.getMessage()));
+        }
+    }
+
     // ==================== 辅助方法 ====================
+
+    private String getEffectiveShopName(HttpSession session) {
+        UserDetailsImpl user = SecurityUtils.getCurrentUser();
+        if (user != null) {
+            String shopName = user.getShopName();
+            if (shopName != null && !shopName.isEmpty()) return shopName;
+        }
+        Object shopName = session.getAttribute("shopName");
+        if (shopName != null) return shopName.toString();
+        Object userName = session.getAttribute("userName");
+        if (userName != null) return userName.toString();
+        return null;
+    }
 
     private String getUserName(HttpSession session) {
         UserDetailsImpl user = SecurityUtils.getCurrentUser();
